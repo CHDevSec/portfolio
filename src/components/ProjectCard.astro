@@ -1,0 +1,111 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import type { Lang } from '@/data/i18n';
+import { t, localizedUrl } from '@/data/i18n';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  lang: Lang;
+}
+
+const { project, lang } = Astro.props;
+const { data, slug } = project;
+
+// Strip lang prefix from slug for href
+const cleanSlug = slug.replace(/^(en|pt)\//, '');
+const href = localizedUrl(`/projects/${cleanSlug}`, lang);
+
+const catLabel: Record<string, { en: string; pt: string }> = {
+  devsecops: { en: 'DEVSECOPS', pt: 'DEVSECOPS' },
+  cloud: { en: 'CLOUD', pt: 'CLOUD' },
+  soc: { en: 'SOC', pt: 'SOC' },
+  pentest: { en: 'PENTEST', pt: 'PENTEST' },
+  automation: { en: 'AUTOMATION', pt: 'AUTOMAÇÃO' },
+  consulting: { en: 'CONSULTING', pt: 'CONSULTORIA' },
+};
+
+const isFeatured = data.featured;
+---
+<a
+  href={href}
+  class={`pixel-frame group block overflow-hidden transition-all hover:-translate-y-1 hover:shadow-pixel-lg ${
+    isFeatured ? 'border-phosphor/60 hover:border-phosphor shadow-pixel' : 'hover:border-phosphor'
+  }`}
+>
+  <div class="relative overflow-hidden aspect-[16/9] bg-bg-inset">
+    <img
+      src={data.cover}
+      alt={data.title}
+      class="project-cover-img w-full h-full object-cover smooth group-hover:scale-105 transition-transform duration-500"
+      loading="lazy"
+      decoding="async"
+    />
+    <div class="absolute inset-0 pointer-events-none mix-blend-multiply"
+         style="background: linear-gradient(135deg, rgba(0, 65, 40, 0.55), rgba(0, 100, 60, 0.4));"></div>
+    <div class="absolute inset-0 pointer-events-none mix-blend-overlay opacity-20"
+         style="background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.3) 0px, rgba(0,0,0,0.3) 1px, transparent 1px, transparent 4px);"></div>
+    <div class="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none bg-gradient-to-t from-bg via-bg/50 to-transparent"></div>
+    <div class="absolute top-3 left-3 flex gap-2 z-10">
+      <span class="pixel-badge-success">{catLabel[data.category][lang]}</span>
+      {isFeatured && <span class="pixel-badge-amber">{t.catFeatured[lang]}</span>}
+    </div>
+    {data.categoryIcon && (
+      <div class="absolute top-3 right-3 z-10 p-1.5 bg-bg/80 backdrop-blur-sm border border-line">
+        <img
+          src={`/fonts/icons/${data.categoryIcon}.png`}
+          alt={data.categoryIconAlt ?? ''}
+          width="24"
+          height="24"
+          class="pixel-png pixel-png--toned w-6 h-6"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    )}
+    <div class="absolute bottom-3 right-3 font-mono text-[10px] text-ink-dim bg-bg/70 px-2 py-1 backdrop-blur z-10">
+      {data.period}
+    </div>
+  </div>
+
+  <div class="p-5">
+    <p class="font-pixel text-[10px] text-amber mb-2">▸ {data.company}</p>
+    <h3 class="font-pixel text-sm sm:text-base text-ink leading-tight group-hover:text-phosphor transition">
+      {data.title}
+    </h3>
+    <p class="font-mono text-xs text-ink-dim mt-2 leading-relaxed line-clamp-2">
+      {data.tagline}
+    </p>
+
+    {data.metrics.length > 0 && (
+      <div class="mt-4 grid grid-cols-3 gap-2 border-t-2 border-line pt-4">
+        {data.metrics.slice(0, 3).map((m) => (
+          <div>
+            <div class={`font-pixel text-base ${
+              m.tone === 'amber' ? 'text-amber' :
+              m.tone === 'alert' ? 'text-alert' : 'text-phosphor'
+            }`}>
+              {m.value}
+            </div>
+            <div class="font-mono text-[9px] text-ink-mute uppercase mt-0.5 leading-tight">
+              {m.label}
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    <div class="mt-4 flex items-center justify-between">
+      <div class="flex flex-wrap gap-1">
+        {data.stack.slice(0, 3).map((s) => (
+          <span class="font-mono text-[10px] text-ink-mute">{s}</span>
+        ))}
+        {data.stack.length > 3 && (
+          <span class="font-mono text-[10px] text-ink-mute">+{data.stack.length - 3}</span>
+        )}
+      </div>
+      <span class="font-pixel text-[10px] text-phosphor opacity-0 group-hover:opacity-100 transition">
+        {t.cardRead[lang]}
+      </span>
+    </div>
+  </div>
+</a>

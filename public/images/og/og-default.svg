@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" shape-rendering="crispEdges" style="font-family: monospace;">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#00FF9C" stroke-width="1" opacity="0.06"/>
+    </pattern>
+    <linearGradient id="phos" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00FF9C"/>
+      <stop offset="100%" stop-color="#3DFFB6"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#0A0E14"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+
+  <!-- Top + bottom accent bars -->
+  <rect x="0" y="0" width="1200" height="6" fill="#00FF9C"/>
+  <rect x="0" y="624" width="1200" height="6" fill="#FFB000"/>
+
+  <!-- Status pill -->
+  <g transform="translate(60, 50)">
+    <rect x="0" y="0" width="14" height="14" fill="#00FF9C"/>
+    <text x="22" y="13" fill="#00FF9C" font-size="14" font-weight="bold">▸ AVAILABLE FOR HIRE · GLOBAL · REMOTE</text>
+  </g>
+
+  <!-- Handle -->
+  <text x="60" y="100" fill="#5A6373" font-size="16" font-weight="bold">// chdevsec</text>
+
+  <!-- Name (huge) -->
+  <text x="60" y="190" fill="#E6E6E6" font-size="76" font-weight="900" letter-spacing="2">CAIO HENRIQUE</text>
+
+  <!-- Title -->
+  <g transform="translate(60, 230)">
+    <text x="0" y="50" fill="#00FF9C" font-size="46" font-weight="900" letter-spacing="1">SENIOR SECURITY ENGINEER</text>
+    <text x="0" y="85" fill="#9AA2B1" font-size="20">DevSecOps · Cloud Security · Vulnerability Management</text>
+    <text x="0" y="115" fill="#FFB000" font-size="18">▸ 7+ years reducing risk at scale</text>
+  </g>
+
+  <!-- Stats grid -->
+  <g transform="translate(60, 410)">
+    <!-- Stat 1 -->
+    <g>
+      <rect x="0" y="0" width="252" height="160" fill="#141A24" stroke="#00FF9C" stroke-width="3"/>
+      <text x="20" y="65" fill="#00FF9C" font-size="56" font-weight="900">7+</text>
+      <text x="20" y="105" fill="#E6E6E6" font-size="14" font-weight="bold">YEARS IN SEC ENG</text>
+      <text x="20" y="130" fill="#5A6373" font-size="13">cloud · devsecops</text>
+    </g>
+    <!-- Stat 2 -->
+    <g transform="translate(272, 0)">
+      <rect x="0" y="0" width="252" height="160" fill="#141A24" stroke="#FFB000" stroke-width="3"/>
+      <text x="20" y="65" fill="#FFB000" font-size="56" font-weight="900">−44%</text>
+      <text x="20" y="105" fill="#E6E6E6" font-size="14" font-weight="bold">VULNS REDUCED</text>
+      <text x="20" y="130" fill="#5A6373" font-size="13">569k → 318k @ frete.com</text>
+    </g>
+    <!-- Stat 3 -->
+    <g transform="translate(544, 0)">
+      <rect x="0" y="0" width="252" height="160" fill="#141A24" stroke="#00FF9C" stroke-width="3"/>
+      <text x="20" y="65" fill="#00FF9C" font-size="56" font-weight="900">60%+</text>
+      <text x="20" y="105" fill="#E6E6E6" font-size="14" font-weight="bold">GO STACK COVERED</text>
+      <text x="20" y="130" fill="#5A6373" font-size="13">SecScan tool</text>
+    </g>
+    <!-- Stat 4 -->
+    <g transform="translate(816, 0)">
+      <rect x="0" y="0" width="252" height="160" fill="#141A24" stroke="#00FF9C" stroke-width="3"/>
+      <text x="20" y="65" fill="#00FF9C" font-size="56" font-weight="900">70%</text>
+      <text x="20" y="105" fill="#E6E6E6" font-size="14" font-weight="bold">CIS HARDENING</text>
+      <text x="20" y="130" fill="#5A6373" font-size="13">CIS-Auditor</text>
+    </g>
+  </g>
+
+  <!-- Footer URL -->
+  <text x="60" y="610" fill="#5A6373" font-size="14">caiohenrique.dev · linkedin/caio-henrique-security · github/chdevsec</text>
+</svg>

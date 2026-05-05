@@ -1,0 +1,70 @@
+---
+import PixelIcon from './icons/PixelIcon.astro';
+import type { Lang } from '@/data/i18n';
+import { t } from '@/data/i18n';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+
+const principles = [
+  {
+    icon: 'eye',
+    title: t.methodP1Title[lang],
+    body: t.methodP1Body[lang],
+    accent: 'phosphor' as const,
+    stat: '−87%',
+    statLabel: t.methodP1Stat[lang],
+  },
+  {
+    icon: 'pipe',
+    title: t.methodP2Title[lang],
+    body: t.methodP2Body[lang],
+    accent: 'amber' as const,
+    stat: '−44%',
+    statLabel: t.methodP2Stat[lang],
+  },
+  {
+    icon: 'fingerprint',
+    title: t.methodP3Title[lang],
+    body: t.methodP3Body[lang],
+    accent: 'phosphor' as const,
+    stat: '60%+',
+    statLabel: t.methodP3Stat[lang],
+  },
+];
+
+const accentColor = {
+  phosphor: 'text-phosphor border-phosphor',
+  amber: 'text-amber border-amber',
+};
+const accentText = {
+  phosphor: 'text-phosphor',
+  amber: 'text-amber',
+};
+---
+<section id="how" class="relative bg-bg-inset border-y-2 border-line py-16 sm:py-20">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <p class="section-eyebrow">{t.methodEyebrow[lang]}</p>
+    <h2 class="section-title">{t.methodTitle[lang]}</h2>
+    <p class="section-subtitle">{t.methodSubtitle[lang]}</p>
+
+    <div class="grid md:grid-cols-3 gap-5">
+      {principles.map((p, i) => (
+        <article class="pixel-frame relative p-6 sm:p-7 hover:border-phosphor transition group">
+          <span class={`absolute -top-3 left-5 px-2 py-0.5 bg-bg-inset font-pixel text-[10px] ${accentText[p.accent]} border-2 ${accentColor[p.accent]}`}>
+            0{i + 1}
+          </span>
+          <div class={`w-14 h-14 grid place-items-center border-2 ${accentColor[p.accent]} bg-bg-card`}>
+            <PixelIcon name={p.icon as any} size={32} />
+          </div>
+          <h3 class={`mt-5 font-pixel text-base ${accentText[p.accent]}`}>{p.title}</h3>
+          <p class="mt-3 font-sans text-sm text-ink/90 leading-relaxed">{p.body}</p>
+          <div class="mt-5 pt-4 border-t-2 border-line flex items-baseline gap-3">
+            <span class={`font-pixel text-2xl ${accentText[p.accent]}`}>{p.stat}</span>
+            <span class="font-mono text-[10px] text-ink-mute uppercase leading-tight">{p.statLabel}</span>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

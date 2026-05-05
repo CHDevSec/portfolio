@@ -1,0 +1,85 @@
+---
+title: "Gates DevSecOps que engenheiros não desabilitam"
+description: "Como entregar SAST, SCA, IaC e secrets scanning em CI/CD sem virar o time que todo mundo dá a volta. As regras que fazem segurança ser adotada em vez de evitada."
+pubDate: 2026-04-22
+cover: "/images/wallpapers/wallpaper_devsecops.png"
+tags: ["devsecops", "ci-cd", "appsec"]
+---
+
+A maioria dos rollouts de "DevSecOps" que vi morrem do mesmo jeito: segurança adiciona cinco scanners no CI, o build triplica de tempo, taxa de falsos positivos explode, engenheiros cansam, liderança recebe Slack do VP de Engenharia, scanners ganham **continue-on-error**.
+
+Isso não é segurança. É teatro consumindo minutos por build pra sempre.
+
+Eis o que aprendi entregando gates de segurança CI/CD na **frete.com** — pipelines cobrindo centenas de serviços, milhares de commits por semana — sem virar o time que as pessoas dão a volta.
+
+## Regra 1 — Bloqueia no sinal, alerta no ruído
+
+Default de todo scanner é "gritar em tudo". Isso não funciona em código de produção com milhares de dependências.
+
+**A regra que entreguei:**
+- **Bloqueia** o build só em findings `critical` + reachable
+- **Alerta** em `high` reachable + `critical` non-reachable
+- **Anota** o resto (visível, sem falhar)
+
+"Reachable" importa porque **CVSS não é igual a exploitability**. Uma CVE crítica numa dep transitiva que nenhuma função exportada chama é risco teórico, não risco real.
+
+Isso tirou os tickets diários de "build broken por causa do Snyk" de ~12 pra menos de 1.
+
+## Regra 2 — Annotations no PR, não em dashboard separado
+
+Se o engenheiro precisa sair do PR pra checar findings de segurança, ele não vai.
+
+Use formato SARIF e suporte nativo de annotations do CI:
+- GitHub Actions: emite SARIF, [upload via `github/codeql-action/upload-sarif`](https://github.com/github/codeql-action) — findings aparecem inline no diff do PR
+- GitLab: SAST report artifact — mesma ideia, view nativo no PR
+
+O engenheiro vê o finding **na linha de código que introduziu**, não num ticket Jira que será criado depois e ninguém vai ler.
+
+## Regra 3 — Auto-PR pra CVEs com fix
+
+Quando Snyk/Dependabot diz "v1.2.3 corrige CVE-2024-XXXX e é API-compatível com 1.2.0" — abra você mesmo o PR. Não faça o engenheiro triagiar.
+
+**SecScan** (o scanner que construí) envelopa os fix advices do Snyk com nossa lógica:
+- Confirma que o bump é non-breaking via call graph de dependência
+- Abre PR com bump + re-run de regression
+- Merge automático se tudo verde
+
+Engenheiros saem de "mais um ticket de segurança" pra "mais um Dependabot auto-merged" — mesmo resultado, carga cognitiva próxima de zero.
+
+## Regra 4 — Secrets scanning roda em DOIS pontos
+
+Pre-commit hook + safety net no CI. Não um ou outro.
+
+- **Pre-commit hook:** [`gitleaks`](https://github.com/gitleaks/gitleaks) — rápido, local, pega o secret ANTES de virar histórico do git
+- **Safety net no CI:** roda em todo push — pega quem deu bypass (sim, dão bypass)
+
+Por que ambos? Porque uma vez no histórico, rotacionar é o único fix — o secret vazou mesmo se você remover. Pre-commit previne o leak; CI pega quem usou `git commit --no-verify`.
+
+## Regra 5 — IaC scanning não é mais opcional
+
+Se você entrega Terraform, Helm ou Kubernetes manifests sem IaC scanning, está confiando em humanos pra não misconfigurar recursos cloud. Humanos sempre misconfiguram recursos cloud. É assim que buckets S3 ficam expostos.
+
+**Ferramentas que funcionaram pra mim:** [Kics](https://github.com/Checkmarx/kics) pra cobertura, [Polaris](https://github.com/FairwindsOps/polaris) pra Kubernetes.
+
+Roda em PRs que tocam `*.tf` / `*.yaml`. Bloqueia em `critical` (ex: bucket S3 publicly readable). Alerta em `high`.
+
+## Regra 6 — Métricas pra tech leads, não pra security
+
+Toda sexta, compartilha com tech leads:
+- "Findings introduzidos esta semana: X · Findings fechados: Y"
+- "Top 3 serviços com critical findings"
+- "Tempo médio pra fix: Zd"
+
+Só isso. Se eles não veem *progresso*, não acreditam que o programa funciona. Se não veem *quem está pra trás*, não têm dado pra cobrar os times.
+
+Segurança como **dashboard**, não como **gate**, é o que faz o programa ser fundeado no ano seguinte.
+
+## Regra 7 — Na dúvida, conversa com engenharia antes de escalar
+
+A parte mais difícil de DevSecOps não é tooling — é não virar o time que platform team contorna.
+
+Antes de rolar um scanner novo: pergunte a 2–3 engenheiros sêniors o que ele NÃO deveria fazer. As respostas (falso positivo nessa linguagem, build lento pra monorepo, quebra nesse CI runner) são exatamente a config que você precisa.
+
+---
+
+Se isso ressoa com seu ambiente e quer falar sobre rollouts DevSecOps, [me chama](/pt/#contact). Estou disponível pra vagas senior de segurança e consultoria.

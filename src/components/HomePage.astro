@@ -1,0 +1,116 @@
+---
+import Base from '@/layouts/Base.astro';
+import Hero from './Hero.astro';
+import CompaniesBar from './CompaniesBar.astro';
+import ExperienceSection from './ExperienceSection.astro';
+import HowIWorkSection from './HowIWorkSection.astro';
+import HighlightBand from './HighlightBand.astro';
+import ProjectsSection from './ProjectsSection.astro';
+import SkillsSection from './SkillsSection.astro';
+import CertsSection from './CertsSection.astro';
+import ContactSection from './ContactSection.astro';
+import { deepStats, type Stat } from '@/data/stats';
+import { profile } from '@/data/profile';
+import type { Lang } from '@/data/i18n';
+import { t } from '@/data/i18n';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+
+const toneColor = {
+  phosphor: 'text-phosphor',
+  amber: 'text-amber',
+  alert: 'text-alert',
+  ink: 'text-ink',
+};
+
+const deepStatLabel = (s: Stat) => {
+  const map: Record<string, keyof typeof t> = {
+    'Users IAM lifecycle': 'statUsers',
+    'Assets monitored': 'statAssets',
+    'Critical CVEs': 'statCriticalCVEs',
+    'Attack surface cut': 'statAttackSurface',
+    'Companies': 'statCompanies',
+    'Security projects': 'statProjects',
+  };
+  const key = map[s.label];
+  return key ? t[key][lang] : s.label;
+};
+const deepStatHint = (s: Stat) => {
+  if (!s.hint) return undefined;
+  const map: Record<string, keyof typeof t> = {
+    'Fintech regulated': 'statHintFinTech',
+    'Wazuh SOC, ~80% visibility': 'statHintWazuhSOC',
+    'Infra pentest': 'statHintInfraPentest',
+    'pfSense + Suricata': 'statHintPfsense',
+    '2021 → present': 'statHintSince',
+    'Tools, automations, audits': 'statHintProjects',
+  };
+  const key = map[s.hint];
+  return key ? t[key][lang] : s.hint;
+};
+
+const deepStatIcon: Record<string, string> = {
+  'Users IAM lifecycle': 'fc73',
+  'Assets monitored': 'fc664',
+  'Critical CVEs': 'fc673',
+  'Attack surface cut': 'fc887',
+  'Companies': 'fc15',
+  'Security projects': 'fc984',
+};
+
+const titleStr = lang === 'pt'
+  ? `${profile.name} — Engenheiro de Segurança Sênior · DevSecOps · Cloud Security`
+  : `${profile.name} — Senior Security Engineer · DevSecOps · Cloud Security`;
+const descStr = lang === 'pt'
+  ? 'Engenheiro de Segurança Sênior com 7+ anos reduzindo risco em escala. Reduzi 569k → 318k vulnerabilidades (−44%) na frete.com. Criei SecScan e CIS-Auditor. Aberto a vagas Senior Security Engineer globais.'
+  : 'Senior Security Engineer with 7+ years cutting risk at scale. Reduced 569k → 318k vulnerabilities (−44%) at frete.com. Built SecScan and CIS-Auditor. Open to global Senior Security Engineer roles.';
+---
+<Base title={titleStr} description={descStr} lang={lang}>
+  <Hero lang={lang} />
+
+  <!-- Companies bar (replaces testimonials) -->
+  <CompaniesBar lang={lang} />
+
+  <!-- Deep stats band -->
+  <section class="bg-bg-inset border-b-2 border-line py-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <p class="section-eyebrow text-center mb-8">{t.impactMeasured[lang]}</p>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {deepStats.map((s) => (
+          <div class="pixel-frame p-3 text-center">
+            <div class={`font-pixel text-lg sm:text-xl ${toneColor[s.tone || 'ink']}`}>
+              {s.value}
+            </div>
+            <div class="font-mono text-[10px] text-ink-dim mt-1 leading-tight">
+              {deepStatLabel(s)}
+              {deepStatIcon[s.label] && (
+                <img
+                  src={`/fonts/icons/${deepStatIcon[s.label]}.png`}
+                  alt=""
+                  aria-hidden="true"
+                  width="14"
+                  height="14"
+                  class="pixel-png pixel-png--toned w-3.5 h-3.5 inline-block ml-1.5 align-middle opacity-70"
+                  loading="lazy"
+                />
+              )}
+            </div>
+            {s.hint && <div class="font-mono text-[9px] text-ink-mute mt-1 truncate">{deepStatHint(s)}</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <ExperienceSection lang={lang} />
+  <HowIWorkSection lang={lang} />
+
+  <!-- DRAMATIC HIGHLIGHT BAND between Method and Projects -->
+  <HighlightBand lang={lang} />
+
+  <ProjectsSection lang={lang} />
+  <SkillsSection lang={lang} />
+  <CertsSection lang={lang} />
+  <ContactSection lang={lang} />
+</Base>

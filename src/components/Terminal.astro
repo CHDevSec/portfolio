@@ -1,0 +1,135 @@
+---
+interface Line {
+  prompt?: string;
+  cmd?: string;
+  out?: string | string[];
+  delay?: number; // ms
+  tone?: 'phosphor' | 'amber' | 'ink' | 'alert';
+}
+
+interface Props {
+  lines: Line[];
+  title?: string;
+  autoplay?: boolean;
+  class?: string;
+}
+
+const { lines, title = 'caio@chdevsec:~', autoplay = true, class: klass = '' } = Astro.props;
+const id = `term-${Math.random().toString(36).slice(2, 8)}`;
+---
+<div class={`terminal scanlines ${klass}`} data-terminal id={id}>
+  <div class="terminal-header">
+    <span class="terminal-dot bg-alert"></span>
+    <span class="terminal-dot bg-amber"></span>
+    <span class="terminal-dot bg-phosphor"></span>
+    <span class="ml-2 font-mono text-[10px] text-ink-dim truncate">{title}</span>
+  </div>
+  <div class="p-4 sm:p-5 min-h-[220px]" data-terminal-body>
+    <!-- Static placeholder visible BEFORE animation starts (avoids "broken empty box" first paint) -->
+    <div class="terminal-static font-mono text-[13px] sm:text-sm leading-6">
+      <span class="text-phosphor mr-2">{lines[0]?.prompt || 'caio@sec'}</span>
+      <span class="text-ink-dim">▸ initializing</span><span class="inline-block w-2.5 h-4 bg-phosphor align-middle animate-cursor-blink ml-1"></span>
+    </div>
+    {lines.map((line, i) => (
+      <div
+        class="terminal-line"
+        data-line-index={i}
+        data-line={JSON.stringify(line)}
+        style={autoplay ? 'visibility:hidden;' : ''}
+      ></div>
+    ))}
+  </div>
+</div>
+
+<script define:vars={{ id, lines, autoplay }}>
+  const root = document.getElementById(id);
+  if (!root) {
+    /* no-op */
+  } else {
+    const toneClass = (tone) => {
+      switch (tone) {
+        case 'phosphor': return 'text-phosphor';
+        case 'amber': return 'text-amber';
+        case 'alert': return 'text-alert';
+        default: return 'text-ink';
+      }
+    };
+
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    const typeInto = async (el, text, speedMs = 18) => {
+      el.textContent = '';
+      for (let i = 0; i < text.length; i++) {
+        el.textContent += text[i];
+        await sleep(speedMs);
+      }
+    };
+
+    const renderLine = async (lineEl, line) => {
+      lineEl.style.visibility = 'visible';
+      const promptColor = 'text-phosphor';
+      const cmdColor = toneClass('ink');
+
+      const wrap = document.createElement('div');
+      wrap.className = 'font-mono text-[13px] sm:text-sm leading-6';
+      lineEl.appendChild(wrap);
+
+      if (line.cmd !== undefined) {
+        const promptSpan = document.createElement('span');
+        promptSpan.className = `${promptColor} mr-2`;
+        promptSpan.textContent = line.prompt || '$';
+        wrap.appendChild(promptSpan);
+
+        const cmdSpan = document.createElement('span');
+        cmdSpan.className = cmdColor;
+        wrap.appendChild(cmdSpan);
+        await typeInto(cmdSpan, line.cmd);
+      }
+
+      if (line.out !== undefined) {
+        const outs = Array.isArray(line.out) ? line.out : [line.out];
+        for (const out of outs) {
+          const outEl = document.createElement('div');
+          outEl.className = `font-mono text-[13px] sm:text-sm leading-6 ${toneClass(line.tone)}`;
+          outEl.textContent = out;
+          lineEl.appendChild(outEl);
+          await sleep(60);
+        }
+      }
+      await sleep(line.delay ?? 220);
+    };
+
+    const staticEl = root.querySelector('.terminal-static');
+
+    const run = async () => {
+      // Hide the static placeholder when animation begins
+      if (staticEl) staticEl.style.display = 'none';
+      const lineEls = root.querySelectorAll('[data-line]');
+      for (const el of lineEls) {
+        const line = JSON.parse(el.dataset.line);
+        await renderLine(el, line);
+      }
+      // Append a final cursor at the end
+      // Loop back: clear and run again, but with a longer delay first
+      await sleep(2400);
+      lineEls.forEach((el) => {
+        el.innerHTML = '';
+        el.style.visibility = 'hidden';
+      });
+      run();
+    };
+
+    if (autoplay) {
+      // Defer until visible
+      const obs = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            obs.disconnect();
+            run();
+          }
+        }
+      }, { threshold: 0.2 });
+      obs.observe(root);
+    }
+  }
+</script>

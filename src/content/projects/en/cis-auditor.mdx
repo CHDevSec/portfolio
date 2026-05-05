@@ -1,0 +1,48 @@
+---
+title: "CIS-Auditor — Linux hardening automation"
+tagline: "From manual checklists to 70% benchmark coverage at scale"
+company: "frete.com"
+period: "2024 — 2026"
+category: "automation"
+cover: "/images/wallpapers/wallpaper_hardening.webp"
+categoryIcon: "fc855"
+categoryIconAlt: "Compliance audit shield"
+featured: true
+order: 2
+metrics:
+  - { value: "70%", label: "CIS benchmark coverage", tone: "phosphor" }
+  - { value: "Auto", label: "Drift detection", tone: "amber" }
+  - { value: "−44%", label: "Vuln impact (Ubuntu fleet)", tone: "alert" }
+stack: ["Go", "Bash", "Python", "Ubuntu", "CIS Controls", "Ansible"]
+summary: "Automated CIS Benchmark auditor for Ubuntu fleets, providing continuous compliance scoring, drift detection and remediation runbooks — turning a yearly checklist into a daily signal."
+---
+
+## The problem
+
+Hardening is one of those things that looks great in a one-time audit and decays the moment people start working. We had:
+
+- **Manual CIS Benchmark reviews** running maybe twice a year
+- **Drift accumulating silently** between audits — packages added, configs tweaked, sysctls changed
+- No way to differentiate "we never configured this" from "this used to be hardened and someone broke it"
+- Vulnerability counts climbing because the underlying OS posture was eroding
+
+## The approach
+
+I built **CIS-Auditor**, a Go-based tool that runs the CIS Benchmark continuously:
+
+- **70% of CIS Ubuntu controls** automated — both detection and remediation paths
+- **Idempotent checks** — safe to run on every host, every day
+- **Score + diff per host** — you don't just see "non-compliant", you see what changed since yesterday
+- **Drift alerts** — Slack/PagerDuty when a previously-compliant control regresses
+- **Remediation playbooks** — every fail comes with a one-liner or Ansible task to fix it
+- Pluggable rule packs — same engine works for STIG and internal hardening standards
+
+## The result
+
+Combined with the Ubuntu vuln-reduction initiative and SecScan, this contributed to bringing the **company-wide vulnerability count from 569k → 318k (−44%)**.
+
+More importantly, it shifted hardening from a "project we do every year" to **a continuous, measurable discipline** with a number engineers and leadership could track week over week.
+
+## What I learned
+
+Compliance is a side effect, not a goal. Ship the metric, ship the diff, ship the fix — the compliance number takes care of itself.

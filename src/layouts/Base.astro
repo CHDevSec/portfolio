@@ -1,0 +1,106 @@
+---
+import '@/styles/global.css';
+import Nav from '@/components/Nav.astro';
+import Footer from '@/components/Footer.astro';
+import { profile } from '@/data/profile';
+import type { Lang } from '@/data/i18n';
+import { detectLang } from '@/data/i18n';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  noindex?: boolean;
+  lang?: Lang;
+}
+
+const detected = detectLang(Astro.url.pathname);
+const {
+  title = `${profile.name} — ${profile.title}`,
+  description = profile.bio.short,
+  image = '/images/og/og-default.png',
+  noindex = false,
+  lang = detected,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImage = new URL(image, Astro.site).toString();
+
+// hreflang alternates
+const altPath = lang === 'en' ? `/pt${Astro.url.pathname === '/' ? '' : Astro.url.pathname}` : Astro.url.pathname.replace(/^\/pt/, '') || '/';
+const altCanonical = new URL(altPath, Astro.site).toString();
+
+const personJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: profile.name,
+  jobTitle: profile.title,
+  url: Astro.site?.toString(),
+  email: `mailto:${profile.email}`,
+  telephone: profile.phone,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Joinville',
+    addressRegion: 'SC',
+    addressCountry: 'BR',
+  },
+  sameAs: [profile.links.linkedin, profile.links.github],
+  knowsAbout: [
+    'DevSecOps', 'Cloud Security', 'Vulnerability Management',
+    'SIEM', 'EDR/XDR', 'Penetration Testing',
+    'CIS Benchmarks', 'AWS Security',
+  ],
+};
+---
+<!doctype html>
+<html lang={lang === 'pt' ? 'pt-BR' : 'en'} class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang={lang === 'en' ? 'pt-BR' : 'en'} href={altCanonical} />
+    <link rel="alternate" hreflang="x-default" href={new URL('/', Astro.site).toString()} />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={profile.name} />
+    <meta name="theme-color" content="#0A0E14" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content={lang === 'pt' ? 'pt_BR' : 'en_US'} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap"
+    />
+
+    <!-- JSON-LD -->
+    <script type="application/ld+json" set:html={JSON.stringify(personJsonLd)} />
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <Nav lang={lang} />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+  </body>
+</html>

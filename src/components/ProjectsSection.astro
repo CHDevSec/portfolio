@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+import ProjectCard from './ProjectCard.astro';
+import type { Lang } from '@/data/i18n';
+import { t } from '@/data/i18n';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+
+const all = await getCollection('projects', ({ data }) => !data.draft);
+// Filter by lang prefix in slug (e.g., en/secscan or pt/secscan)
+const langPrefix = `${lang}/`;
+const filtered = all.filter((p) => p.slug.startsWith(langPrefix));
+const sorted = filtered.sort((a, b) => a.data.order - b.data.order);
+const featured = sorted.filter((p) => p.data.featured);
+const more = sorted.filter((p) => !p.data.featured);
+---
+<section id="projects" class="section">
+  <p class="section-eyebrow">{t.projectsEyebrow[lang]}</p>
+  <h2 class="section-title">{t.projectsTitle[lang]}</h2>
+  <p class="section-subtitle">{t.projectsSubtitle[lang]}</p>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    {featured.map((p) => <ProjectCard project={p} lang={lang} />)}
+  </div>
+
+  {more.length > 0 && (
+    <div class="mt-12 mb-6 flex items-center gap-4">
+      <span class="hr-pixel flex-1"></span>
+      <p class="font-pixel text-[11px] text-ink-dim uppercase tracking-wider whitespace-nowrap">
+        {t.projectsMoreWork[lang]} · {more.length}
+      </p>
+      <span class="hr-pixel flex-1"></span>
+    </div>
+  )}
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    {more.map((p) => <ProjectCard project={p} lang={lang} />)}
+  </div>
+</section>

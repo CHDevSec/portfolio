@@ -1,0 +1,52 @@
+---
+title: "Stand-up de SOC com Wazuh — ambiente de 400+ ativos"
+tagline: "De zero monitoramento a ~80% de visibilidade em menos de um ano"
+company: "Volt Sport"
+period: "2023 — 2024"
+category: "soc"
+cover: "/images/wallpapers/wallpaper_soc.png"
+categoryIcon: "fc664"
+categoryIconAlt: "Escudo blue team defensivo"
+featured: true
+order: 3
+metrics:
+  - { value: "400+", label: "Ativos onboardados", tone: "phosphor" }
+  - { value: "~80%", label: "Visibilidade ativos críticos", tone: "phosphor" }
+  - { value: "16", label: "CVEs críticas encontradas", tone: "alert" }
+stack: ["Wazuh", "Elastic", "Linux", "Windows", "Cloudflare WAF", "Zero Trust"]
+summary: "Projetei e operei um SOC baseado em Wazuh para ambiente multi-filial de 400+ ativos. Combinado com pentest de infraestrutura que revelou 16 vulnerabilidades críticas priorizadas pra remediação."
+---
+
+## O ponto de partida
+
+Empresa multi-filial em crescimento com **400+ ativos críticos**, sem coleta centralizada de logs, sem camada de correlação, sem visibilidade real do que acontecia em endpoints, servidores ou perímetro. Resposta a incidentes era reativa — guiada por chamados, não por telemetria.
+
+## O que construí
+
+**1. SOC baseado em Wazuh**
+
+- Ingestão centralizada de logs de servidores Windows, infra Linux, appliances de rede e endpoints
+- Regras de correlação ajustadas pra modelo de ameaça real — não ruído genérico
+- ~**80% de visibilidade** sobre ativos críticos no primeiro ano
+- Dashboards e workflows de oncall que tornaram os dados acionáveis
+
+**2. Pentest de infraestrutura**
+
+- Pentest na perspectiva interna cobrindo rede, AD, endpoints e serviços expostos
+- **16 vulnerabilidades críticas** identificadas, com roadmap de remediação dirigido por severidade
+- Trabalhei junto com infra/dev pra fechar — não só entreguei PDF
+
+**3. Redução de superfície de ataque**
+
+- **Arquitetura Zero Trust** rolada nas filiais
+- **Cloudflare WAF** na frente dos serviços públicos
+- Sweep de hardening em infra Linux/Windows
+- Governança de IAM + controles de acesso privilegiado
+
+## O resultado
+
+Empresa que antes não tinha camada de detecção passou a operar com SOC funcional, processo de IR documentado e postura mensurável. As 16 críticas foram fechadas; o SOC virou a operação steady-state, não o projeto.
+
+## O que aprendi
+
+Visibilidade sem **priorização** é só mais ruído. A vitória não foi o SIEM — foi o roadmap de remediação priorizado que tornou a saída do SIEM acionável.

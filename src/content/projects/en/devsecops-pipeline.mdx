@@ -1,0 +1,38 @@
+---
+title: "DevSecOps gates in CI/CD"
+tagline: "SAST + SCA + IaC + secrets — without slowing the team down"
+company: "frete.com"
+period: "2024 — 2026"
+category: "devsecops"
+cover: "/images/wallpapers/wallpaper_devsecops.png"
+categoryIcon: "fc126"
+categoryIconAlt: "CI/CD pipeline tooling"
+featured: false
+order: 4
+metrics:
+  - { value: "PR-gate", label: "Shift-left enforcement", tone: "phosphor" }
+  - { value: "Zero", label: "Block on noise", tone: "amber" }
+stack: ["Snyk", "Checkmarx", "Kics", "Polaris", "GitHub Actions"]
+summary: "Embedded SAST, SCA, IaC scanning and secrets detection into the CI/CD pipelines with policy-as-code — only blocking on real, exploitable findings."
+---
+
+## What
+
+Built the security gates that run on every pull request:
+
+- **SAST** with Snyk Code + Checkmarx — application logic flaws
+- **SCA** with Snyk Open Source — third-party dependency CVEs
+- **IaC scanning** with Kics + Polaris — Terraform/Helm/Kubernetes misconfigs
+- **Secrets scanning** — pre-commit + CI safety net
+- **Policy enforcement** — codified rules for what blocks vs warns
+
+## How it stayed adopted
+
+- Block only on **critical + reachable** findings — never on theoretical noise
+- Findings annotate the PR with line-level context, not a separate dashboard
+- Auto-bump dependency PRs for fixable CVEs
+- Weekly metrics shared with engineering leads — "what's red, what's green"
+
+## Outcome
+
+Security became a property the engineering team owned, not a quarterly bottleneck.

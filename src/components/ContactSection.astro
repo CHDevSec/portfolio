@@ -1,0 +1,117 @@
+---
+import { profile } from '@/data/profile';
+import PixelIcon from './icons/PixelIcon.astro';
+import type { Lang } from '@/data/i18n';
+import { t } from '@/data/i18n';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+
+const mailSubject = encodeURIComponent(t.leadCtaSubject[lang]);
+const mailBody = encodeURIComponent(t.leadCtaBody[lang]);
+---
+<section id="contact" class="section">
+  <p class="section-eyebrow">{t.contactEyebrow[lang]}</p>
+  <h2 class="section-title">{t.contactTitle[lang]}</h2>
+  <p class="section-subtitle">{t.contactSubtitle[lang]}</p>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <article class="pixel-frame p-6 sm:p-8">
+      <h3 class="font-pixel text-sm text-phosphor mb-5">{t.contactDirect[lang]}</h3>
+
+      <button
+        type="button"
+        data-copy={profile.email}
+        data-copied={t.contactCopied[lang]}
+        class="w-full text-left flex items-center gap-3 p-3 hover:bg-bg-card border-2 border-line hover:border-phosphor transition group"
+      >
+        <PixelIcon name="terminal" size={20} class="text-phosphor" />
+        <div class="flex-1 min-w-0">
+          <p class="font-mono text-[10px] uppercase text-ink-mute">{t.contactEmailLabel[lang]}</p>
+          <p class="font-mono text-sm text-ink truncate">{profile.email}</p>
+        </div>
+        <span class="font-pixel text-[10px] text-ink-dim group-hover:text-phosphor copy-label">
+          {t.contactCopy[lang]}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        data-copy={profile.phone}
+        data-copied={t.contactCopied[lang]}
+        class="mt-3 w-full text-left flex items-center gap-3 p-3 hover:bg-bg-card border-2 border-line hover:border-phosphor transition group"
+      >
+        <PixelIcon name="chip" size={20} class="text-amber" />
+        <div class="flex-1 min-w-0">
+          <p class="font-mono text-[10px] uppercase text-ink-mute">{t.contactPhoneLabel[lang]}</p>
+          <p class="font-mono text-sm text-ink">{profile.phone}</p>
+        </div>
+        <span class="font-pixel text-[10px] text-ink-dim group-hover:text-phosphor copy-label">
+          {t.contactCopy[lang]}
+        </span>
+      </button>
+
+      <div class="mt-3 p-3 border-2 border-line">
+        <p class="font-mono text-[10px] uppercase text-ink-mute mb-1">{t.contactLocationLabel[lang]}</p>
+        <p class="font-mono text-sm text-ink">{profile.location}</p>
+      </div>
+
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a href={`mailto:${profile.email}?subject=${mailSubject}`} class="pixel-btn-primary">
+          {t.contactSendEmail[lang]}
+        </a>
+        <a href={profile.links.linkedin} target="_blank" rel="noopener" class="pixel-btn-ghost">
+          {t.contactLinkedIn[lang]}
+        </a>
+      </div>
+    </article>
+
+    <article class="pixel-frame p-6 sm:p-8 relative overflow-hidden">
+      <div class="absolute inset-0 opacity-[0.04] pointer-events-none"
+           style="background-image: url(/images/wallpapers/wallpaper_hardening.webp); background-size: cover;"></div>
+      <div class="relative">
+        <h3 class="font-pixel text-sm text-amber mb-2">{t.leadFreePlaybook[lang]}</h3>
+        <h4 class="font-pixel text-lg text-ink leading-tight mb-3">{t.leadTitle[lang]}</h4>
+        <p class="font-sans text-sm text-ink/90 mb-5 leading-relaxed">{t.leadDesc[lang]}</p>
+
+        <ul class="space-y-1.5 font-mono text-xs text-ink-dim mb-6">
+          <li>{t.leadBullet1[lang]}</li>
+          <li>{t.leadBullet2[lang]}</li>
+          <li>{t.leadBullet3[lang]}</li>
+          <li>{t.leadBullet4[lang]}</li>
+          <li>{t.leadBullet5[lang]}</li>
+        </ul>
+
+        <a href={`mailto:${profile.email}?subject=${mailSubject}&body=${mailBody}`} class="pixel-btn-amber w-full justify-center">
+          {t.leadCta[lang]}
+        </a>
+
+        <p class="font-mono text-[10px] text-ink-mute mt-3">{t.leadDisclaimer[lang]}</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const text = btn.dataset.copy ?? '';
+      const copiedText = btn.dataset.copied ?? 'COPIED ✓';
+      try {
+        await navigator.clipboard.writeText(text);
+        const span = btn.querySelector('.copy-label');
+        if (span) {
+          const orig = span.textContent;
+          span.textContent = copiedText;
+          span.classList.add('text-phosphor');
+          setTimeout(() => {
+            span.textContent = orig;
+            span.classList.remove('text-phosphor');
+          }, 1500);
+        }
+      } catch {
+        // graceful no-op
+      }
+    });
+  });
+</script>

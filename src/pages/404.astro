@@ -1,0 +1,16 @@
+---
+import Base from '@/layouts/Base.astro';
+import { t } from '@/data/i18n';
+const lang = 'en' as const;
+---
+<Base title="404 — Page not found" noindex lang={lang}>
+  <section class="section text-center min-h-[60vh] flex flex-col items-center justify-center">
+    <p class="font-pixel text-7xl sm:text-9xl text-amber text-glow-amber">404</p>
+    <h1 class="font-pixel text-xl sm:text-2xl text-ink mt-6">{t.notFoundTitle[lang]}</h1>
+    <p class="font-mono text-sm text-ink-dim mt-4 max-w-md mx-auto">{t.notFoundDesc[lang]}</p>
+    <div class="mt-8 flex flex-wrap gap-3 justify-center">
+      <a href="/" class="pixel-btn-primary">{t.notFoundHome[lang]}</a>
+      <a href="/blog" class="pixel-btn-ghost">{t.notFoundNotes[lang]}</a>
+    </div>
+  </section>
+</Base>

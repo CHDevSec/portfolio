@@ -1,0 +1,48 @@
+---
+title: "CIS-Auditor — automação de Linux hardening"
+tagline: "De checklists manuais a 70% de cobertura do benchmark em escala"
+company: "frete.com"
+period: "2024 — 2026"
+category: "automation"
+cover: "/images/wallpapers/wallpaper_hardening.webp"
+categoryIcon: "fc855"
+categoryIconAlt: "Escudo de auditoria de compliance"
+featured: true
+order: 2
+metrics:
+  - { value: "70%", label: "Cobertura CIS Benchmark", tone: "phosphor" }
+  - { value: "Auto", label: "Detecção de drift", tone: "amber" }
+  - { value: "−44%", label: "Impacto de vulns (frota Ubuntu)", tone: "alert" }
+stack: ["Go", "Bash", "Python", "Ubuntu", "CIS Controls", "Ansible"]
+summary: "Auditor automatizado de CIS Benchmark para frotas Ubuntu, com scoring de compliance contínuo, detecção de drift e runbooks de remediação — transformando checklist anual em sinal diário."
+---
+
+## O problema
+
+Hardening é uma daquelas coisas que parecem ótimas numa auditoria pontual e decaem no momento em que as pessoas começam a trabalhar. Tínhamos:
+
+- **Reviews manuais de CIS Benchmark** rodando talvez duas vezes por ano
+- **Drift acumulando silenciosamente** entre auditorias — pacotes adicionados, configs alteradas, sysctls modificados
+- Sem como diferenciar "nunca configuramos isso" de "isso já foi hardenizado e alguém quebrou"
+- Contagens de vulnerabilidades subindo porque a postura do SO estava erodindo
+
+## A abordagem
+
+Construí o **CIS-Auditor**, ferramenta em Go que roda o CIS Benchmark continuamente:
+
+- **70% dos controles CIS Ubuntu** automatizados — tanto detecção quanto remediação
+- **Checks idempotentes** — seguros pra rodar em todo host, todo dia
+- **Score + diff por host** — não vê só "non-compliant", vê o que mudou desde ontem
+- **Alertas de drift** — Slack/PagerDuty quando um controle previamente compliant regride
+- **Playbooks de remediação** — todo fail vem com one-liner ou task Ansible pra corrigir
+- Pluggable rule packs — mesmo motor funciona pra STIG e padrões internos de hardening
+
+## O resultado
+
+Combinado com a iniciativa de redução de vulns Ubuntu e o SecScan, contribuiu pra trazer a **contagem de vulnerabilidades da empresa de 569k → 318k (−44%)**.
+
+Mais importante: deslocou hardening de "projeto que fazemos uma vez por ano" pra **disciplina contínua e mensurável** com um número que engenharia e liderança podiam acompanhar semana a semana.
+
+## O que aprendi
+
+Compliance é efeito colateral, não objetivo. Entrega a métrica, entrega o diff, entrega o fix — o número de compliance se cuida.

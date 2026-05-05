@@ -1,0 +1,49 @@
+---
+title: "SecScan — scanner de vulnerabilidades em Go"
+tagline: "Scanner Go customizado adotado em 60%+ do stack Go da frete.com"
+company: "frete.com"
+period: "2024 — 2026"
+category: "devsecops"
+cover: "/images/wallpapers/wallpaper_devsecops.png"
+categoryIcon: "fc725"
+categoryIconAlt: "Ferramenta de scanner pentest"
+featured: true
+order: 1
+metrics:
+  - { value: "60%+", label: "Cobertura stack Go", tone: "phosphor" }
+  - { value: "↓ FP", label: "Falsos positivos Snyk", tone: "amber" }
+  - { value: "CI/CD", label: "Gating nativo", tone: "phosphor" }
+stack: ["Go", "Snyk API", "GitHub Actions", "GitLab CI", "AWS"]
+summary: "Scanner Go nativo que envelopa o Snyk com triagem mais inteligente, regras customizadas e enforcement em CI/CD — reduzindo ruído e acelerando remediação no monorepo Go."
+---
+
+## O problema
+
+O dashboard do Snyk produzia mais ruído que sinal. No stack Go da empresa enfrentávamos:
+
+- **Centenas de findings duplicados** por serviço a cada scan
+- **Alta taxa de falsos positivos** em dependências transitivas que nenhum código realmente alcançava
+- Engenheiros ignorando saídas dos scanners porque triagem custava mais que o risco percebido
+- Sem gate nativo no CI/CD — findings de segurança apareciam tarde no Jira, não no PR
+
+## A abordagem
+
+Em vez de brigar com a ferramenta, construí uma **em cima dela**, em Go, projetada pra nosso codebase:
+
+- **Integração direta com a API do Snyk** — puxar findings como dados estruturados, não screenshots
+- **Suppression baseada em call graph** — esconder vulnerabilidades em dependências não alcançadas pelo grafo de chamadas exportadas
+- **Normalização de severidade** — re-pontuar contra exploitability real, não só CVSS base
+- **Gate em CI/CD** — falha o build em `critical` + reachable; alerta no resto
+- **Auto-PR de remediação** — bump automático de versão de dependência quando há fix disponível
+- **Saídas JSON + SARIF** — alimenta DefectDojo e dashboards de engenharia
+
+## O resultado
+
+- **Adotado em 60%+ do stack Go da empresa** em dois trimestres
+- Falsos positivos do Snyk caíram drasticamente — engenheiros agora interagem com findings
+- Tempo de triagem caiu de horas pra minutos por serviço
+- Virou parte da arquitetura de referência DevSecOps da empresa
+
+## O que aprendi
+
+Construir tooling de segurança pra engenheiros é **respeitar o workflow deles**. Um scanner que grita em vermelho sobre ruído é silenciado. Um que falha o build só com sinal real ganha confiança — e confiança é o que faz um controle de segurança sobreviver depois da semana de lançamento.

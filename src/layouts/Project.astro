@@ -1,0 +1,98 @@
+---
+import Base from './Base.astro';
+import type { CollectionEntry } from 'astro:content';
+import type { Lang } from '@/data/i18n';
+import { localizedUrl, t } from '@/data/i18n';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  lang: Lang;
+}
+
+const { project, lang } = Astro.props;
+const { data } = project;
+
+const toneColor = {
+  phosphor: 'text-phosphor',
+  amber: 'text-amber',
+  alert: 'text-alert',
+};
+const homeUrl = localizedUrl('/', lang);
+---
+<Base
+  title={`${data.title} — Caio Henrique`}
+  description={data.summary}
+  image={data.cover}
+  lang={lang}
+>
+  <article class="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+    <a href={`${homeUrl}#projects`} class="font-pixel text-[10px] text-ink-dim hover:text-phosphor mb-6 inline-block">
+      {t.projectBack[lang]}
+    </a>
+
+    <header>
+      <p class="section-eyebrow">▸ {data.company} · {data.period}</p>
+      <h1 class="font-pixel text-2xl sm:text-3xl lg:text-4xl text-ink leading-tight mt-3">
+        {data.title}
+      </h1>
+      <p class="font-mono text-base sm:text-lg text-ink-dim mt-4">
+        {data.tagline}
+      </p>
+    </header>
+
+    <div class="pixel-frame mt-8 overflow-hidden">
+      <img src={data.cover} alt={data.title} class="w-full smooth" />
+    </div>
+
+    {data.metrics.length > 0 && (
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6">
+        {data.metrics.map((m) => (
+          <div class="pixel-frame p-4 text-center">
+            <div class={`font-pixel text-xl sm:text-2xl ${toneColor[m.tone || 'phosphor']}`}>
+              {m.value}
+            </div>
+            <div class="font-mono text-[10px] text-ink-dim mt-2 uppercase">{m.label}</div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {data.stack.length > 0 && (
+      <div class="flex flex-wrap gap-2 mt-6">
+        {data.stack.map((s) => <span class="pixel-badge-mute">{s}</span>)}
+      </div>
+    )}
+
+    <div class="prose-pixel mt-10">
+      <slot />
+    </div>
+
+    <div class="pixel-frame mt-12 p-6 sm:p-8 text-center relative overflow-hidden">
+      <div class="absolute inset-0 opacity-[0.04] pointer-events-none"
+           style={`background-image: url(${data.cover}); background-size: cover; background-position: center;`}></div>
+      <div class="relative">
+        <p class="font-pixel text-sm text-phosphor mb-3">{t.projectFooterTitle[lang]}</p>
+        <p class="font-mono text-sm text-ink-dim mb-5 max-w-md mx-auto">
+          {t.projectFooterDesc[lang]}
+        </p>
+        <div class="flex flex-wrap gap-3 justify-center">
+          <a href={`${homeUrl}#contact`} class="pixel-btn-primary">{t.projectCtaTalk[lang]}</a>
+          <a href={`${homeUrl}#projects`} class="pixel-btn-ghost">{t.projectCtaMoreWork[lang]}</a>
+        </div>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style is:global>
+  .prose-pixel { @apply font-sans text-base text-ink/90 leading-relaxed; }
+  .prose-pixel h2 { @apply font-pixel text-lg sm:text-xl text-phosphor mt-12 mb-4; }
+  .prose-pixel h3 { @apply font-pixel text-sm sm:text-base text-amber mt-8 mb-3; }
+  .prose-pixel p { @apply mb-4; }
+  .prose-pixel ul { @apply space-y-2 mb-6 ml-1; }
+  .prose-pixel li { @apply pl-4 relative; }
+  .prose-pixel li::before { content: '▸'; @apply absolute left-0 text-phosphor font-mono text-xs; }
+  .prose-pixel strong { @apply text-amber font-semibold; }
+  .prose-pixel a { @apply text-phosphor underline decoration-phosphor/40 hover:decoration-phosphor; }
+  .prose-pixel code { @apply font-mono text-[0.9em] bg-bg-inset border border-line px-1.5 py-0.5; }
+</style>

@@ -1,0 +1,124 @@
+---
+import { experienceFor } from '@/data/experience';
+import type { Lang } from '@/data/i18n';
+import { t } from '@/data/i18n';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const all = experienceFor(lang);
+const current = all.find((e) => e.current);
+const past = all.filter((e) => !e.current);
+
+const toneText = {
+  phosphor: 'text-phosphor',
+  amber: 'text-amber',
+  alert: 'text-alert',
+};
+const toneBorder = {
+  phosphor: 'border-phosphor',
+  amber: 'border-amber',
+  alert: 'border-alert',
+};
+const toneBg = {
+  phosphor: 'bg-phosphor/10',
+  amber: 'bg-amber/10',
+  alert: 'bg-alert/10',
+};
+---
+<section id="experience" class="section">
+  <p class="section-eyebrow">{t.experienceEyebrow[lang]}</p>
+  <h2 class="section-title">{t.experienceTitle[lang]}</h2>
+  <p class="section-subtitle">{t.experienceSubtitle[lang]}</p>
+
+  <!-- CURRENT ROLE: Dramatic full-width treatment -->
+  {current && (
+    <article class="pixel-frame relative overflow-hidden border-phosphor shadow-glow-phosphor mb-10">
+      <!-- Top accent bar -->
+      <div class="absolute top-0 left-0 right-0 h-1 bg-phosphor"></div>
+
+      <div class="grid md:grid-cols-12 gap-0">
+        <!-- LEFT: Initials + meta block -->
+        <div class="md:col-span-4 p-6 sm:p-8 border-b-2 md:border-b-0 md:border-r-2 border-line bg-phosphor/5">
+          <div class="flex items-start gap-4">
+            <div class={`shrink-0 w-16 h-16 grid place-items-center border-2 ${toneBorder[current.tone]} ${toneBg[current.tone]}`}>
+              <span class={`font-pixel text-base ${toneText[current.tone]}`}>{current.initials}</span>
+            </div>
+            <div>
+              <span class="pixel-badge-success">{t.liveBadge[lang]}</span>
+              <h3 class={`font-pixel text-xl ${toneText[current.tone]} mt-2`}>
+                {current.company}
+              </h3>
+            </div>
+          </div>
+
+          <p class="font-mono text-[10px] text-ink-mute uppercase mt-5 tracking-wider">{current.sector}</p>
+          <p class="font-mono text-base text-ink mt-2">{current.role}</p>
+          <p class="font-mono text-[11px] text-ink-dim mt-3">{current.period}</p>
+          <p class="font-mono text-[11px] text-ink-mute">{current.location}</p>
+
+          <div class="mt-5 flex flex-wrap gap-1.5">
+            {current.stack.map((tk) => (
+              <span class="pixel-badge-mute">{tk}</span>
+            ))}
+          </div>
+        </div>
+
+        <!-- RIGHT: Bullets -->
+        <div class="md:col-span-8 p-6 sm:p-8">
+          <ul class="space-y-3 font-sans text-sm text-ink/90">
+            {current.bullets.map((b) => (
+              <li class="flex gap-3 leading-relaxed">
+                <span class="shrink-0 mt-1 text-phosphor font-mono text-xs">▸</span>
+                <span set:html={b.replace(/\*\*(.+?)\*\*/g, '<strong class="text-amber">$1</strong>')} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </article>
+  )}
+
+  <!-- PAST ROLES: Compressed list with vertical timeline -->
+  <p class="font-pixel text-[10px] text-ink-mute uppercase tracking-widest mb-5">▸ Previous chapters</p>
+
+  <ol class="relative border-l-2 border-line ml-3 sm:ml-6 space-y-6">
+    {past.map((job) => (
+      <li class="pl-6 sm:pl-10 relative">
+        <span class={`absolute -left-[9px] top-1 w-4 h-4 bg-bg border-2 ${toneBorder[job.tone]}`}></span>
+        <article class={`pixel-frame p-5 transition hover:${toneBorder[job.tone]}`}>
+          <header class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div class="flex items-start gap-3 min-w-0">
+              <div class={`shrink-0 w-10 h-10 grid place-items-center border-2 ${toneBorder[job.tone]} ${toneBg[job.tone]}`}>
+                <span class={`font-pixel text-[10px] ${toneText[job.tone]}`}>{job.initials}</span>
+              </div>
+              <div class="min-w-0">
+                <h3 class={`font-pixel text-sm ${toneText[job.tone]}`}>{job.company}</h3>
+                <p class="font-mono text-[9px] text-ink-mute uppercase mt-0.5">{job.sector}</p>
+                <p class="font-mono text-xs text-ink mt-1">{job.role}</p>
+              </div>
+            </div>
+            <div class="font-mono text-[10px] text-ink-dim sm:text-right shrink-0">
+              <div>{job.period}</div>
+              <div class="text-ink-mute">{job.location}</div>
+            </div>
+          </header>
+
+          <ul class="mt-4 space-y-1.5 font-sans text-[13px] text-ink/85">
+            {job.bullets.map((b) => (
+              <li class="flex gap-2 leading-relaxed">
+                <span class={`shrink-0 mt-1 ${toneText[job.tone]} font-mono text-[9px]`}>▸</span>
+                <span set:html={b.replace(/\*\*(.+?)\*\*/g, '<strong class="text-amber">$1</strong>')} />
+              </li>
+            ))}
+          </ul>
+
+          <div class="mt-4 flex flex-wrap gap-1.5">
+            {job.stack.map((tk) => (
+              <span class="pixel-badge-mute">{tk}</span>
+            ))}
+          </div>
+        </article>
+      </li>
+    ))}
+  </ol>
+</section>

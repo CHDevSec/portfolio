@@ -1,0 +1,302 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    @apply bg-bg text-ink font-sans;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply min-h-screen antialiased;
+    background-image:
+      linear-gradient(rgba(0, 255, 156, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 255, 156, 0.045) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  ::selection {
+    @apply bg-phosphor text-bg;
+  }
+
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-bg-inset;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-line border-2 border-bg-inset;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-phosphor-dim;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-pixel text-ink;
+    font-feature-settings: normal;
+    letter-spacing: 0;
+  }
+
+  a {
+    @apply transition-colors;
+  }
+
+  img {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+  }
+
+  img.smooth {
+    image-rendering: auto;
+  }
+
+  /* Project cover: desaturate + tilt warm to phosphor for visual coherence */
+  .project-cover-img {
+    filter: saturate(0.55) brightness(0.85) contrast(1.05);
+  }
+}
+
+@layer components {
+  /* Pixel-style border (square, no radius, hard shadow) */
+  .pixel-frame {
+    @apply relative bg-bg-card border-2 border-line;
+    image-rendering: pixelated;
+  }
+
+  /* Hero avatar variant: phosphor border + bg "ring" gap + outer phosphor glow */
+  .pixel-frame-phosphor {
+    @apply relative bg-bg-card;
+    border: 2px solid #00FF9C;
+    box-shadow:
+      0 0 0 4px #0A0E14,
+      0 0 24px rgba(0, 255, 156, 0.25);
+    image-rendering: pixelated;
+  }
+
+  /* Hero atmosphere — wallpaper layer (z-0). Solid bg fallback so body grid
+     doesn't bleed through before the webp loads. */
+  .hero-wallpaper-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-color: #0A0E14;
+    background-image: url('/images/wallpapers/wallpaper_web_app.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .hero-wallpaper-layer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(10, 14, 20, 0.92) 0%,
+      rgba(10, 14, 20, 0.85) 40%,
+      rgba(10, 14, 20, 0.92) 100%
+    );
+  }
+
+  /* Hero atmosphere — pixel grid pattern (CSS-only, no image asset).
+     Sits above wallpaper. Uses --color-line at low opacity, faded radially. */
+  .hero-grid-pattern {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right,  rgba(31, 38, 50, 0.6) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(31, 38, 50, 0.6) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: radial-gradient(
+      ellipse 80% 70% at center,
+      rgba(0, 0, 0, 1) 40%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    -webkit-mask-image: radial-gradient(
+      ellipse 80% 70% at center,
+      rgba(0, 0, 0, 1) 40%,
+      rgba(0, 0, 0, 0) 100%
+    );
+  }
+
+  /* Hero atmosphere — thin phosphor accent across the top, evokes CRT scanline */
+  .hero-scan-accent {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(0, 255, 156, 0) 20%,
+      rgba(0, 255, 156, 0.3) 50%,
+      rgba(0, 255, 156, 0) 80%,
+      transparent 100%
+    );
+  }
+
+  .pixel-frame::before {
+    content: '';
+    @apply absolute inset-0 pointer-events-none;
+    background-image:
+      linear-gradient(transparent 50%, rgba(0, 0, 0, 0.04) 50%);
+    background-size: 100% 4px;
+    mix-blend-mode: multiply;
+  }
+
+  /* Pixel button with stair-step shadow */
+  .pixel-btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 font-pixel text-xs uppercase
+           border-2 transition-all duration-100
+           active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
+    image-rendering: pixelated;
+  }
+
+  .pixel-btn-primary {
+    @apply pixel-btn bg-phosphor text-bg border-phosphor
+           hover:bg-phosphor-glow hover:border-phosphor-glow
+           shadow-[4px_4px_0_0_#00B36F];
+  }
+
+  .pixel-btn-amber {
+    @apply pixel-btn bg-amber text-bg border-amber
+           hover:bg-amber-glow hover:border-amber-glow
+           shadow-[4px_4px_0_0_#B37A00];
+  }
+
+  .pixel-btn-ghost {
+    @apply pixel-btn bg-transparent text-ink border-line
+           hover:border-phosphor hover:text-phosphor hover:shadow-[4px_4px_0_0_#00B36F];
+  }
+
+  /* Pixel art PNG icons (decorative, multi-color) — distinct from PixelIcon SVG */
+  .pixel-png {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    display: inline-block;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  .pixel-png--toned {
+    filter: brightness(0.95) saturate(0.85);
+  }
+
+  /* Stat tile */
+  .stat-tile {
+    @apply pixel-frame p-4 transition-all hover:border-phosphor;
+  }
+
+  /* Section */
+  .section {
+    @apply relative py-16 sm:py-24 px-4 sm:px-6 max-w-6xl mx-auto;
+  }
+
+  .section-eyebrow {
+    @apply font-pixel text-[10px] uppercase tracking-widest text-phosphor mb-2;
+  }
+
+  .section-title {
+    @apply font-crt text-4xl sm:text-5xl lg:text-6xl text-ink mb-2 leading-[1.05] tracking-wide;
+  }
+
+  .section-subtitle {
+    @apply font-mono text-sm text-ink-dim mb-12 max-w-2xl;
+  }
+
+  /* Terminal block */
+  .terminal {
+    @apply pixel-frame font-mono text-sm bg-bg-inset overflow-hidden;
+  }
+
+  .terminal-header {
+    @apply flex items-center gap-2 px-3 py-2 bg-bg-card border-b-2 border-line;
+  }
+
+  .terminal-dot {
+    @apply w-2.5 h-2.5 inline-block;
+  }
+
+  /* Glowing horizontal rule */
+  .hr-pixel {
+    @apply h-1 bg-phosphor relative;
+    background-image: linear-gradient(90deg, transparent 0%, #00FF9C 20%, #00FF9C 80%, transparent 100%);
+  }
+
+  /* Marquee */
+  .marquee {
+    @apply overflow-hidden whitespace-nowrap;
+    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  }
+
+  /* Badge */
+  .pixel-badge {
+    @apply inline-flex items-center gap-1.5 px-2 py-1 font-pixel text-[9px] uppercase border-2;
+  }
+
+  .pixel-badge-success { @apply pixel-badge bg-phosphor/10 text-phosphor border-phosphor; }
+  .pixel-badge-amber { @apply pixel-badge bg-amber/10 text-amber border-amber; }
+  .pixel-badge-alert { @apply pixel-badge bg-alert/10 text-alert border-alert; }
+  .pixel-badge-mute { @apply pixel-badge bg-line/40 text-ink-dim border-line; }
+}
+
+@layer utilities {
+  /* Scanlines overlay (subtle CRT vibe) */
+  .scanlines::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.08) 0px,
+        rgba(0, 0, 0, 0.08) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+    z-index: 1;
+  }
+
+  .text-glow-phosphor {
+    text-shadow: 0 0 8px rgba(0, 255, 156, 0.6), 0 0 24px rgba(0, 255, 156, 0.2);
+  }
+
+  .text-glow-amber {
+    text-shadow: 0 0 8px rgba(255, 176, 0, 0.6), 0 0 24px rgba(255, 176, 0, 0.2);
+  }
+
+  /* Status pill dot pulse — used in Hero v2 status pill */
+  @keyframes pulse-phosphor {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgba(0, 255, 156, 0.55);
+    }
+    50% {
+      transform: scale(1.25);
+      opacity: 0.85;
+      box-shadow: 0 0 0 6px rgba(0, 255, 156, 0);
+    }
+  }
+
+  .animate-pulse-phosphor {
+    animation: pulse-phosphor 2s ease-in-out infinite;
+  }
+}

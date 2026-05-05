@@ -1,0 +1,104 @@
+---
+import type { Lang } from '@/data/i18n';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+
+const copy = {
+  en: {
+    eyebrow: '// THE 569K STORY',
+    big: '569k → 318k',
+    headline: '−44% in 9 months.',
+    sub: 'Same Ubuntu fleet. Better measurement, smarter automation, deeper engineering trust.',
+    cta: '▸ Read the full case study',
+  },
+  pt: {
+    eyebrow: '// A HISTÓRIA DOS 569K',
+    big: '569k → 318k',
+    headline: '−44% em 9 meses.',
+    sub: 'Mesma frota Ubuntu. Medição melhor, automação mais inteligente, confiança da engenharia mais profunda.',
+    cta: '▸ Ler o case study completo',
+  },
+};
+const c = copy[lang];
+const caseUrl = lang === 'pt' ? '/pt/projects/cis-auditor' : '/projects/cis-auditor';
+---
+<section id="impact" class="relative overflow-hidden border-y-2 border-line">
+  <!-- Pixel-art decoration: skull (top-left, the 569k vulns "before") -->
+  <img
+    src="/fonts/icons/fc673.png"
+    alt=""
+    aria-hidden="true"
+    width="32"
+    height="32"
+    class="pixel-png pixel-png--toned absolute top-6 left-6 w-8 h-8 opacity-60 z-10"
+    loading="lazy"
+  />
+
+  <!-- Pixel-art decoration: shield-check (bottom-right, the defended state "after") -->
+  <img
+    src="/fonts/icons/fc855.png"
+    alt=""
+    aria-hidden="true"
+    width="32"
+    height="32"
+    class="pixel-png pixel-png--toned absolute bottom-6 right-6 w-8 h-8 opacity-60 z-10"
+    loading="lazy"
+  />
+
+  <!-- Background wallpaper, heavily tinted -->
+  <div class="absolute inset-0 bg-bg-inset">
+    <img
+      src="/images/wallpapers/wallpaper_hardening.webp"
+      alt=""
+      class="w-full h-full object-cover smooth opacity-30"
+      loading="lazy"
+      aria-hidden="true"
+    />
+    <div class="absolute inset-0" style="background: linear-gradient(135deg, rgba(10, 14, 20, 0.85), rgba(0, 30, 20, 0.7));"></div>
+    <!-- Scanlines -->
+    <div class="absolute inset-0 mix-blend-overlay opacity-15"
+         style="background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.4) 0px, rgba(0,0,0,0.4) 1px, transparent 1px, transparent 4px);"></div>
+  </div>
+
+  <!-- Content -->
+  <div class="relative max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28 grid lg:grid-cols-12 gap-8 items-center">
+    <div class="lg:col-span-7">
+      <p class="font-pixel text-[10px] text-amber uppercase tracking-widest mb-4">{c.eyebrow}</p>
+
+      <!-- BIG NUMBER (movie-poster style) -->
+      <p class="font-pixel text-4xl sm:text-6xl lg:text-7xl text-phosphor text-glow-phosphor leading-none mb-6">
+        {c.big}
+      </p>
+
+      <h2 class="font-pixel text-xl sm:text-2xl text-ink mb-4">
+        {c.headline}
+      </h2>
+
+      <p class="font-mono text-base text-ink-dim leading-relaxed max-w-xl">
+        {c.sub}
+      </p>
+
+      <a href={caseUrl} class="mt-7 inline-flex pixel-btn-amber">
+        {c.cta}
+      </a>
+    </div>
+
+    <!-- Right column: small dramatic stat tiles -->
+    <div class="lg:col-span-5 grid grid-cols-2 gap-3">
+      <div class="pixel-frame p-4 border-phosphor bg-bg/60 backdrop-blur">
+        <p class="font-pixel text-2xl sm:text-3xl text-phosphor">SecScan</p>
+        <p class="font-mono text-[11px] text-ink-dim mt-2">Go scanner · CI/CD gating</p>
+      </div>
+      <div class="pixel-frame p-4 border-amber bg-bg/60 backdrop-blur">
+        <p class="font-pixel text-2xl sm:text-3xl text-amber">CIS-Auditor</p>
+        <p class="font-mono text-[11px] text-ink-dim mt-2">70% benchmark coverage</p>
+      </div>
+      <div class="pixel-frame p-4 col-span-2 border-line bg-bg/60 backdrop-blur">
+        <p class="font-mono text-sm text-ink leading-relaxed">
+          <span class="text-phosphor">▸</span> 251k vulnerabilities removed across hundreds of services — without blocking engineering.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

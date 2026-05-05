@@ -1,0 +1,71 @@
+---
+import Base from '@/layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { localizedUrl, t } from '@/data/i18n';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts
+    .filter((p) => p.slug.startsWith('pt/'))
+    .map((post) => ({
+      params: { slug: post.slug.replace(/^pt\//, '') },
+      props: { post },
+    }));
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+const lang = 'pt' as const;
+---
+<Base title={`${post.data.title} — Caio Henrique`} description={post.data.description} image={post.data.cover ?? '/images/og/og-default.png'} lang={lang}>
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+    <a href={localizedUrl('/blog', lang)} class="font-pixel text-[10px] text-ink-dim hover:text-phosphor mb-6 inline-block">
+      {t.blogBack[lang]}
+    </a>
+
+    <header class="mb-10">
+      <p class="font-mono text-xs text-ink-mute mb-3">
+        {post.data.pubDate.toLocaleDateString('pt-BR', { year: 'numeric', month: 'long', day: 'numeric' })}
+      </p>
+      <h1 class="font-pixel text-2xl sm:text-3xl lg:text-4xl text-ink leading-tight">
+        {post.data.title}
+      </h1>
+      <p class="font-mono text-base sm:text-lg text-ink-dim mt-4">{post.data.description}</p>
+      <div class="mt-4 flex flex-wrap gap-2">
+        {post.data.tags.map((tag) => <span class="pixel-badge-mute">#{tag}</span>)}
+      </div>
+    </header>
+
+    {post.data.cover && (
+      <div class="pixel-frame mb-10 overflow-hidden">
+        <img src={post.data.cover} alt={post.data.title} class="w-full smooth" />
+      </div>
+    )}
+
+    <div class="prose-pixel">
+      <Content />
+    </div>
+
+    <div class="pixel-frame mt-12 p-6 text-center">
+      <p class="font-pixel text-sm text-phosphor mb-2">{t.blogMore[lang]}</p>
+      <p class="font-mono text-sm text-ink-dim mb-4">{t.blogMoreDesc[lang]}</p>
+      <a href={`${localizedUrl('/', lang)}#contact`} class="pixel-btn-amber">{t.blogGetChecklist[lang]}</a>
+    </div>
+  </article>
+</Base>
+
+<style is:global>
+  .prose-pixel { @apply font-sans text-base text-ink/90 leading-relaxed; }
+  .prose-pixel h2 { @apply font-pixel text-lg sm:text-xl text-phosphor mt-12 mb-4; }
+  .prose-pixel h3 { @apply font-pixel text-sm sm:text-base text-amber mt-8 mb-3; }
+  .prose-pixel p { @apply mb-4; }
+  .prose-pixel ul { @apply space-y-2 mb-6 ml-1; }
+  .prose-pixel li { @apply pl-4 relative; }
+  .prose-pixel li::before { content: '▸'; @apply absolute left-0 text-phosphor font-mono text-xs; }
+  .prose-pixel strong { @apply text-amber font-semibold; }
+  .prose-pixel a { @apply text-phosphor underline decoration-phosphor/40 hover:decoration-phosphor; }
+  .prose-pixel code { @apply font-mono text-[0.9em] bg-bg-inset border border-line px-1.5 py-0.5; }
+  .prose-pixel pre { @apply bg-bg-inset border-2 border-line p-4 my-6 overflow-x-auto; }
+  .prose-pixel pre code { @apply bg-transparent border-0 p-0 text-sm; }
+  .prose-pixel hr { @apply border-line my-12; }
+</style>

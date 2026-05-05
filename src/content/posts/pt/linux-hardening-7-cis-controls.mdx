@@ -1,0 +1,111 @@
+---
+title: "Linux hardening — 7 controles CIS que a maioria pula"
+description: "De hardening de SSH a setup do audit daemon — os controles que mais movem o ponteiro, com os comandos exatos e as pegadinhas."
+pubDate: 2026-04-15
+cover: "/images/wallpapers/wallpaper_hardening.webp"
+tags: ["linux", "hardening", "cis", "devsecops"]
+---
+
+A maioria dos guias de "Linux hardening" da internet são dump copia-e-cola de 200 linhas. Este não é.
+
+Abaixo estão os **7 controles CIS** que vi consistentemente moverem o ponteiro de segurança em frotas Linux de produção — incluindo o ambiente de **400+ ativos** onde rodei SOC na Volt Sport e a frota Ubuntu que ajudei a reduzir de 569k pra 318k vulns na frete.com.
+
+Vou pular os óbvios (aplicar updates, desabilitar root SSH login). Vamos pro que os times realmente pulam.
+
+## 1. SSH `MaxAuthTries` e `LoginGraceTime`
+
+Os defaults tornam brute-force trivial.
+
+```bash
+# /etc/ssh/sshd_config
+MaxAuthTries 3
+LoginGraceTime 30
+```
+
+**Por que importa:** `MaxAuthTries` default é 6, `LoginGraceTime` default é 120s. Isso são 6 tentativas de senha em 2 minutos por conexão — em ataque de botnet, são MUITAS tentativas.
+
+**Pegadinha:** teste de uma segunda sessão SSH antes de reiniciar o sshd. Confia em mim.
+
+## 2. Mount options de `/tmp` e `/var/tmp`
+
+```bash
+# /etc/fstab
+/tmp     tmpfs  defaults,nodev,nosuid,noexec  0 0
+/var/tmp tmpfs  defaults,nodev,nosuid,noexec  0 0
+```
+
+**Por quê:** `noexec` em `/tmp` bloqueia uma categoria enorme de técnicas de drop de payload. Várias ferramentas de pós-exploração assumem que podem escrever em `/tmp` e dar chmod+x.
+
+**Pegadinha:** algumas ferramentas legítimas (scripts antigos do `apt`, certos CI runners) constroem artefatos em `/tmp`. Teste antes de aplicar na frota.
+
+## 3. `auditd` com ruleset curado
+
+O audit daemon é a fonte de maior sinal numa box Linux — mas só se for ajustado. Regras default afogam você em ruído.
+
+Comece com o [auditd ruleset do Neo23x0](https://github.com/Neo23x0/auditd) — mapeia pra técnicas do MITRE ATT&CK, não logging genérico de syscalls.
+
+**Pegadinha:** `auditd` escreve em disco síncrono. Encaminhar pro seu SIEM (Wazuh, Elastic) mantém I/O sob controle.
+
+## 4. Baseline sysctl que realmente defende
+
+Pula os guias genéricos. Estes são os que eu deploy:
+
+```bash
+# /etc/sysctl.d/99-hardening.conf
+kernel.kptr_restrict = 2
+kernel.dmesg_restrict = 1
+kernel.unprivileged_bpf_disabled = 1
+net.core.bpf_jit_harden = 2
+net.ipv4.conf.all.rp_filter = 1
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+net.ipv4.tcp_syncookies = 1
+fs.protected_hardlinks = 1
+fs.protected_symlinks = 1
+fs.suid_dumpable = 0
+```
+
+**Por que cada um:** kernel pointer leaks → 2; dmesg de unprivileged → bloqueado; eBPF exploit chain → desabilitado; mitigação smurf attack; etc. Cada linha justifica a presença.
+
+## 5. `umask` e modos default de arquivo
+
+`umask` default na maioria das distros é `0022`. CIS recomenda `0027`.
+
+```bash
+# /etc/login.defs
+UMASK 027
+```
+
+**Por quê:** evita que arquivos novos sejam world-readable por padrão. Uma classe surpreendentemente grande de "data leak" vem de backups ou logs world-readable.
+
+## 6. User namespaces unprivileged
+
+```bash
+# /etc/sysctl.d/99-hardening.conf
+kernel.unprivileged_userns_clone = 0
+```
+
+**Por quê:** user namespaces unprivileged foram entry point pra cadeia de CVEs (CVE-2022-0185, CVE-2023-0386, etc.). Se seu workload não precisa, desabilita.
+
+**Pegadinha:** containers rootless (Podman, BuildKit unprivileged) precisam de user namespaces. Faça profile antes de aplicar.
+
+## 7. AppArmor ou SELinux — realmente em enforce
+
+A maioria dos ambientes Ubuntu vem com AppArmor em **complain mode**. Isso é basicamente um logger. Mova profiles pra **enforce mode**:
+
+```bash
+sudo aa-enforce /etc/apparmor.d/*
+```
+
+**Por quê:** AppArmor em enforce mode para uma categoria enorme de escape e movimento lateral. Em complain mode só emite linhas de dmesg.
+
+**Pegadinha:** comece com profiles built-in (Firefox, libvirt, etc.) e seus serviços de alto risco. Não enforce tudo de uma vez.
+
+---
+
+## Torna mensurável
+
+Essa é a parte que a maioria dos guias pula: **automatize a auditoria**, rode diariamente, e acompanhe o score ao longo do tempo. Essa é a diferença entre hardening como projeto pontual e hardening como disciplina.
+
+Foi exatamente pra isso que construí o **[CIS-Auditor](/pt/projects/cis-auditor)** na frete.com — 70% dos controles CIS Ubuntu automatizados, com detecção de drift e alertas no Slack quando um controle previamente compliant regride.
+
+Se quiser o **Linux Hardening Checklist (47 controles CIS)** completo em PDF, mantenho cópia grátis [aqui](/pt/#contact).

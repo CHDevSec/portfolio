@@ -1,0 +1,85 @@
+---
+title: "DevSecOps gates that engineers don't disable"
+description: "How to ship SAST, SCA, IaC and secrets scanning into CI/CD without becoming the team that everyone routes around. The rules that make security adopted vs avoided."
+pubDate: 2026-04-22
+cover: "/images/wallpapers/wallpaper_devsecops.png"
+tags: ["devsecops", "ci-cd", "appsec"]
+---
+
+Most "DevSecOps" rollouts I've seen die the same way: security adds five scanners to CI, the build time triples, the false-positive rate explodes, engineers get tired, leadership gets a Slack from the VP of Engineering, scanners get marked **continue-on-error**.
+
+That's not security. That's theater that consumes minutes per build forever.
+
+Here's what I learned shipping CI/CD security gates at **frete.com** — pipelines covering hundreds of services, thousands of commits a week — without becoming the team people routed around.
+
+## Rule 1 — Block on signal, warn on noise
+
+Default of every scanner is "scream on everything." That doesn't work in production code with thousands of dependencies.
+
+**The rule I shipped:**
+- **Block** the build only on `critical` + reachable findings
+- **Warn** on `high` reachable + `critical` non-reachable
+- **Annotate** everything else (visible, doesn't fail)
+
+"Reachable" matters because **CVSS doesn't equal exploitability**. A critical CVE in a transitive dep that no exported function calls is theoretical risk, not actual risk.
+
+This took the daily "build broken because Snyk" tickets from ~12 to under 1.
+
+## Rule 2 — Annotations on the PR, not in a separate dashboard
+
+If the engineer has to leave their PR to check security findings, they won't.
+
+Use the SARIF format and your CI's native annotation support:
+- GitHub Actions: emit SARIF, [upload via `github/codeql-action/upload-sarif`](https://github.com/github/codeql-action) — findings show inline on the PR diff
+- GitLab: SAST report artifact format — same idea, native PR view
+
+The engineer sees the finding **on the line of code that introduced it**, not in some Jira ticket created later that they'll never read.
+
+## Rule 3 — Auto-PR for fixable CVEs
+
+When Snyk/Dependabot says "v1.2.3 fixes CVE-2024-XXXX and is API-compatible with 1.2.0" — open the PR yourself. Don't make the engineer triage it.
+
+**SecScan** (the scanner I built) wraps Snyk's fix advice with our own logic:
+- Confirm the bump is non-breaking via dependency call graph
+- Open a PR with the bump + a regression test re-run
+- Merge automatically if all green
+
+Engineers go from "another security ticket" to "another auto-merged dependabot PR" — same outcome, near-zero cognitive load.
+
+## Rule 4 — Secrets scanning runs at TWO points
+
+Pre-commit hook + CI safety net. Not one or the other.
+
+- **Pre-commit hook:** [`gitleaks`](https://github.com/gitleaks/gitleaks) — fast, local, catches the secret BEFORE it lands in git history
+- **CI safety net:** runs on every push — catches what people bypassed (yes, they bypass)
+
+Why both? Because once a secret is in git history, rotating it is the only fix — the secret is leaked even if you remove it. Pre-commit prevents the leak; CI catches the people who used `git commit --no-verify`.
+
+## Rule 5 — IaC scanning isn't optional anymore
+
+If you're shipping Terraform, Helm or Kubernetes manifests without IaC scanning, you're trusting humans not to misconfigure cloud resources. Humans always misconfigure cloud resources. That's how S3 buckets get exposed.
+
+**Tools that worked for me:** [Kics](https://github.com/Checkmarx/kics) for breadth, [Polaris](https://github.com/FairwindsOps/polaris) for Kubernetes.
+
+Run them on PRs that touch `*.tf` / `*.yaml` files. Block on `critical` (e.g., publicly readable S3 bucket). Warn on `high`.
+
+## Rule 6 — Metrics for engineering leads, not for security
+
+Every Friday, share with engineering leads:
+- "Findings introduced this week: X · Findings closed: Y"
+- "Top 3 services with critical findings"
+- "Mean time to fix: Zd"
+
+That's it. If they don't see *progress*, they don't believe the program is working. If they don't see *who's behind*, they don't have the data to push their teams.
+
+Security as a **dashboard**, not security as a **gate**, is what gets the program funded next year.
+
+## Rule 7 — When in doubt, talk to engineering before scaling
+
+The hardest part of DevSecOps is not the tooling — it's not turning the security team into the people that the platform team works around.
+
+Before rolling out a new scanner: ask 2–3 senior engineers what they'd want it to *not* do. Their answers (false positive in this language, slow build for monorepo, breaks on this CI runner) are exactly the configuration you need.
+
+---
+
+If this resonates with your environment and you want to talk DevSecOps rollouts, [hit me up](/#contact). I'm available for senior security roles and consulting.

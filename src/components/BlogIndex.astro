@@ -1,0 +1,52 @@
+---
+import Base from '@/layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import type { Lang } from '@/data/i18n';
+import { localizedUrl, t } from '@/data/i18n';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+
+const all = await getCollection('posts', ({ data }) => !data.draft);
+const filtered = all.filter((p) => p.slug.startsWith(`${lang}/`));
+const posts = filtered.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+const titleStr = lang === 'pt' ? 'Notas — Caio Henrique' : 'Notes — Caio Henrique';
+const descStr = lang === 'pt'
+  ? 'Notas de engenharia de segurança — Linux hardening, DevSecOps, vulnerability management e lições aprendidas entregando segurança em escala.'
+  : 'Security engineering notes — Linux hardening, DevSecOps, vulnerability management, and the lessons learned shipping security at scale.';
+
+const localeStr = lang === 'pt' ? 'pt-BR' : 'en-US';
+---
+<Base title={titleStr} description={descStr} lang={lang}>
+  <section class="section">
+    <p class="section-eyebrow">{t.blogEyebrow[lang]}</p>
+    <h1 class="section-title">{t.blogTitle[lang]}</h1>
+    <p class="section-subtitle">{t.blogSubtitle[lang]}</p>
+
+    <ul class="space-y-4">
+      {posts.map((post) => {
+        const cleanSlug = post.slug.replace(/^(en|pt)\//, '');
+        return (
+          <li>
+            <a
+              href={localizedUrl(`/blog/${cleanSlug}`, lang)}
+              class="pixel-frame block p-5 sm:p-6 hover:border-phosphor transition group"
+            >
+              <p class="font-mono text-xs text-ink-mute mb-2">
+                {post.data.pubDate.toLocaleDateString(localeStr, { year: 'numeric', month: 'short', day: 'numeric' })}
+              </p>
+              <h2 class="font-pixel text-base sm:text-lg text-ink group-hover:text-phosphor transition leading-tight">
+                {post.data.title}
+              </h2>
+              <p class="font-sans text-sm text-ink-dim mt-3 leading-relaxed">{post.data.description}</p>
+              <div class="mt-4 flex flex-wrap gap-2">
+                {post.data.tags.map((tag) => <span class="pixel-badge-mute">#{tag}</span>)}
+              </div>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </section>
+</Base>

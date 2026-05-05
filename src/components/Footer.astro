@@ -1,0 +1,53 @@
+---
+import { profile } from '@/data/profile';
+import type { Lang } from '@/data/i18n';
+import { localizedUrl, t } from '@/data/i18n';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const year = new Date().getFullYear();
+const home = localizedUrl('/', lang);
+const seniorLabel = lang === 'pt' ? 'Engenheiro de Segurança Sênior' : 'Senior Security Engineer';
+---
+<footer class="border-t-2 border-line bg-bg-inset mt-20">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid gap-8 md:grid-cols-3">
+    <div>
+      <p class="font-pixel text-sm text-phosphor mb-3">▸ {profile.handle}</p>
+      <p class="font-mono text-xs text-ink-dim leading-relaxed">
+        {seniorLabel} · DevSecOps · Cloud Security
+      </p>
+      <p class="font-mono text-xs text-ink-mute mt-2">{profile.location}</p>
+    </div>
+
+    <div>
+      <p class="font-pixel text-[10px] uppercase text-ink-dim mb-3">{t.footerReach[lang]}</p>
+      <ul class="space-y-1.5 font-mono text-xs">
+        <li><a href={`mailto:${profile.email}`} class="text-ink hover:text-phosphor break-all">{profile.email}</a></li>
+        <li><a href={`tel:${profile.phoneHref}`} class="text-ink hover:text-phosphor">{profile.phone}</a></li>
+        <li><a href={profile.links.linkedin} class="text-ink hover:text-phosphor" target="_blank" rel="noopener">LinkedIn ↗</a></li>
+        <li><a href={profile.links.github} class="text-ink hover:text-phosphor" target="_blank" rel="noopener">GitHub ↗</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <p class="font-pixel text-[10px] uppercase text-ink-dim mb-3">{t.footerOpenTo[lang]}</p>
+      <p class="font-mono text-xs text-ink leading-relaxed">
+        {t.footerOpenToDesc[lang]}
+      </p>
+      <a href={`${home}#contact`} class="inline-block mt-3 font-pixel text-[10px] text-phosphor hover:text-glow-phosphor">
+        {t.footerHireMe[lang]}
+      </a>
+    </div>
+  </div>
+
+  <div class="border-t-2 border-line">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p class="font-mono text-[11px] text-ink-mute">
+        © {year} {profile.name}. {t.footerBuilt[lang]}
+      </p>
+      <p class="font-pixel text-[9px] text-ink-mute">
+        {t.footerNoCookies[lang]}
+      </p>
+    </div>
+  </div>
+</footer>

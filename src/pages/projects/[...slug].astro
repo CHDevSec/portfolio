@@ -1,0 +1,20 @@
+---
+import { getCollection } from 'astro:content';
+import ProjectLayout from '@/layouts/Project.astro';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects', ({ data }) => !data.draft);
+  return projects
+    .filter((p) => p.slug.startsWith('en/'))
+    .map((project) => ({
+      params: { slug: project.slug.replace(/^en\//, '') },
+      props: { project },
+    }));
+}
+
+const { project } = Astro.props;
+const { Content } = await project.render();
+---
+<ProjectLayout project={project} lang="en">
+  <Content />
+</ProjectLayout>

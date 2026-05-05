@@ -1,0 +1,26 @@
+---
+import type { Lang } from '@/data/i18n';
+import { t } from '@/data/i18n';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+
+const companies = ['FRETE.COM', 'VOLT SPORT', 'GLOBAL ESTRATÉGIAS', 'EVOLUTION', 'CHDEVSEC'];
+---
+<div class="border-y-2 border-line bg-bg-inset/60 py-6">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <p class="font-pixel text-[9px] text-ink-mute uppercase tracking-[0.2em] text-center mb-4">
+      {t.testimonialsTrusted[lang]}
+    </p>
+    <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
+      {companies.map((c, i) => (
+        <>
+          <span class="font-mono text-xs sm:text-sm text-ink-dim hover:text-amber transition cursor-default">
+            {c}
+          </span>
+          {i < companies.length - 1 && <span class="text-ink-mute font-mono">·</span>}
+        </>
+      ))}
+    </div>
+  </div>
+</div>

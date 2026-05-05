@@ -1,0 +1,81 @@
+---
+import { testimonials, placeholderCount } from '@/data/testimonials';
+import { profile } from '@/data/profile';
+import type { Lang } from '@/data/i18n';
+import { t } from '@/data/i18n';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+
+const accentText = { phosphor: 'text-phosphor', amber: 'text-amber' };
+const accentBorder = { phosphor: 'border-phosphor', amber: 'border-amber' };
+---
+<section id="testimonials" class="section">
+  <p class="section-eyebrow">{t.testimonialsEyebrow[lang]}</p>
+  <h2 class="section-title">{t.testimonialsTitle[lang]}</h2>
+  <p class="section-subtitle">{t.testimonialsSubtitle[lang]}</p>
+
+  {testimonials.length === 0 ? (
+    <div class="grid md:grid-cols-3 gap-5">
+      {Array.from({ length: placeholderCount }).map(() => (
+        <article class="pixel-frame p-6 border-dashed border-line/60 bg-bg-card/30">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 grid place-items-center border-2 border-line bg-bg-inset">
+              <span class="font-pixel text-[10px] text-ink-mute">??</span>
+            </div>
+            <div>
+              <p class="font-mono text-xs text-ink-mute">{t.testimonialsRecSlot[lang]}</p>
+              <p class="font-mono text-[10px] text-ink-mute">{t.testimonialsRecAvailable[lang]}</p>
+            </div>
+          </div>
+          <p class="mt-5 font-mono text-sm text-ink-mute italic leading-relaxed">
+            “{t.testimonialsRecPrompt[lang]}”
+          </p>
+          <a href={profile.links.linkedin} target="_blank" rel="noopener"
+             class="mt-4 inline-flex items-center gap-2 font-pixel text-[10px] text-ink-dim hover:text-phosphor transition">
+            {t.testimonialsRecLinkedIn[lang]}
+          </a>
+        </article>
+      ))}
+    </div>
+  ) : (
+    <div class="grid md:grid-cols-3 gap-5">
+      {testimonials.map((tm) => (
+        <article class={`pixel-frame p-6 ${accentBorder[tm.tone]} hover:shadow-glow-phosphor transition`}>
+          <div class="flex items-center gap-3">
+            <div class={`w-12 h-12 grid place-items-center border-2 ${accentBorder[tm.tone]} bg-bg-card`}>
+              <span class={`font-pixel text-[11px] ${accentText[tm.tone]}`}>{tm.initial}</span>
+            </div>
+            <div>
+              <p class="font-mono text-sm text-ink font-semibold">{tm.author}</p>
+              <p class="font-mono text-[11px] text-ink-dim">
+                {tm.role}{tm.company && ` · ${tm.company}`}
+              </p>
+            </div>
+          </div>
+          <blockquote class="mt-5 font-sans text-sm text-ink/90 leading-relaxed">
+            <span class={`font-pixel text-xl ${accentText[tm.tone]} mr-1`}>“</span>
+            {tm.quote}
+          </blockquote>
+        </article>
+      ))}
+    </div>
+  )}
+
+  <div class="mt-12 pt-8 border-t-2 border-line">
+    <p class="font-pixel text-[10px] text-ink-mute uppercase tracking-widest text-center mb-5">
+      {t.testimonialsTrusted[lang]}
+    </p>
+    <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 font-mono text-sm text-ink-dim">
+      <span class="hover:text-amber transition">FRETE.COM</span>
+      <span class="text-ink-mute">·</span>
+      <span class="hover:text-amber transition">VOLT SPORT</span>
+      <span class="text-ink-mute">·</span>
+      <span class="hover:text-amber transition">GLOBAL ESTRATÉGIAS</span>
+      <span class="text-ink-mute">·</span>
+      <span class="hover:text-amber transition">EVOLUTION</span>
+      <span class="text-ink-mute">·</span>
+      <span class="hover:text-amber transition">CHDEVSEC</span>
+    </div>
+  </div>
+</section>

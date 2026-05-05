@@ -1,0 +1,109 @@
+---
+import { certs, education } from '@/data/certs';
+import PixelIcon from './icons/PixelIcon.astro';
+import type { Lang } from '@/data/i18n';
+import { t } from '@/data/i18n';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+
+const completed = certs.filter((c) => c.status === 'completed');
+const inProgress = certs.filter((c) => c.status === 'in-progress');
+
+const catLabel: Record<string, { en: string; pt: string }> = {
+  red: { en: 'RED TEAM', pt: 'RED TEAM' },
+  blue: { en: 'BLUE TEAM', pt: 'BLUE TEAM' },
+  devsecops: { en: 'DEVSECOPS', pt: 'DEVSECOPS' },
+  general: { en: 'GENERAL', pt: 'GERAL' },
+  networking: { en: 'NETWORKING', pt: 'NETWORKING' },
+};
+const catColor: Record<string, string> = {
+  red: 'text-alert border-alert',
+  blue: 'text-phosphor border-phosphor',
+  devsecops: 'text-amber border-amber',
+  general: 'text-ink border-line',
+  networking: 'text-phosphor-dim border-phosphor-dim',
+};
+
+// Translate education degrees
+const eduTranslate = (degree: string): string => {
+  if (lang === 'en') return degree;
+  const map: Record<string, string> = {
+    "Bachelor's, Software Engineering": 'Bacharelado, Engenharia de Software',
+    'Tech. Degree, Systems Analysis & Development': 'Tecnólogo, Análise e Desenvolvimento de Sistemas',
+    'Tech. Degree, Computer Networks': 'Tecnólogo, Redes de Computadores',
+  };
+  return map[degree] ?? degree;
+};
+const periodTranslate = (period: string): string => {
+  if (lang === 'en') return period;
+  return period
+    .replace('Jul', 'Jul').replace('Jun', 'Jun')
+    .replace('Apr', 'Abr').replace('Mar', 'Mar');
+};
+---
+<section id="certs" class="section">
+  <p class="section-eyebrow">{t.certsEyebrow[lang]}</p>
+  <h2 class="section-title">{t.certsTitle[lang]}</h2>
+  <p class="section-subtitle">
+    {completed.length} {t.certsSubtitleA[lang]} {inProgress.length} {t.certsSubtitleB[lang]}
+  </p>
+
+  <h3 class="font-pixel text-xs text-amber mb-4">{t.certsEducation[lang]}</h3>
+  <div class="grid md:grid-cols-3 gap-4 mb-12">
+    {education.map((e) => (
+      <article class="pixel-frame p-4">
+        <PixelIcon name="book" size={28} class="text-amber" />
+        <h4 class="font-mono text-sm font-semibold text-ink mt-3">{eduTranslate(e.degree)}</h4>
+        <p class="font-mono text-[11px] text-ink-dim mt-1">{e.school}</p>
+        <p class="font-mono text-[10px] text-ink-mute mt-2">
+          {periodTranslate(e.period)}
+          {e.status === 'in-progress' && <span class="ml-2 pixel-badge-amber">{t.certsInProgress[lang]}</span>}
+        </p>
+      </article>
+    ))}
+  </div>
+
+  <h3 class="font-pixel text-xs text-phosphor mb-4">{t.certsCompleted[lang]} · {completed.length}</h3>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-10">
+    {completed.map((c) => (
+      <article class="pixel-frame p-4 hover:border-phosphor transition">
+        <div class="flex items-start gap-3">
+          <div class={`shrink-0 w-9 h-9 grid place-items-center border-2 ${catColor[c.category]}`}>
+            <PixelIcon name="cert" size={20} />
+          </div>
+          <div class="min-w-0 flex-1">
+            <h4 class="font-mono text-[13px] font-semibold text-ink leading-snug">{c.name}</h4>
+            <p class="font-mono text-[11px] text-ink-dim mt-1">{c.issuer} · {c.date}</p>
+            <span class={`mt-2 inline-block pixel-badge text-[9px] ${catColor[c.category]}`}>
+              {catLabel[c.category][lang]}
+            </span>
+          </div>
+        </div>
+      </article>
+    ))}
+  </div>
+
+  <details class="group">
+    <summary class="cursor-pointer font-pixel text-xs text-amber list-none flex items-center gap-2 mb-4">
+      <span class="group-open:rotate-90 transition inline-block">▸</span>
+      {t.certsInProgressDot[lang]} · {inProgress.length}
+    </summary>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      {inProgress.map((c) => (
+        <article class="pixel-frame p-4 border-amber/30">
+          <div class="flex items-start gap-3">
+            <div class="shrink-0 w-9 h-9 grid place-items-center border-2 border-amber text-amber">
+              <PixelIcon name="gear" size={20} />
+            </div>
+            <div class="min-w-0 flex-1">
+              <h4 class="font-mono text-[13px] text-ink leading-snug">{c.name}</h4>
+              <p class="font-mono text-[11px] text-ink-dim mt-1">{c.issuer}</p>
+              <span class="mt-2 inline-block pixel-badge-amber">{t.certsInProgress[lang]}</span>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </details>
+</section>

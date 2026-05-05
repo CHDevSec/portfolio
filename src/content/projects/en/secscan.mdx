@@ -1,0 +1,49 @@
+---
+title: "SecScan — Go vulnerability scanner"
+tagline: "Custom Go-based scanner adopted across 60%+ of frete.com's Go stack"
+company: "frete.com"
+period: "2024 — 2026"
+category: "devsecops"
+cover: "/images/wallpapers/wallpaper_devsecops.png"
+categoryIcon: "fc725"
+categoryIconAlt: "Pentest scanner tool"
+featured: true
+order: 1
+metrics:
+  - { value: "60%+", label: "Go stack coverage", tone: "phosphor" }
+  - { value: "↓ FP", label: "Snyk false positives", tone: "amber" }
+  - { value: "CI/CD", label: "Native gating", tone: "phosphor" }
+stack: ["Go", "Snyk API", "GitHub Actions", "GitLab CI", "AWS"]
+summary: "Internal Go-native vulnerability scanner that wraps Snyk with smarter triage, custom rules and CI/CD enforcement — reducing noise and accelerating remediation across the Go monorepo."
+---
+
+## The problem
+
+The Snyk dashboard was producing more noise than signal. Across the company's Go stack we faced:
+
+- **Hundreds of duplicate findings** per service after each scan
+- **High false-positive rate** on transitive dependencies that weren't actually exploitable in the codepath
+- Engineers ignoring scan output because triage cost more than the perceived risk
+- No native gate in CI/CD — security findings landed in Jira late, not at PR time
+
+## The approach
+
+Instead of fighting the tool I built one **on top of it**, in Go, designed for our codebase:
+
+- **Direct Snyk API integration** — pull findings as structured data, not screenshots
+- **Path-aware suppression** — hide vulnerabilities in dependencies that aren't reached by exported call graphs
+- **Severity normalization** — re-score against actual exploitability, not just CVSS base
+- **CI/CD gate** — fail the build on `critical` + reachable findings, warn on the rest
+- **Auto-PR remediation** — bump dependency versions automatically when a fixed version exists
+- **JSON + SARIF output** — feeds DefectDojo and the engineering dashboards
+
+## The result
+
+- **Adopted in 60%+ of the company's Go stack** within two quarters
+- Snyk false positives drastically reduced — engineers actually engage with findings now
+- Triage time dropped from hours to minutes per service
+- Became part of the company's DevSecOps reference architecture
+
+## What I learned
+
+Building security tooling for engineers means **respecting their workflow**. A scanner that screams in red over noise gets muted. One that fails the build only on signal earns trust — and trust is what makes a security control survive past launch week.
