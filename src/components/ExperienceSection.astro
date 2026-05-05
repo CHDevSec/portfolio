@@ -32,7 +32,7 @@ const toneBg = {
 
   <!-- CURRENT ROLE: Dramatic full-width treatment -->
   {current && (
-    <article class="pixel-frame relative overflow-hidden border-phosphor shadow-glow-phosphor mb-10">
+    <article class="group pixel-frame relative overflow-hidden border-phosphor shadow-glow-phosphor mb-10">
       <!-- Top accent bar -->
       <div class="absolute top-0 left-0 right-0 h-1 bg-phosphor"></div>
 
@@ -41,7 +41,17 @@ const toneBg = {
         <div class="md:col-span-4 p-6 sm:p-8 border-b-2 md:border-b-0 md:border-r-2 border-line bg-phosphor/5">
           <div class="flex items-start gap-4">
             <div class={`shrink-0 w-16 h-16 grid place-items-center border-2 ${toneBorder[current.tone]} ${toneBg[current.tone]}`}>
-              <span class={`font-pixel text-base ${toneText[current.tone]}`}>{current.initials}</span>
+              {current.logo ? (
+                <img
+                  src={current.logo}
+                  alt={`${current.company} logo`}
+                  class="max-h-[60%] max-w-[80%] object-contain smooth opacity-70 grayscale-[30%] group-hover:opacity-100 group-hover:grayscale-0 transition"
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <span class={`font-pixel text-base ${toneText[current.tone]}`}>{current.initials}</span>
+              )}
             </div>
             <div>
               <span class="pixel-badge-success">{t.liveBadge[lang]}</span>
@@ -85,11 +95,21 @@ const toneBg = {
     {past.map((job) => (
       <li class="pl-6 sm:pl-10 relative">
         <span class={`absolute -left-[9px] top-1 w-4 h-4 bg-bg border-2 ${toneBorder[job.tone]}`}></span>
-        <article class={`pixel-frame p-5 transition hover:${toneBorder[job.tone]}`}>
+        <article class={`group pixel-frame p-5 transition hover:${toneBorder[job.tone]}`}>
           <header class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div class="flex items-start gap-3 min-w-0">
               <div class={`shrink-0 w-10 h-10 grid place-items-center border-2 ${toneBorder[job.tone]} ${toneBg[job.tone]}`}>
-                <span class={`font-pixel text-[10px] ${toneText[job.tone]}`}>{job.initials}</span>
+                {job.logo ? (
+                  <img
+                    src={job.logo}
+                    alt={`${job.company} logo`}
+                    class="max-h-[60%] max-w-[80%] object-contain smooth opacity-70 grayscale-[30%] group-hover:opacity-100 group-hover:grayscale-0 transition"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <span class={`font-pixel text-[10px] ${toneText[job.tone]}`}>{job.initials}</span>
+                )}
               </div>
               <div class="min-w-0">
                 <h3 class={`font-pixel text-sm ${toneText[job.tone]}`}>{job.company}</h3>

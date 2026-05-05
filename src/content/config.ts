@@ -20,6 +20,12 @@ const projects = defineCollection({
     })).default([]),
     stack: z.array(z.string()).default([]),
     summary: z.string(),
+    repo: z.string().url().optional(),
+    proofs: z.array(z.object({
+      src: z.string(),
+      alt: z.string().optional(),
+      caption: z.string().optional(),
+    })).default([]),
     draft: z.boolean().default(false),
   }),
 });

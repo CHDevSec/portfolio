@@ -1,0 +1,41 @@
+---
+title: "Enterprise Vulnerability Management Program"
+tagline: "Built and led an enterprise vuln management program — automated scans, risk-based prioritization, SLA enforcement, and cross-team Vulnerability Forums."
+company: "frete.com"
+period: "2024 — 2026"
+category: "devsecops"
+cover: "/images/wallpapers/ticket.png"
+categoryIcon: "fc855"
+categoryIconAlt: "Vulnerability management program"
+featured: true
+order: 9
+metrics:
+  - { value: "212", label: "Tickets under mgmt", tone: "phosphor" }
+  - { value: "4", label: "Nessus · Snyk · S1 · Inspector", tone: "amber" }
+  - { value: "Monthly", label: "Vuln Forum cadence", tone: "phosphor" }
+stack: ["Jira", "Nessus", "Snyk", "SentinelOne", "AWS Inspector", "DefectDojo"]
+summary: "Enterprise vulnerability management program unifying four scanners into a single Jira workflow, with risk-based prioritization, SLA enforcement, and monthly cross-team Vulnerability Forums driving Security, DevOps and Engineering alignment."
+proofs:
+  - { src: "/fonts/projects/ges1.png", alt: "Vulnerability management dashboard with 212 tickets" }
+  - { src: "/fonts/projects/ges2.png", alt: "Jira Kanban workflow — Backlog · Refinement · In Progress · Retest" }
+---
+
+## The problem
+
+Vulnerabilities were arriving from four different scanners — Nessus, Snyk, SentinelOne, and AWS Inspector — into separate inboxes with no common prioritization, no SLA, and no shared accountability. Security would flag findings, engineering wouldn't know which mattered, and remediation drifted for months. Critical issues mixed with noise; nobody had a single source of truth.
+
+## The solution
+
+I built an enterprise vulnerability management program with three pillars:
+
+- **Centralized intake** — all four scanners feed Jira via API, normalized into a single workflow with status columns (Backlog → Refinement → In Progress → Retest → Done).
+- **Risk-based prioritization** — every finding gets scored against asset criticality, exploitability, and business impact before it hits engineering.
+- **Cross-team alignment** — monthly Vulnerability Forums bring Security, DevOps, and Engineering into the same room with shared dashboards, SLA tracking, and remediation ownership.
+
+## The impact
+
+- **212 vulnerabilities under active management** with full status visibility and SLA enforcement
+- **4 scanners unified** into one workflow — no more email threads, spreadsheets, or duplicate tracking
+- **Monthly Vulnerability Forums** institutionalized cross-team dialogue between Security, DevOps, and Engineering
+- **Targeted pentests** on critical assets validated remediations and surfaced gaps automated tools missed
+- **Risk-based prioritization** replaced "fix everything" panic — engineering trusts what reaches them is real

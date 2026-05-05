@@ -21,8 +21,8 @@ const catColor: Record<string, string> = {
   red: 'text-alert border-alert',
   blue: 'text-phosphor border-phosphor',
   devsecops: 'text-amber border-amber',
-  general: 'text-ink border-line',
-  networking: 'text-phosphor-dim border-phosphor-dim',
+  general: 'text-ink border-ink-mute',
+  networking: 'text-info border-info',
 };
 
 // Translate education degrees
@@ -59,6 +59,7 @@ const periodTranslate = (period: string): string => {
         <p class="font-mono text-[10px] text-ink-mute mt-2">
           {periodTranslate(e.period)}
           {e.status === 'in-progress' && <span class="ml-2 pixel-badge-amber">{t.certsInProgress[lang]}</span>}
+          {e.status === 'completed' && <span class="ml-2 pixel-badge-completed">{t.certsStatusCompleted[lang]}</span>}
         </p>
       </article>
     ))}

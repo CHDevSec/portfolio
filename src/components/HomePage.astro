@@ -67,10 +67,14 @@ const descStr = lang === 'pt'
   : 'Senior Security Engineer with 7+ years cutting risk at scale. Reduced 569k → 318k vulnerabilities (−44%) at frete.com. Built SecScan and CIS-Auditor. Open to global Senior Security Engineer roles.';
 ---
 <Base title={titleStr} description={descStr} lang={lang}>
-  <Hero lang={lang} />
-
-  <!-- Companies bar (replaces testimonials) -->
-  <CompaniesBar lang={lang} />
+  <!-- Hero + CompaniesBar above the fold (1 viewport min, minus sticky Nav h-16).
+       pb-6 lifts CompaniesBar 24px off the viewport bottom edge.
+       bg-bg-surface paints the pb gap with the same color as CompaniesBar,
+       so no visible seam between bar and viewport edge. -->
+  <section class="hero-fold relative flex flex-col min-h-[calc(100vh-4rem)] pb-6 bg-bg-surface">
+    <Hero lang={lang} />
+    <CompaniesBar lang={lang} />
+  </section>
 
   <!-- Deep stats band -->
   <section class="bg-bg-inset border-b-2 border-line py-12">

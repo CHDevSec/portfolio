@@ -69,8 +69,12 @@ export const t = {
   } satisfies StringMap,
   heroNameLabel: { en: '// Caio Henrique', pt: '// Caio Henrique' } satisfies StringMap,
   heroRoleLine1: { en: 'Senior', pt: 'Senior' } satisfies StringMap,
-  heroRoleHighlight: { en: 'DevSecOps', pt: 'DevSecOps' } satisfies StringMap,
+  heroRoleHighlight: { en: 'Security', pt: 'Security' } satisfies StringMap,
   heroRoleLine2: { en: 'Engineer', pt: 'Engineer' } satisfies StringMap,
+  heroSubtitle: {
+    en: 'AppSec · DevSecOps · Cloud · Backend (Go / Python)',
+    pt: 'AppSec · DevSecOps · Cloud · Backend (Go / Python)',
+  } satisfies StringMap,
   heroPitchPrimary: { en: 'I cut', pt: 'Cortei' } satisfies StringMap,
   heroPitchPrimaryMetric: { en: '569k → 318k vulns', pt: '569k → 318k vulns' } satisfies StringMap,
   heroPitchPrimaryRest: {
@@ -78,15 +82,15 @@ export const t = {
     pt: 'em uma frota Ubuntu sem travar a engenharia.',
   } satisfies StringMap,
   heroPitchSecondary: {
-    en: '7 years building security tools and pipelines that scale. Cloud · AppSec · Vuln Mgmt.',
-    pt: '7 anos construindo tools e pipelines de security que escalam. Cloud · AppSec · Vuln Mgmt.',
+    en: '7 years shipping security at scale — from Go scanners to CI/CD pipelines. Open to senior roles.',
+    pt: '7 anos entregando security em escala — de scanners em Go a pipelines de CI/CD. Aberto a vagas sênior.',
   } satisfies StringMap,
   heroCtaImpact: { en: '▸ SEE IMPACT', pt: '▸ VER IMPACTO' } satisfies StringMap,
   heroCtaCV: { en: '▸ CV', pt: '▸ CV' } satisfies StringMap,
   heroTrustLine: { en: 'Shipped at', pt: 'Operando em' } satisfies StringMap,
   heroTrustCompanies: {
-    en: 'frete.com · Volt Sport · Evolution',
-    pt: 'frete.com · Volt Sport · Evolution',
+    en: 'CHDEVSEC',
+    pt: 'CHDEVSEC',
   } satisfies StringMap,
   heroAvatarAlt: {
     en: 'Caio Henrique, Senior DevSecOps Engineer',
@@ -127,7 +131,7 @@ export const t = {
   liveBadge: { en: 'LIVE', pt: 'ATIVO' } satisfies StringMap,
 
   methodEyebrow: { en: '// METHODOLOGY · HOW I WORK', pt: '// METODOLOGIA · COMO TRABALHO' } satisfies StringMap,
-  methodTitle: { en: 'Three principles, every engagement', pt: 'Três princípios, todo engajamento' } satisfies StringMap,
+  methodTitle: { en: 'Three principles, every engagement', pt: 'Três princípios, todo projeto' } satisfies StringMap,
   methodSubtitle: {
     en: 'The rules I learned shipping security at scale — and why they hold up under pressure.',
     pt: 'As regras que aprendi entregando segurança em escala — e por que aguentam sob pressão.',
@@ -162,6 +166,13 @@ export const t = {
     en: 'Grouped by domain, not by self-rated percentages — these are the tools and frameworks I ship with.',
     pt: 'Agrupado por domínio, não por porcentagens auto-atribuídas — são as ferramentas e frameworks que uso em produção.',
   } satisfies StringMap,
+  primaryStackTitle: { en: 'PRIMARY STACK', pt: 'STACK PRIMÁRIA' } satisfies StringMap,
+  primaryStackLanguagesLabel: { en: 'LANGUAGES', pt: 'LINGUAGENS' } satisfies StringMap,
+  primaryStackPlatformsLabel: { en: 'PLATFORMS', pt: 'PLATAFORMAS' } satisfies StringMap,
+  primaryStackToolingLabel: { en: 'TOOLING', pt: 'FERRAMENTAS' } satisfies StringMap,
+  primaryStackPrimaryTag: { en: '(primary)', pt: '(principal)' } satisfies StringMap,
+  primaryStackFooter: { en: 'USED IN PRODUCTION DAILY', pt: 'EM PRODUÇÃO TODOS OS DIAS' } satisfies StringMap,
+  skillsLanguagesBgSubtitle: { en: 'Systems · Offensive · Windows ops', pt: 'Systems · Offensive · Windows ops' } satisfies StringMap,
 
   certsEyebrow: { en: '// CERTS · EDU', pt: '// CERTS · FORMAÇÃO' } satisfies StringMap,
   certsTitle: { en: 'Credentials', pt: 'Credenciais' } satisfies StringMap,
@@ -170,6 +181,7 @@ export const t = {
   certsEducation: { en: '▸ EDUCATION', pt: '▸ FORMAÇÃO' } satisfies StringMap,
   certsCompleted: { en: '▸ COMPLETED', pt: '▸ CONCLUÍDAS' } satisfies StringMap,
   certsInProgress: { en: 'IN PROGRESS', pt: 'EM ANDAMENTO' } satisfies StringMap,
+  certsStatusCompleted: { en: 'COMPLETED', pt: 'CONCLUÍDO' } satisfies StringMap,
   certsInProgressDot: { en: '▸ IN PROGRESS', pt: '▸ EM ANDAMENTO' } satisfies StringMap,
 
   contactEyebrow: { en: '// REACH OUT', pt: '// CONTATO' } satisfies StringMap,
@@ -252,6 +264,8 @@ export const t = {
   } satisfies StringMap,
   projectCtaTalk: { en: "▸ Let's talk", pt: '▸ Vamos conversar' } satisfies StringMap,
   projectCtaMoreWork: { en: '› See more work', pt: '› Ver mais trabalhos' } satisfies StringMap,
+  projectRepoLabel: { en: '▸ View source', pt: '▸ Ver código' } satisfies StringMap,
+  projectProofsTitle: { en: 'Proof of work', pt: 'Prova de funcionamento' } satisfies StringMap,
 
   // Project category labels
   catDevsecops: { en: 'DEVSECOPS', pt: 'DEVSECOPS' } satisfies StringMap,

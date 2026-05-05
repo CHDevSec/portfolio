@@ -25,25 +25,114 @@ const homeUrl = localizedUrl('/', lang);
   image={data.cover}
   lang={lang}
 >
-  <article class="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-    <a href={`${homeUrl}#projects`} class="font-pixel text-[10px] text-ink-dim hover:text-phosphor mb-6 inline-block">
-      {t.projectBack[lang]}
-    </a>
+  <!-- Banner: cover as full-width background, header + proofs carousel overlaid -->
+  <section class="relative overflow-hidden border-b-2 border-line">
+    <img
+      src={data.cover}
+      alt=""
+      aria-hidden="true"
+      class="absolute inset-0 w-full h-full object-cover smooth"
+    />
+    <div class="absolute inset-0 bg-gradient-to-b from-bg/40 via-bg/65 to-bg/90" aria-hidden="true"></div>
 
-    <header>
-      <p class="section-eyebrow">▸ {data.company} · {data.period}</p>
-      <h1 class="font-pixel text-2xl sm:text-3xl lg:text-4xl text-ink leading-tight mt-3">
-        {data.title}
-      </h1>
-      <p class="font-mono text-base sm:text-lg text-ink-dim mt-4">
-        {data.tagline}
-      </p>
-    </header>
-
-    <div class="pixel-frame mt-8 overflow-hidden">
-      <img src={data.cover} alt={data.title} class="w-full smooth" />
+    <!-- Back link, top-left over banner -->
+    <div class="relative max-w-6xl mx-auto px-4 sm:px-6 pt-5">
+      <a
+        href={`${homeUrl}#projects`}
+        class="inline-flex items-center px-2.5 py-1.5 font-pixel text-[10px] uppercase text-ink-dim bg-bg/70 backdrop-blur-sm border-2 border-line hover:text-phosphor hover:border-phosphor transition"
+      >
+        {t.projectBack[lang]}
+      </a>
     </div>
 
+    <div class={`relative max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-14 sm:pb-16 lg:pb-20 grid gap-8 lg:gap-12 items-center ${data.proofs.length > 0 ? 'lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]' : ''}`}>
+      <!-- LEFT: header text -->
+      <div class="min-w-0">
+        <p class="section-eyebrow">▸ {data.company} · {data.period}</p>
+        <h1 class="font-pixel text-2xl sm:text-3xl lg:text-4xl text-ink leading-tight mt-3">
+          {data.title}
+        </h1>
+        <p class="font-mono text-base sm:text-lg text-ink-dim mt-4 max-w-2xl">
+          {data.tagline}
+        </p>
+        {data.repo && (
+          <a
+            href={data.repo}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 mt-5 px-3 py-2 font-pixel text-[10px] uppercase text-phosphor bg-bg/70 backdrop-blur-sm border-2 border-line hover:border-phosphor hover:bg-phosphor/10 transition"
+          >
+            {t.projectRepoLabel[lang]}
+          </a>
+        )}
+      </div>
+
+      <!-- RIGHT: proofs carousel -->
+      {data.proofs.length > 0 && (
+        <div class="proof-carousel min-w-0" data-proof-carousel>
+          <div class="pixel-frame overflow-hidden bg-bg-inset">
+            <div
+              class="flex overflow-x-auto snap-x snap-mandatory scrollbar-hidden"
+              data-track
+              aria-roledescription="carousel"
+              aria-label={t.projectProofsTitle[lang]}
+            >
+              {data.proofs.map((p, i) => (
+                <a
+                  href={p.src}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-proof-thumb
+                  data-thumb-index={i}
+                  class="snap-start shrink-0 w-full block aspect-[16/9] cursor-zoom-in"
+                  aria-label={`${t.projectProofsTitle[lang]} ${i + 1}/${data.proofs.length}`}
+                >
+                  <img
+                    src={p.src}
+                    alt={p.alt ?? ''}
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    decoding="async"
+                    class="smooth block w-full h-full object-contain"
+                  />
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 mt-3">
+            <button
+              type="button"
+              data-prev
+              aria-label="Previous"
+              class="px-3 py-1.5 font-pixel text-xs text-phosphor bg-bg/70 backdrop-blur-sm border-2 border-line hover:border-phosphor hover:bg-phosphor/10 transition"
+            >
+              ‹
+            </button>
+            <div class="flex gap-1.5" role="tablist">
+              {data.proofs.map((_, i) => (
+                <button
+                  type="button"
+                  data-dot={i}
+                  aria-label={`Slide ${i + 1}`}
+                  class="w-2 h-2 border border-phosphor/40 hover:border-phosphor bg-phosphor/30 transition"
+                ></button>
+              ))}
+            </div>
+            <button
+              type="button"
+              data-next
+              aria-label="Next"
+              class="px-3 py-1.5 font-pixel text-xs text-phosphor bg-bg/70 backdrop-blur-sm border-2 border-line hover:border-phosphor hover:bg-phosphor/10 transition"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <article class="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
     {data.metrics.length > 0 && (
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6">
         {data.metrics.map((m) => (
@@ -82,6 +171,80 @@ const homeUrl = localizedUrl('/', lang);
       </div>
     </div>
   </article>
+
+  {data.proofs.length > 0 && (
+    <div
+      data-lightbox
+      class="lightbox hidden fixed inset-0 z-50 bg-bg/70 backdrop-blur-sm p-4 sm:p-12 lg:p-20"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t.projectProofsTitle[lang]}
+    >
+      <!-- Inner popup: neutral dark bg, thin border, contained -->
+      <div class="relative h-full max-w-5xl mx-auto bg-bg-inset border-2 border-line flex flex-col overflow-hidden">
+        <!-- Close (top-right inside the box) -->
+        <button
+          type="button"
+          data-lightbox-close
+          aria-label="Close"
+          class="absolute top-2 right-2 z-10 px-2.5 py-1 font-pixel text-xs text-phosphor bg-bg/70 border-2 border-line hover:border-phosphor hover:bg-phosphor/10 transition"
+        >
+          ✕
+        </button>
+
+        <!-- Track -->
+        <div class="relative flex-1 min-h-0">
+          <div
+            data-lightbox-track
+            class="h-full overflow-x-auto snap-x snap-mandatory scrollbar-hidden flex"
+          >
+            {data.proofs.map((p, i) => (
+              <div class="snap-start shrink-0 w-full h-full grid place-items-center px-4 sm:px-10 py-4">
+                <img
+                  src={p.src}
+                  alt={p.alt ?? ''}
+                  loading="lazy"
+                  decoding="async"
+                  class="smooth max-w-full max-h-full object-contain"
+                  data-lightbox-slide={i}
+                />
+              </div>
+            ))}
+          </div>
+
+          <!-- Side arrows inside the modal -->
+          <button
+            type="button"
+            data-lightbox-prev
+            aria-label="Previous"
+            class="absolute left-2 top-1/2 -translate-y-1/2 px-3 py-2 font-pixel text-base text-phosphor bg-bg/70 backdrop-blur-sm border-2 border-line hover:border-phosphor hover:bg-phosphor/10 transition"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            data-lightbox-next
+            aria-label="Next"
+            class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-2 font-pixel text-base text-phosphor bg-bg/70 backdrop-blur-sm border-2 border-line hover:border-phosphor hover:bg-phosphor/10 transition"
+          >
+            ›
+          </button>
+        </div>
+
+        <!-- Bottom dots strip -->
+        <div class="flex items-center justify-center gap-2 py-2.5 border-t border-line">
+          {data.proofs.map((_, i) => (
+            <button
+              type="button"
+              data-lightbox-dot={i}
+              aria-label={`Slide ${i + 1}`}
+              class="w-2 h-2 border border-phosphor/40 hover:border-phosphor bg-phosphor/30 transition"
+            ></button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
 </Base>
 
 <style is:global>
@@ -95,4 +258,147 @@ const homeUrl = localizedUrl('/', lang);
   .prose-pixel strong { @apply text-amber font-semibold; }
   .prose-pixel a { @apply text-phosphor underline decoration-phosphor/40 hover:decoration-phosphor; }
   .prose-pixel code { @apply font-mono text-[0.9em] bg-bg-inset border border-line px-1.5 py-0.5; }
+  .prose-pixel table { @apply w-full font-mono text-sm border-2 border-line my-6; border-collapse: collapse; }
+  .prose-pixel thead { @apply bg-bg-inset; }
+  .prose-pixel th { @apply px-3 py-2 font-pixel text-[10px] uppercase text-phosphor border-b-2 border-line; }
+  .prose-pixel td { @apply px-3 py-2 border-t border-line text-ink/90; }
+  .prose-pixel tbody tr:hover td { @apply bg-phosphor/5; }
+
+  .scrollbar-hidden { scrollbar-width: none; -ms-overflow-style: none; }
+  .scrollbar-hidden::-webkit-scrollbar { display: none; }
+
+  .proof-carousel [data-dot].active {
+    background-color: #7C5CD8;
+    border-color: #7C5CD8;
+  }
+
+  .lightbox:not(.hidden) {
+    display: block;
+  }
+  .lightbox [data-lightbox-dot].active {
+    background-color: #7C5CD8;
+    border-color: #7C5CD8;
+  }
 </style>
+
+<script>
+  // --- Inline thumb carousel (in the banner) ---
+  const carousels = document.querySelectorAll<HTMLElement>('[data-proof-carousel]');
+  carousels.forEach((root) => {
+    const track = root.querySelector<HTMLElement>('[data-track]');
+    const prev = root.querySelector<HTMLButtonElement>('[data-prev]');
+    const next = root.querySelector<HTMLButtonElement>('[data-next]');
+    const dots = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-dot]'));
+    if (!track) return;
+
+    const slideCount = track.children.length;
+    let current = 0;
+
+    const setActiveDot = (i: number) => {
+      dots.forEach((d, di) => d.classList.toggle('active', di === i));
+    };
+
+    const goTo = (i: number) => {
+      const clamped = Math.max(0, Math.min(slideCount - 1, i));
+      current = clamped;
+      track.scrollTo({ left: clamped * track.clientWidth, behavior: 'smooth' });
+      setActiveDot(clamped);
+    };
+
+    prev?.addEventListener('click', () => goTo(current - 1));
+    next?.addEventListener('click', () => goTo(current + 1));
+    dots.forEach((dot, i) => dot.addEventListener('click', () => goTo(i)));
+
+    let scrollTimer: ReturnType<typeof setTimeout>;
+    track.addEventListener('scroll', () => {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        const i = Math.round(track.scrollLeft / track.clientWidth);
+        if (i !== current) {
+          current = i;
+          setActiveDot(i);
+        }
+      }, 80);
+    });
+
+    setActiveDot(0);
+  });
+
+  // --- Lightbox modal (full-screen carousel) ---
+  const lightbox = document.querySelector<HTMLElement>('[data-lightbox]');
+  if (lightbox) {
+    const lbTrack = lightbox.querySelector<HTMLElement>('[data-lightbox-track]');
+    const lbPrev = lightbox.querySelector<HTMLButtonElement>('[data-lightbox-prev]');
+    const lbNext = lightbox.querySelector<HTMLButtonElement>('[data-lightbox-next]');
+    const lbClose = lightbox.querySelector<HTMLButtonElement>('[data-lightbox-close]');
+    const lbDots = Array.from(lightbox.querySelectorAll<HTMLButtonElement>('[data-lightbox-dot]'));
+    const lbSlideCount = lbTrack?.children.length ?? 0;
+    let lbCurrent = 0;
+
+    const lbSetActive = (i: number) => {
+      lbDots.forEach((d, di) => d.classList.toggle('active', di === i));
+    };
+
+    const lbGoTo = (i: number, behavior: ScrollBehavior = 'smooth') => {
+      if (!lbTrack || lbSlideCount === 0) return;
+      const c = Math.max(0, Math.min(lbSlideCount - 1, i));
+      lbCurrent = c;
+      lbTrack.scrollTo({ left: c * lbTrack.clientWidth, behavior });
+      lbSetActive(c);
+    };
+
+    const lbOpen = (i: number) => {
+      lightbox.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      requestAnimationFrame(() => lbGoTo(i, 'auto'));
+    };
+
+    const lbCloseFn = () => {
+      lightbox.classList.add('hidden');
+      document.body.style.overflow = '';
+    };
+
+    lbPrev?.addEventListener('click', () => lbGoTo(lbCurrent - 1));
+    lbNext?.addEventListener('click', () => lbGoTo(lbCurrent + 1));
+    lbClose?.addEventListener('click', lbCloseFn);
+    lbDots.forEach((dot, i) => dot.addEventListener('click', () => lbGoTo(i)));
+
+    // Click on backdrop (but not on inner content) closes
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) lbCloseFn();
+    });
+
+    // Keyboard: ESC close, arrows navigate
+    document.addEventListener('keydown', (e) => {
+      if (lightbox.classList.contains('hidden')) return;
+      if (e.key === 'Escape') lbCloseFn();
+      else if (e.key === 'ArrowLeft') lbGoTo(lbCurrent - 1);
+      else if (e.key === 'ArrowRight') lbGoTo(lbCurrent + 1);
+    });
+
+    // Sync active dot on scroll
+    let lbScrollTimer: ReturnType<typeof setTimeout>;
+    lbTrack?.addEventListener('scroll', () => {
+      clearTimeout(lbScrollTimer);
+      lbScrollTimer = setTimeout(() => {
+        if (!lbTrack) return;
+        const i = Math.round(lbTrack.scrollLeft / lbTrack.clientWidth);
+        if (i !== lbCurrent) {
+          lbCurrent = i;
+          lbSetActive(i);
+        }
+      }, 80);
+    });
+
+    // Wire thumbnails to open the lightbox at the clicked index
+    document.querySelectorAll<HTMLAnchorElement>('[data-proof-thumb]').forEach((thumb) => {
+      thumb.addEventListener('click', (e) => {
+        e.preventDefault();
+        const idx = parseInt(thumb.dataset.thumbIndex || '0', 10);
+        lbOpen(idx);
+      });
+    });
+
+    lbSetActive(0);
+  }
+</script>

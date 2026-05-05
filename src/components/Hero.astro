@@ -14,7 +14,7 @@ const cvAriaLabel = lang === 'pt' ? 'Baixar currículo (PDF)' : 'Download CV (PD
 <section
   id="about"
   aria-label={sectionAriaLabel}
-  class="relative w-screen left-1/2 -translate-x-1/2 overflow-hidden bg-bg py-20 md:py-28"
+  class="relative w-screen left-1/2 -translate-x-1/2 overflow-hidden bg-bg flex-1 flex items-center py-8 md:py-12"
 >
   <!-- Atmosphere layers (decorative) — wallpaper z-0, grid z-1, scan z-2 -->
   <div class="hero-wallpaper-layer" aria-hidden="true"></div>
@@ -22,27 +22,27 @@ const cvAriaLabel = lang === 'pt' ? 'Baixar currículo (PDF)' : 'Download CV (PD
   <div class="hero-scan-accent" aria-hidden="true"></div>
 
   <!-- Content wrapper (above atmosphere) -->
-  <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6">
+  <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 w-full">
     <!-- [1] Status pill (single eyebrow — replaces "Welcome" + "Hey there") -->
     <div
       role="status"
       aria-live="polite"
-      class="inline-flex items-center gap-2.5 px-3 py-1.5 border-2 border-phosphor bg-phosphor/5 mb-10 md:mb-14"
+      class="inline-flex items-center gap-2.5 px-3 py-1.5 border-2 border-success bg-success/5 mb-6 md:mb-8"
     >
       <span
         aria-hidden="true"
-        class="inline-block w-2 h-2 bg-phosphor animate-pulse-phosphor"
+        class="inline-block w-2 h-2 bg-success animate-pulse-success"
       ></span>
-      <span class="font-mono text-[11px] sm:text-xs text-phosphor uppercase tracking-[0.18em]">
+      <span class="font-mono text-[11px] sm:text-xs text-success uppercase tracking-[0.18em]">
         {t.heroStatusAvailable[lang]}
       </span>
     </div>
 
-    <!-- [2] 2-col grid: avatar (120px) | content (1fr) -->
-    <div class="grid gap-8 md:gap-10 md:grid-cols-[120px_1fr] items-start">
-      <!-- COL 1: avatar + version label -->
+    <!-- [2] Identity grid: avatar | H1 (always 2-col) -->
+    <div class="grid gap-x-4 md:gap-x-10 grid-cols-[80px_1fr] md:grid-cols-[120px_1fr] items-start">
+      <!-- COL 1: avatar + (mobile-only name below) + version -->
       <div class="flex flex-col items-start">
-        <div class="pixel-frame-phosphor w-24 md:w-[120px] aspect-square overflow-hidden">
+        <div class="pixel-frame-phosphor w-20 md:w-[120px] aspect-square overflow-hidden">
           <img
             src="/images/profile/profile_1.png"
             alt={t.heroAvatarAlt[lang]}
@@ -54,63 +54,75 @@ const cvAriaLabel = lang === 'pt' ? 'Baixar currículo (PDF)' : 'Download CV (PD
             height="120"
           />
         </div>
-        <p class="font-mono text-[11px] text-ink-mute mt-4 tracking-wider">
+        <!-- Mobile-only: name label tucked under the avatar -->
+        <p class="md:hidden font-mono text-[11px] text-ink-dim mt-3">
+          {t.heroNameLabel[lang]}
+        </p>
+        <p class="font-mono text-[11px] text-ink-mute mt-2 md:mt-4 tracking-wider">
           {t.heroVersionLabel[lang]}
         </p>
       </div>
 
-      <!-- COL 2: content (label → H1 role → pitch → CTAs → trust) -->
+      <!-- COL 2: (desktop-only name above) + H1 -->
       <div class="min-w-0">
-        <!-- Name demoted to a code-comment label (inversion of hierarchy) -->
-        <p class="font-mono text-sm text-ink-dim mb-4">
+        <!-- Desktop-only: name label above H1 -->
+        <p class="hidden md:block font-mono text-sm text-ink-dim mb-2">
           {t.heroNameLabel[lang]}
         </p>
 
-        <!-- H1: role-first, two lines, "DevSecOps" highlighted in phosphor -->
+        <!-- H1: role-first, "Security" highlighted in primary -->
         <h1 class="font-pixel text-[22px] md:text-[28px] leading-[1.4] text-ink">
           <span class="block">
             {t.heroRoleLine1[lang]}{' '}
-            <span class="text-phosphor text-glow-phosphor">
+            <span class="text-primary text-glow-primary">
               {t.heroRoleHighlight[lang]}
             </span>
           </span>
           <span class="block">{t.heroRoleLine2[lang]}</span>
         </h1>
 
-        <!-- Primary pitch with amber metric -->
-        <p class="font-mono text-[15px] text-ink leading-relaxed mt-6 max-w-2xl">
-          {t.heroPitchPrimary[lang]}{' '}
-          <span class="text-amber font-medium">{t.heroPitchPrimaryMetric[lang]}</span>{' '}
-          {t.heroPitchPrimaryRest[lang]}
+        <!-- Subtitle: stack summary (terms stay in EN by design) -->
+        <p class="font-mono text-sm md:text-base text-ink-secondary mt-2">
+          {t.heroSubtitle[lang]}
         </p>
+      </div>
+    </div>
 
-        <!-- Secondary pitch -->
-        <p class="font-mono text-sm text-ink-dim leading-relaxed mt-3 max-w-2xl">
-          {t.heroPitchSecondary[lang]}
+    <!-- [3] Body block — full-width on mobile, aligned with col 2 on desktop (120 avatar + 40 gap = 160) -->
+    <div class="mt-6 md:mt-4 md:pl-[160px]">
+      <!-- Primary pitch with amber metric -->
+      <p class="font-mono text-[15px] text-ink leading-relaxed max-w-2xl">
+        {t.heroPitchPrimary[lang]}{' '}
+        <span class="text-amber font-medium">{t.heroPitchPrimaryMetric[lang]}</span>{' '}
+        {t.heroPitchPrimaryRest[lang]}
+      </p>
+
+      <!-- Secondary pitch -->
+      <p class="font-mono text-sm text-ink-dim leading-relaxed mt-3 max-w-2xl">
+        {t.heroPitchSecondary[lang]}
+      </p>
+
+      <!-- CTAs: only 2 -->
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a href="#impact" class="pixel-btn-primary">
+          {t.heroCtaImpact[lang]}
+        </a>
+        <a
+          href={cvHref}
+          download
+          class="pixel-btn-ghost"
+          aria-label={cvAriaLabel}
+        >
+          {t.heroCtaCV[lang]}
+        </a>
+      </div>
+
+      <!-- Trust line (replaces inline social links — those live in the footer) -->
+      <div class="mt-6 pt-3 border-t border-line">
+        <p class="font-mono text-xs text-ink-dim">
+          {t.heroTrustLine[lang]}{' '}
+          <span class="text-ink">{t.heroTrustCompanies[lang]}</span>
         </p>
-
-        <!-- CTAs: only 2 -->
-        <div class="mt-8 flex flex-wrap gap-3">
-          <a href="#impact" class="pixel-btn-primary">
-            {t.heroCtaImpact[lang]}
-          </a>
-          <a
-            href={cvHref}
-            download
-            class="pixel-btn-ghost"
-            aria-label={cvAriaLabel}
-          >
-            {t.heroCtaCV[lang]}
-          </a>
-        </div>
-
-        <!-- Trust line (replaces inline social links — those live in the footer) -->
-        <div class="mt-10 pt-4 border-t border-line">
-          <p class="font-mono text-xs text-ink-dim">
-            {t.heroTrustLine[lang]}{' '}
-            <span class="text-ink">{t.heroTrustCompanies[lang]}</span>
-          </p>
-        </div>
       </div>
     </div>
   </div>

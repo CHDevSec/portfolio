@@ -79,6 +79,7 @@ export default {
         'cursor-blink': 'cursor-blink 1s step-end infinite',
         'scan': 'scan 8s linear infinite',
         'idle-bounce': 'idle-bounce 2s ease-in-out infinite',
+        'marquee': 'marquee 25s linear infinite',
       },
       keyframes: {
         'crt-flicker': {
@@ -96,6 +97,10 @@ export default {
         'idle-bounce': {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-2px)' },
+        },
+        'marquee': {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
         },
       },
     },

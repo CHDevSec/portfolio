@@ -1,0 +1,49 @@
+---
+title: "S1-Vuln-Sync — SentinelOne vulnerability automation"
+tagline: "Python automation processing 394k vulnerabilities across a multi-OS fleet with Grafana dashboards and Slack alerting."
+company: "frete.com"
+period: "2024 — 2026"
+category: "soc"
+cover: "/images/wallpapers/wallpaper_blue_team.png"
+categoryIcon: "fc664"
+categoryIconAlt: "Blue team automation"
+featured: true
+order: 8
+metrics:
+  - { value: "394K", label: "Vulns processed", tone: "phosphor" }
+  - { value: "MULTI-OS", label: "Linux · Win · macOS", tone: "amber" }
+  - { value: "WEEKLY", label: "Automated sync", tone: "phosphor" }
+stack: ["Python", "SentinelOne API", "Grafana", "Node-RED", "Google Sheets API", "Slack Webhooks", "MySQL"]
+summary: "Python automation pulling 394k+ vulnerabilities from the SentinelOne API across a multi-OS fleet, normalizing data, filtering false positives, and syncing structured output to Sheets, Grafana dashboards, and Slack alerting."
+repo: "https://github.com/CHDevSec/SentinelOne-Vulnerability-Automation"
+proofs:
+  - { src: "/fonts/projects/sen1.png", alt: "S1-Vuln-Sync output sample 1" }
+  - { src: "/fonts/projects/sen2.png", alt: "S1-Vuln-Sync output sample 2" }
+  - { src: "/fonts/projects/sen3.png", alt: "S1-Vuln-Sync output sample 3" }
+  - { src: "/fonts/projects/sen4.png", alt: "S1-Vuln-Sync output sample 4" }
+  - { src: "/fonts/projects/sen5.png", alt: "S1-Vuln-Sync output sample 5" }
+---
+
+## The problem
+
+SentinelOne's UI surfaces vulnerabilities one endpoint at a time. With a fleet generating hundreds of thousands of findings across Linux, Windows, and macOS, the security team had no centralized view, no historical trending, and no way to detect spikes proactively. Manual reporting consumed hours every week — and false positives polluted every meeting.
+
+## The solution
+
+I built a Python automation that pulls the full vulnerability inventory from the SentinelOne API, normalizes data across operating systems, filters known false positives via pattern matching, and syncs structured output to 12 Google Sheets tabs (Top 10, Historic, Weekly Comparison, and more). The pipeline is orchestrated via Node-RED with a Friday weekly cron plus monthly consolidated reports. Grafana dashboards track real-time trends, and Slack alerts hit `#infrasec` whenever thresholds are breached.
+
+## The impact
+
+- **394,706 vulnerabilities processed** in a single sync — full fleet visibility without manual SQL or UI scrolling
+- **75% reduction** in weekly manual reporting time
+- **Real-time trending** across OS, severity, and application — surfacing critical spikes within minutes
+- **Cross-team adoption** — security, infra, and compliance teams using the same source of truth
+- **Open-source code** released for community reuse
+
+### Production snapshot
+
+| OS      | Critical | High   | Medium | Low   | Total   |
+| ------- | -------: | -----: | -----: | ----: | ------: |
+| Linux   |  284,240 | 55,748 | 31,070 | 8,096 | 379,154 |
+| Windows |    4,931 |  7,707 |    116 |    77 |  12,831 |
+| macOS   |    1,444 |    864 |    147 |   266 |   2,721 |

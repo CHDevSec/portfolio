@@ -3,6 +3,7 @@ import type { Lang } from './i18n';
 export type ExperienceI18n = {
   company: string;
   initials: string;
+  logo?: string;
   sector: { en: string; pt: string };
   role: { en: string; pt: string };
   period: { en: string; pt: string };
@@ -17,6 +18,7 @@ export const experience: ExperienceI18n[] = [
   {
     company: 'CHDevSec',
     initials: 'CH',
+    logo: '/company/chdevsec.png',
     sector: { en: 'Independent · Consulting', pt: 'Independente · Consultoria' },
     role: { en: 'Cybersecurity Consultant · Pentest & Cloud Security', pt: 'Consultor de Cibersegurança · Pentest & Cloud Security' },
     period: { en: 'Mar 2026 — Present', pt: 'Mar 2026 — Presente' },
@@ -46,6 +48,7 @@ export const experience: ExperienceI18n[] = [
   {
     company: 'frete.com',
     initials: 'FC',
+    logo: '/company/frete.png',
     sector: { en: 'Logistics SaaS · Series C', pt: 'SaaS de Logística · Series C' },
     role: { en: 'Security Engineer · Cloud & DevSecOps', pt: 'Engenheiro de Segurança · Cloud & DevSecOps' },
     period: { en: 'Sep 2024 — Mar 2026 · 1y 7m', pt: 'Set 2024 — Mar 2026 · 1a 7m' },
@@ -74,6 +77,7 @@ export const experience: ExperienceI18n[] = [
   {
     company: 'Volt Sport',
     initials: 'VS',
+    logo: '/company/logo-volt.svg',
     sector: { en: 'Sports Retail · Multi-branch', pt: 'Varejo Esportivo · Multi-filial' },
     role: { en: 'Security Engineer · Cloud & DevSecOps', pt: 'Engenheiro de Segurança · Cloud & DevSecOps' },
     period: { en: 'Jun 2023 — Aug 2024 · 1y 3m', pt: 'Jun 2023 — Ago 2024 · 1a 3m' },
@@ -100,6 +104,7 @@ export const experience: ExperienceI18n[] = [
   {
     company: 'Evolution Soluções Empresariais',
     initials: 'EV',
+    logo: '/company/evolutionsul.avif',
     sector: { en: 'IT Services · Consulting', pt: 'Serviços de TI · Consultoria' },
     role: { en: 'Network & Infrastructure Analyst', pt: 'Analista de Rede & Infraestrutura' },
     period: { en: 'Jan 2023 — May 2023 · 5m', pt: 'Jan 2023 — Mai 2023 · 5m' },
@@ -124,6 +129,7 @@ export const experience: ExperienceI18n[] = [
   {
     company: 'Global Estratégias Financeiras',
     initials: 'GE',
+    logo: '/company/global.png',
     sector: { en: 'Fintech · Regulated', pt: 'Fintech · Regulada' },
     role: { en: 'Junior Cybersecurity Analyst', pt: 'Analista Jr. de Cibersegurança' },
     period: { en: 'Feb 2021 — Jan 2023 · 2y', pt: 'Fev 2021 — Jan 2023 · 2a' },
@@ -145,12 +151,43 @@ export const experience: ExperienceI18n[] = [
     },
     stack: ['IAM', 'Active Directory', 'RBAC', 'Bitdefender', 'Wazuh', 'CIS', 'Linux', 'GPO'],
   },
+  {
+    company: 'CHDevSec',
+    initials: 'CH',
+    logo: '/company/chdevsec.png',
+    sector: { en: 'Independent · Early Career', pt: 'Independente · Carreira Inicial' },
+    role: {
+      en: 'Independent Security Consultant · Pentest & Infra',
+      pt: 'Consultor Independente de Segurança · Pentest & Infra',
+    },
+    period: { en: 'Jan 2018 — Dec 2019 · 2y', pt: 'Jan 2018 — Dez 2019 · 2a' },
+    location: 'Joinville, SC',
+    tone: 'amber',
+    bullets: {
+      en: [
+        'Conducted **network penetration tests** for closed-scope clients — identifying critical vulnerabilities before they became incidents.',
+        'Built and hardened **Linux-based infrastructure** (servers, networking, baseline hardening) for SMB clients across multiple sectors.',
+        'Developed **embedded systems and firmware** — IoT devices and custom hardware integrations with security-first design.',
+        'Operated end-to-end as solo consultant: scoping, execution, reporting and remediation guidance.',
+        "Foundation of what would become CHDevSec's senior consulting practice years later.",
+      ],
+      pt: [
+        'Conduzi **testes de invasão em redes** para clientes de escopo fechado — identificando vulnerabilidades críticas antes que virassem incidentes.',
+        'Construí e hardenizei **infraestrutura Linux** (servidores, networking, hardening baseline) para clientes SMB em múltiplos setores.',
+        'Desenvolvi **sistemas embarcados e firmware** — dispositivos IoT e integrações de hardware customizadas com design security-first.',
+        'Operei end-to-end como consultor solo: escopo, execução, reporting e guidance de remediação.',
+        'Fundação do que viria a ser a prática consultiva sênior da CHDevSec anos depois.',
+      ],
+    },
+    stack: ['Linux', 'Networking', 'Bash', 'C', 'Python', 'Embedded', 'Pentest', 'IoT'],
+  },
 ];
 
 export const experienceFor = (lang: Lang) =>
   experience.map((e) => ({
     company: e.company,
     initials: e.initials,
+    logo: e.logo,
     sector: e.sector[lang],
     role: e.role[lang],
     period: e.period[lang],

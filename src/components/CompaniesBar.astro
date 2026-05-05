@@ -5,22 +5,82 @@ import { t } from '@/data/i18n';
 interface Props { lang: Lang; }
 const { lang } = Astro.props;
 
-const companies = ['FRETE.COM', 'VOLT SPORT', 'GLOBAL ESTRATÉGIAS', 'EVOLUTION', 'CHDEVSEC'];
+interface Company {
+  name: string;
+  logo: string;
+  href?: string;
+}
+
+const companies: Company[] = [
+  { name: 'frete.com',          logo: '/company/frete.png',         href: 'https://frete.com' },
+  { name: 'Volt Sport',         logo: '/company/logo-volt.svg' },
+  { name: 'Global Estratégias', logo: '/company/global.png' },
+  { name: 'Evolution',          logo: '/company/evolutionsul.avif' },
+  { name: 'CHDevSec',           logo: '/company/chdevsec.png' },
+];
+
+const ariaLabel = lang === 'pt' ? 'Empresas onde estive em produção' : 'Companies where I shipped in production';
 ---
-<div class="border-y-2 border-line bg-bg-inset/60 py-6">
+<section
+  aria-label={ariaLabel}
+  class="relative z-10 mt-auto bg-bg-surface border-t border-line py-4 md:py-6"
+>
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
-    <p class="font-pixel text-[9px] text-ink-mute uppercase tracking-[0.2em] text-center mb-4">
+    <p class="font-pixel text-[9px] text-ink-mute uppercase tracking-[0.2em] text-center mb-5">
       {t.testimonialsTrusted[lang]}
     </p>
-    <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
-      {companies.map((c, i) => (
-        <>
-          <span class="font-mono text-xs sm:text-sm text-ink-dim hover:text-amber transition cursor-default">
-            {c}
+
+    {/* Mobile: single-line infinite marquee — array duplicated for seamless loop */}
+    <div class="md:hidden marquee">
+      <div class="flex items-center gap-x-10 whitespace-nowrap w-max animate-marquee">
+        {[...companies, ...companies].map((c, i) => (
+          <a
+            href={c.href}
+            target={c.href ? '_blank' : undefined}
+            rel={c.href ? 'noopener noreferrer' : undefined}
+            aria-label={c.name}
+            aria-hidden={i >= companies.length ? 'true' : undefined}
+            class="shrink-0 flex flex-col items-center gap-1.5 transition-opacity hover:opacity-80"
+          >
+            <img
+              src={c.logo}
+              alt={i >= companies.length ? '' : `${c.name} logo`}
+              height="20"
+              class="h-5 w-auto object-contain smooth opacity-70 grayscale-[30%] hover:opacity-100 hover:grayscale-0 transition"
+              loading="lazy"
+              decoding="async"
+            />
+            <span class="font-mono text-[8px] tracking-[0.15em] text-ink-mute uppercase">
+              {c.name}
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    {/* Desktop: static wrap — current layout preserved */}
+    <div class="hidden md:flex flex-wrap items-start justify-center gap-x-8 md:gap-x-12 gap-y-5">
+      {companies.map((c) => (
+        <a
+          href={c.href}
+          target={c.href ? '_blank' : undefined}
+          rel={c.href ? 'noopener noreferrer' : undefined}
+          aria-label={c.name}
+          class="group flex flex-col items-center gap-1.5 transition-opacity hover:opacity-80"
+        >
+          <img
+            src={c.logo}
+            alt={`${c.name} logo`}
+            height="24"
+            class="h-6 w-auto object-contain smooth opacity-70 grayscale-[30%] hover:opacity-100 hover:grayscale-0 transition"
+            loading="lazy"
+            decoding="async"
+          />
+          <span class="font-mono text-[9px] tracking-[0.15em] text-ink-mute uppercase">
+            {c.name}
           </span>
-          {i < companies.length - 1 && <span class="text-ink-mute font-mono">·</span>}
-        </>
+        </a>
       ))}
     </div>
   </div>
-</div>
+</section>

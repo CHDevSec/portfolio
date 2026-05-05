@@ -1,0 +1,41 @@
+---
+title: "Programa Enterprise de Vulnerability Management"
+tagline: "Construí e liderei um programa enterprise de vuln management — scans automatizados, priorização baseada em risco, SLA enforcement e Fóruns mensais cross-team."
+company: "frete.com"
+period: "2024 — 2026"
+category: "devsecops"
+cover: "/images/wallpapers/ticket.png"
+categoryIcon: "fc855"
+categoryIconAlt: "Programa de vulnerability management"
+featured: true
+order: 9
+metrics:
+  - { value: "212", label: "Tickets gerenciados", tone: "phosphor" }
+  - { value: "4", label: "Nessus · Snyk · S1 · Inspector", tone: "amber" }
+  - { value: "Mensal", label: "Cadência Vuln Forum", tone: "phosphor" }
+stack: ["Jira", "Nessus", "Snyk", "SentinelOne", "AWS Inspector", "DefectDojo"]
+summary: "Programa enterprise de vulnerability management unificando quatro scanners num workflow Jira único, com priorização baseada em risco, SLA enforcement e Fóruns mensais cross-team alinhando Security, DevOps e Engenharia."
+proofs:
+  - { src: "/fonts/projects/ges1.png", alt: "Dashboard de vulnerability management com 212 tickets" }
+  - { src: "/fonts/projects/ges2.png", alt: "Workflow Kanban no Jira — Backlog · Refinamento · Em Andamento · Reteste" }
+---
+
+## O problema
+
+Vulnerabilidades chegavam de quatro scanners diferentes — Nessus, Snyk, SentinelOne e AWS Inspector — em inboxes separadas, sem priorização comum, sem SLA e sem accountability compartilhada. Security flagava findings, engenharia não sabia o que importava, e remediação arrastava por meses. Issues críticos misturados com ruído; ninguém tinha source of truth única.
+
+## A solução
+
+Construí um programa enterprise de vulnerability management com três pilares:
+
+- **Intake centralizado** — os quatro scanners alimentam Jira via API, normalizados em workflow único com colunas de status (Backlog → Refinamento → Em Andamento → Reteste → Concluído).
+- **Priorização baseada em risco** — todo finding é scoreado contra criticidade do asset, exploitability e impacto de negócio antes de chegar na engenharia.
+- **Alinhamento cross-team** — Fóruns mensais de Vulnerabilidade trazem Security, DevOps e Engenharia pra mesma sala com dashboards compartilhados, tracking de SLA e ownership de remediação.
+
+## O impacto
+
+- **212 vulnerabilidades sob gestão ativa** com visibilidade de status e SLA enforcement
+- **4 scanners unificados** em workflow único — sem email threads, planilhas ou duplicate tracking
+- **Fóruns mensais de Vulnerabilidade** institucionalizaram diálogo cross-team entre Security, DevOps e Engenharia
+- **Pentests direcionados** em assets críticos validaram remediations e expuseram gaps que tools automatizadas não pegavam
+- **Priorização baseada em risco** substituiu o pânico de "corrigir tudo" — engenharia confia que o que chega é real

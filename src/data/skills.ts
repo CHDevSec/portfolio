@@ -96,4 +96,14 @@ export const skillGroups: SkillGroup[] = [
       'Cloudflare WAF',
     ],
   },
+  {
+    title: 'Languages & Background',
+    icon: 'book',
+    items: [
+      'C · C++',
+      'Assembly',
+      'C#',
+      'PowerShell',
+    ],
+  },
 ];

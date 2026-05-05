@@ -16,6 +16,25 @@ const titleMap: Record<string, { en: string; pt: string }> = {
   'Automation': { en: 'Automation', pt: 'Automação' },
   'Frameworks': { en: 'Frameworks', pt: 'Frameworks' },
   'OS & Infra': { en: 'OS & Infra', pt: 'SO & Infra' },
+  'Languages & Background': { en: 'Languages & Background', pt: 'Linguagens & Background' },
+};
+
+// Curated PNG icons replacing the SVG default for these groups.
+const pngIconMap: Record<string, string> = {
+  'DevSecOps': 'fc126',                 // hammer = build/forge
+  'Cloud Security': 'fc793',            // cloud security
+  'AppSec': 'fc821',                    // app/code shield = AppSec
+  'Vuln Mgmt & Hardening': 'fc864',     // vuln mgmt / hardening
+  'SIEM & Detection': 'fc664',          // shield azul = SOC defensive
+  'Automation': 'fc848',                // automation
+  'Frameworks': 'fc855',                // shield green check = compliance
+  'OS & Infra': 'fc2',                  // OS / infra
+  'Languages & Background': 'fc673',    // skull crossbones = systems/offensive bg
+};
+
+// Optional descriptive subtitle for cards that need extra context under the title.
+const subtitleMap: Record<string, keyof typeof t> = {
+  'Languages & Background': 'skillsLanguagesBgSubtitle',
 };
 ---
 <section id="skills" class="section">
@@ -28,27 +47,65 @@ const titleMap: Record<string, { en: string; pt: string }> = {
 
       <!-- Mini-stat -->
       <div class="mt-8 pixel-frame p-5 bg-phosphor/5 border-phosphor">
-        <p class="font-pixel text-[10px] text-phosphor uppercase mb-2">▸ Primary stack</p>
-        <div class="font-mono text-sm text-ink">
-          Python · Go · Bash<br/>
-          AWS · Wazuh · Snyk
+        <p class="font-pixel text-[10px] text-phosphor uppercase mb-4">▸ {t.primaryStackTitle[lang]}</p>
+
+        <div class="space-y-3.5">
+          <div>
+            <p class="font-mono text-[10px] text-ink-mute uppercase tracking-[0.15em] mb-1">
+              {t.primaryStackLanguagesLabel[lang]}
+            </p>
+            <p class="font-mono text-sm text-ink">
+              Go <span class="text-phosphor">{t.primaryStackPrimaryTag[lang]}</span> · Python · Bash
+            </p>
+          </div>
+
+          <div>
+            <p class="font-mono text-[10px] text-ink-mute uppercase tracking-[0.15em] mb-1">
+              {t.primaryStackPlatformsLabel[lang]}
+            </p>
+            <p class="font-mono text-sm text-ink">AWS · Linux</p>
+          </div>
+
+          <div>
+            <p class="font-mono text-[10px] text-ink-mute uppercase tracking-[0.15em] mb-1">
+              {t.primaryStackToolingLabel[lang]}
+            </p>
+            <p class="font-mono text-sm text-ink">Snyk · Wazuh · DefectDojo · Akamai</p>
+          </div>
         </div>
-        <p class="font-pixel text-[9px] text-ink-mute mt-3 uppercase">Used in production daily</p>
+
+        <div class="mt-5 pt-3 border-t border-line">
+          <p class="font-pixel text-[9px] text-ink-mute uppercase">{t.primaryStackFooter[lang]}</p>
+        </div>
       </div>
     </div>
 
     <!-- RIGHT column (2/3): Skills grid 2-col -->
     <div class="lg:col-span-8">
-      <div class="grid sm:grid-cols-2 gap-3">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {skillGroups.map((g, i) => (
           <article class={`pixel-frame p-4 transition ${
             g.highlight ? 'border-phosphor/60 hover:border-phosphor' : 'hover:border-phosphor'
           }`}>
             <div class="flex items-center gap-3 mb-3">
               <div class={`shrink-0 w-9 h-9 grid place-items-center border-2 ${
-                g.highlight ? 'border-phosphor text-phosphor bg-phosphor/10' : 'border-line text-ink-dim'
+                g.highlight || pngIconMap[g.title]
+                  ? 'border-phosphor text-phosphor bg-phosphor/10'
+                  : 'border-line text-ink-dim'
               }`}>
-                <PixelIcon name={g.icon as any} size={20} />
+                {pngIconMap[g.title] ? (
+                  <img
+                    src={`/fonts/icons/${pngIconMap[g.title]}.png`}
+                    alt=""
+                    aria-hidden="true"
+                    width="20"
+                    height="20"
+                    class="pixel-png pixel-png--toned"
+                    loading="lazy"
+                  />
+                ) : (
+                  <PixelIcon name={g.icon as any} size={20} />
+                )}
               </div>
               <div class="flex-1 min-w-0">
                 <h3 class={`font-pixel text-[11px] ${g.highlight ? 'text-phosphor' : 'text-ink'}`}>
@@ -57,6 +114,11 @@ const titleMap: Record<string, { en: string; pt: string }> = {
                 <p class="font-mono text-[9px] text-ink-mute uppercase">0{i + 1}</p>
               </div>
             </div>
+            {subtitleMap[g.title] && (
+              <p class="font-mono text-[10px] text-ink-mute tracking-[0.05em] -mt-1 mb-3">
+                {t[subtitleMap[g.title]][lang]}
+              </p>
+            )}
             <ul class="font-mono text-[11px] text-ink-dim leading-relaxed space-y-1">
               {g.items.map((it) => (
                 <li class="flex gap-1.5">

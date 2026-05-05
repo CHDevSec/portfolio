@@ -1,5 +1,4 @@
 ---
-import PixelIcon from './icons/PixelIcon.astro';
 import type { Lang } from '@/data/i18n';
 import { t } from '@/data/i18n';
 
@@ -8,7 +7,7 @@ const { lang } = Astro.props;
 
 const principles = [
   {
-    icon: 'eye',
+    png: 'fc855',
     title: t.methodP1Title[lang],
     body: t.methodP1Body[lang],
     accent: 'phosphor' as const,
@@ -16,7 +15,7 @@ const principles = [
     statLabel: t.methodP1Stat[lang],
   },
   {
-    icon: 'pipe',
+    png: 'fc887',
     title: t.methodP2Title[lang],
     body: t.methodP2Body[lang],
     accent: 'amber' as const,
@@ -24,7 +23,7 @@ const principles = [
     statLabel: t.methodP2Stat[lang],
   },
   {
-    icon: 'fingerprint',
+    png: 'fc124',
     title: t.methodP3Title[lang],
     body: t.methodP3Body[lang],
     accent: 'phosphor' as const,
@@ -55,7 +54,15 @@ const accentText = {
             0{i + 1}
           </span>
           <div class={`w-14 h-14 grid place-items-center border-2 ${accentColor[p.accent]} bg-bg-card`}>
-            <PixelIcon name={p.icon as any} size={32} />
+            <img
+              src={`/fonts/icons/${p.png}.png`}
+              alt=""
+              aria-hidden="true"
+              width="32"
+              height="32"
+              class="pixel-png pixel-png--toned"
+              loading="lazy"
+            />
           </div>
           <h3 class={`mt-5 font-pixel text-base ${accentText[p.accent]}`}>{p.title}</h3>
           <p class="mt-3 font-sans text-sm text-ink/90 leading-relaxed">{p.body}</p>

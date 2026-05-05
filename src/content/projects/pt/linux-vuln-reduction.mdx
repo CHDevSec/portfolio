@@ -1,0 +1,44 @@
+---
+title: "Redução de Vulnerabilidades Linux & Automação de Kernel"
+tagline: "Framework Bash + Python que cortou vulnerabilidades da fleet Ubuntu de 569k para 318k, superando a meta em 151k — via atualizações automatizadas de kernel, hardening de GRUB e integração com telemetria SentinelOne."
+company: "frete.com"
+period: "2024 — 2026"
+category: "automation"
+cover: "/images/wallpapers/wallpaper_linux_forge.webp"
+categoryIcon: "fc850"
+categoryIconAlt: "Framework de hardening Linux"
+featured: true
+order: 0
+metrics:
+  - { value: "−44%", label: "Redução de vulns", tone: "alert" }
+  - { value: "569K → 318K", label: "Fleet Ubuntu", tone: "phosphor" }
+  - { value: "−151K", label: "Além da meta", tone: "amber" }
+stack: ["Bash", "Python", "SentinelOne API", "Grafana", "Ubuntu", "GRUB", "Linux Kernel"]
+summary: "Framework de remediação Bash + Python que reduziu uma fleet Ubuntu de 569k para 318k vulnerabilidades — automatizando atualizações de kernel com hardening de GRUB, rollback safety e verificação via telemetria SentinelOne, com overdelivery sobre a meta de 469k."
+proofs:
+  - { src: "/fonts/projects/kernel.png", alt: "Dashboard Grafana — trending de vulnerabilidades Linux/Windows/macOS" }
+---
+
+## O problema
+
+A fleet de servidores Ubuntu carregava 569.000 vulnerabilidades — majoritariamente atreladas a kernels desatualizados, configurações GRUB sem patch e remediação inconsistente entre centenas de endpoints. Patching manual era lento, propenso a erro e nunca alcançava a long tail. Ferramentas padrão de fleet management mostravam findings mas não atuavam neles. A engenharia tinha meta de 469k pra bater; ninguém acreditava ser possível sem quebrar produção.
+
+## A solução
+
+Construí um framework automatizado de redução de vulnerabilidades em Bash e Python que:
+
+- **Detecta kernels desatualizados** entre a fleet via checks de inventário contra advisories de segurança Ubuntu correntes
+- **Aplica atualizações de kernel hardenizadas com rollback safety** — validação pre-flight, patch de GRUB e health checks pós-reboot
+- **Enforça remediação consistente** entre centenas de endpoints — mesma baseline de patch em toda fleet, sem snowflakes
+- **Integra API SentinelOne** pra telemetria em tempo real — toda remediação é verificada contra estado real do endpoint, não drift de inventário
+- **Alimenta dashboards Grafana** pra visibilidade — breakdown Critical/High/Medium/Low por OS, trending semanal + mensal
+
+O framework roda em cadência controlada: scans semanais, batches semanais, com gates de revisão da engenharia em mudanças critical-severity.
+
+## O impacto
+
+- **569k → 318k vulnerabilidades** — 44% de redução na fleet Ubuntu
+- **Superei a meta corporativa** de 469k em 151k — entreguei 32% além do esperado
+- **Snapshot do dashboard:** 285.671 findings mensais em Linux trackeados entre Critical/High/Medium/Low — habilitando priorização data-driven em escala
+- **Visibilidade multi-OS** — mesmos dashboards estendidos pra Windows (30.202 findings mensais) e macOS (2.361 findings mensais)
+- **Zero incidentes de produção** causados por patching automatizado durante o rollout — validação pre-flight e rollback safety pagaram o preço
