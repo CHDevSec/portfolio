@@ -14,9 +14,10 @@
 
   body {
     @apply min-h-screen antialiased;
+    background-color: #050308;
     background-image:
-      linear-gradient(rgba(0, 255, 156, 0.045) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 255, 156, 0.045) 1px, transparent 1px);
+      linear-gradient(rgba(124, 92, 216, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124, 92, 216, 0.04) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
@@ -71,13 +72,23 @@
     image-rendering: pixelated;
   }
 
-  /* Hero avatar variant: phosphor border + bg "ring" gap + outer phosphor glow */
+  /* Hero avatar variant: primary border + bg "ring" gap + outer primary glow */
+  .pixel-frame-primary {
+    @apply relative bg-bg-card;
+    border: 2px solid #7C5CD8;
+    box-shadow:
+      0 0 0 4px #050308,
+      0 0 24px rgba(124, 92, 216, 0.35);
+    image-rendering: pixelated;
+  }
+
+  /* Legacy alias — keeps Hero.astro working without edit. Same colors as .pixel-frame-primary. */
   .pixel-frame-phosphor {
     @apply relative bg-bg-card;
-    border: 2px solid #00FF9C;
+    border: 2px solid #7C5CD8;
     box-shadow:
-      0 0 0 4px #0A0E14,
-      0 0 24px rgba(0, 255, 156, 0.25);
+      0 0 0 4px #050308,
+      0 0 24px rgba(124, 92, 216, 0.35);
     image-rendering: pixelated;
   }
 
@@ -88,7 +99,7 @@
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background-color: #0A0E14;
+    background-color: #050308;
     background-image: url('/images/wallpapers/wallpaper_web_app.webp');
     background-size: cover;
     background-position: center;
@@ -101,22 +112,22 @@
     inset: 0;
     background: linear-gradient(
       180deg,
-      rgba(10, 14, 20, 0.92) 0%,
-      rgba(10, 14, 20, 0.85) 40%,
-      rgba(10, 14, 20, 0.92) 100%
+      rgba(5, 3, 8, 0.92) 0%,
+      rgba(5, 3, 8, 0.85) 40%,
+      rgba(5, 3, 8, 0.92) 100%
     );
   }
 
   /* Hero atmosphere — pixel grid pattern (CSS-only, no image asset).
-     Sits above wallpaper. Uses --color-line at low opacity, faded radially. */
+     Sits above wallpaper. Uses primary.dim at low opacity, faded radially. */
   .hero-grid-pattern {
     position: absolute;
     inset: 0;
     z-index: 1;
     pointer-events: none;
     background-image:
-      linear-gradient(to right,  rgba(31, 38, 50, 0.6) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(31, 38, 50, 0.6) 1px, transparent 1px);
+      linear-gradient(to right,  rgba(74, 54, 128, 0.5) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(74, 54, 128, 0.5) 1px, transparent 1px);
     background-size: 32px 32px;
     mask-image: radial-gradient(
       ellipse 80% 70% at center,
@@ -142,9 +153,9 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(0, 255, 156, 0) 20%,
-      rgba(0, 255, 156, 0.3) 50%,
-      rgba(0, 255, 156, 0) 80%,
+      rgba(124, 92, 216, 0) 20%,
+      rgba(124, 92, 216, 0.4) 50%,
+      rgba(124, 92, 216, 0) 80%,
       transparent 100%
     );
   }
@@ -170,18 +181,18 @@
   .pixel-btn-primary {
     @apply pixel-btn bg-phosphor text-bg border-phosphor
            hover:bg-phosphor-glow hover:border-phosphor-glow
-           shadow-[4px_4px_0_0_#00B36F];
+           shadow-[4px_4px_0_0_#4A3680];
   }
 
   .pixel-btn-amber {
     @apply pixel-btn bg-amber text-bg border-amber
            hover:bg-amber-glow hover:border-amber-glow
-           shadow-[4px_4px_0_0_#B37A00];
+           shadow-[4px_4px_0_0_#8A6F1C];
   }
 
   .pixel-btn-ghost {
     @apply pixel-btn bg-transparent text-ink border-line
-           hover:border-phosphor hover:text-phosphor hover:shadow-[4px_4px_0_0_#00B36F];
+           hover:border-phosphor hover:text-phosphor hover:shadow-[4px_4px_0_0_#4A3680];
   }
 
   /* Pixel art PNG icons (decorative, multi-color) — distinct from PixelIcon SVG */
@@ -236,7 +247,7 @@
   /* Glowing horizontal rule */
   .hr-pixel {
     @apply h-1 bg-phosphor relative;
-    background-image: linear-gradient(90deg, transparent 0%, #00FF9C 20%, #00FF9C 80%, transparent 100%);
+    background-image: linear-gradient(90deg, transparent 0%, #7C5CD8 20%, #7C5CD8 80%, transparent 100%);
   }
 
   /* Marquee */
@@ -255,6 +266,18 @@
   .pixel-badge-alert { @apply pixel-badge bg-alert/10 text-alert border-alert; }
   .pixel-badge-mute { @apply pixel-badge bg-line/40 text-ink-dim border-line; }
 }
+
+/* Terminal authenticity preservation — re-pins original phosphor/amber/alert colors
+   INSIDE .terminal only. Defined OUTSIDE @layer components so Tailwind doesn't expand
+   `.bg-phosphor` references through every `@apply bg-phosphor` consumer. The legacy
+   Tailwind aliases (phosphor/amber/alert) point to the new Twilight Vault palette
+   globally; this override keeps the terminal authentic (CRT green + mac traffic dots). */
+.terminal .text-phosphor { color: #00FF9C; }
+.terminal .bg-phosphor   { background-color: #00FF9C; }
+.terminal .text-amber    { color: #FFB000; }
+.terminal .bg-amber      { background-color: #FFB000; }
+.terminal .text-alert    { color: #FF3864; }
+.terminal .bg-alert      { background-color: #FF3864; }
 
 @layer utilities {
   /* Scanlines overlay (subtle CRT vibe) */
@@ -275,11 +298,19 @@
   }
 
   .text-glow-phosphor {
-    text-shadow: 0 0 8px rgba(0, 255, 156, 0.6), 0 0 24px rgba(0, 255, 156, 0.2);
+    text-shadow: 0 0 8px rgba(124, 92, 216, 0.6), 0 0 24px rgba(124, 92, 216, 0.2);
+  }
+
+  .text-glow-primary {
+    text-shadow: 0 0 8px rgba(124, 92, 216, 0.6), 0 0 24px rgba(124, 92, 216, 0.2);
   }
 
   .text-glow-amber {
-    text-shadow: 0 0 8px rgba(255, 176, 0, 0.6), 0 0 24px rgba(255, 176, 0, 0.2);
+    text-shadow: 0 0 8px rgba(212, 168, 44, 0.6), 0 0 24px rgba(212, 168, 44, 0.2);
+  }
+
+  .text-glow-gold {
+    text-shadow: 0 0 8px rgba(212, 168, 44, 0.6), 0 0 24px rgba(212, 168, 44, 0.2);
   }
 
   /* Status pill dot pulse — used in Hero v2 status pill */
@@ -287,16 +318,33 @@
     0%, 100% {
       transform: scale(1);
       opacity: 1;
-      box-shadow: 0 0 0 0 rgba(0, 255, 156, 0.55);
+      box-shadow: 0 0 0 0 rgba(124, 92, 216, 0.6);
     }
     50% {
       transform: scale(1.25);
       opacity: 0.85;
-      box-shadow: 0 0 0 6px rgba(0, 255, 156, 0);
+      box-shadow: 0 0 0 6px rgba(124, 92, 216, 0);
+    }
+  }
+
+  @keyframes pulse-primary {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgba(124, 92, 216, 0.6);
+    }
+    50% {
+      transform: scale(1.25);
+      opacity: 0.85;
+      box-shadow: 0 0 0 6px rgba(124, 92, 216, 0);
     }
   }
 
   .animate-pulse-phosphor {
     animation: pulse-phosphor 2s ease-in-out infinite;
+  }
+
+  .animate-pulse-primary {
+    animation: pulse-primary 2s ease-in-out infinite;
   }
 }
