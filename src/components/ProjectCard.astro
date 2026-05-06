@@ -77,16 +77,16 @@ const isFeatured = data.featured;
     </p>
 
     {data.metrics.length > 0 && (
-      <div class="mt-4 grid grid-cols-3 gap-2 border-t-2 border-line pt-4">
+      <div class="mt-4 grid grid-cols-3 gap-3 border-t-2 border-line pt-4">
         {data.metrics.slice(0, 3).map((m) => (
-          <div>
-            <div class={`font-pixel text-base ${
+          <div class="flex flex-col">
+            <div class={`font-pixel text-sm leading-tight break-words min-h-[1.5rem] ${
               m.tone === 'amber' ? 'text-amber' :
               m.tone === 'alert' ? 'text-alert' : 'text-phosphor'
             }`}>
               {m.value}
             </div>
-            <div class="font-mono text-[9px] text-ink-mute uppercase mt-0.5 leading-tight">
+            <div class="font-mono text-[9px] text-ink-mute uppercase mt-1.5 leading-snug line-clamp-2 min-h-[1.75rem]">
               {m.label}
             </div>
           </div>

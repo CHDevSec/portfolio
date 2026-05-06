@@ -1,8 +1,8 @@
 ---
-title: "SecScan — Go vulnerability scanner"
-tagline: "Custom Go-based scanner adopted across 60%+ of frete.com's Go stack"
+title: "SecScan — Snyk scanning orchestrator"
+tagline: "Go CLI that orchestrates Snyk scans across hundreds of repositories — local, remote, and GitLab — with deterministic output and CI/CD-ready exit codes."
 company: "frete.com"
-period: "2024 — 2026"
+period: "2024 — 2025"
 category: "devsecops"
 cover: "/images/wallpapers/wallpaper_devsecops.png"
 categoryIcon: "fc725"
@@ -10,11 +10,11 @@ categoryIconAlt: "Pentest scanner tool"
 featured: true
 order: 1
 metrics:
-  - { value: "60%+", label: "Go stack coverage", tone: "phosphor" }
-  - { value: "↓ FP", label: "Snyk false positives", tone: "amber" }
-  - { value: "CI/CD", label: "Native gating", tone: "phosphor" }
-stack: ["Go", "Snyk API", "GitHub Actions", "GitLab CI", "AWS"]
-summary: "Internal Go-native vulnerability scanner that wraps Snyk with smarter triage, custom rules and CI/CD enforcement — reducing noise and accelerating remediation across the Go monorepo."
+  - { value: "3 MODES", label: "LOCAL · REMOTE · GITLAB", tone: "phosphor" }
+  - { value: "MULTI-REPO", label: "BATCH SCANNING", tone: "amber" }
+  - { value: "CI/CD", label: "NATIVE EXIT CODES", tone: "phosphor" }
+stack: ["GO", "SNYK CLI", "COBRA", "VIPER", "GITHUB ACTIONS", "GITLAB CI"]
+summary: "Go CLI that orchestrates Snyk scans across hundreds of repositories — local, remote, and GitLab — with deterministic output and CI/CD-ready exit codes."
 repo: "https://github.com/CHDevSec/ScannerSecurity"
 proofs:
   - { src: "/fonts/projects/sec1.png", alt: "SecScan output sample 1" }
@@ -25,31 +25,33 @@ proofs:
 
 ## The problem
 
-The Snyk dashboard was producing more noise than signal. Across the company's Go stack we faced:
-
-- **Hundreds of duplicate findings** per service after each scan
-- **High false-positive rate** on transitive dependencies that weren't actually exploitable in the codepath
-- Engineers ignoring scan output because triage cost more than the perceived risk
-- No native gate in CI/CD — security findings landed in Jira late, not at PR time
+Running Snyk against a fleet of microservices means running the CLI by hand for every repository, every branch, every pipeline. Engineers either skipped scans or copy-pasted shell scripts that drifted between teams. There was no consistent way to scan dozens of Go services at scale, no batch mode, and no clean integration with GitLab project IDs without writing custom glue every time.
 
 ## The approach
 
-Instead of fighting the tool I built one **on top of it**, in Go, designed for our codebase:
+Built SecScan in Go — a CLI orchestrator that wraps Snyk CLI with three opinionated modes:
 
-- **Direct Snyk API integration** — pull findings as structured data, not screenshots
-- **Path-aware suppression** — hide vulnerabilities in dependencies that aren't reached by exported call graphs
-- **Severity normalization** — re-score against actual exploitability, not just CVSS base
-- **CI/CD gate** — fail the build on `critical` + reachable findings, warn on the rest
-- **Auto-PR remediation** — bump dependency versions automatically when a fixed version exists
-- **JSON + SARIF output** — feeds DefectDojo and the engineering dashboards
+- **scanLocal** — recursively discovers `go.mod` files in a workspace and scans each as a separate project
+- **scanMonitor** — clones one or many repositories from a URL list and scans them ephemerally (cleans up after)
+- **scanGitLab** — accepts a GitLab project ID, pulls metadata via API, and scans the repo with proper credentials
 
-## The result
+All three modes feed Snyk Monitor for centralized dashboards, support `.env` / YAML / CLI config precedence, and return CI-friendly exit codes for pipeline gating.
 
-- **Adopted in 60%+ of the company's Go stack** within two quarters
-- Snyk false positives drastically reduced — engineers actually engage with findings now
-- Triage time dropped from hours to minutes per service
-- Became part of the company's DevSecOps reference architecture
+## Engineering details that matter
+
+- **Hexagonal architecture** — clean separation between CLI layer (Cobra), adapters (Snyk CLI, Git), and domain logic
+- **Argument sanitization** — explicit `--org=<value>` formatting prevents Snyk CLI parsing ambiguities (a real bug I hit in production)
+- **Credential isolation** — secrets stay in env vars, never in args, never in temp files
+- **Repository batching** — `--repo-file` accepts URL lists for parallel scanning via GNU parallel
+- **Three CI templates included** — GitHub Actions, GitLab CI, Jenkins pipelines documented in README
+
+## The impact
+
+- Replaced ad-hoc Snyk shell scripts with a single binary used across the Go stack
+- Standardized vulnerability scanning for every Go service in the fleet
+- CI/CD-native — same binary runs locally for dev triage and in pipelines for gate enforcement
+- Open-source under MIT, with full README, architecture diagrams, troubleshooting guide, and three CI integration templates
 
 ## What I learned
 
-Building security tooling for engineers means **respecting their workflow**. A scanner that screams in red over noise gets muted. One that fails the build only on signal earns trust — and trust is what makes a security control survive past launch week.
+Wrapping a CLI looks trivial until you hit edge cases like Snyk's `--org=true` parsing bug, transient Git credentials, and the difference between "scan worked" and "scan worked AND registered in Snyk dashboard." The thin layer of abstraction is where the real engineering lives.
