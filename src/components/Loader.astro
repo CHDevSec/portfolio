@@ -1,0 +1,176 @@
+---
+// SNES-style boot loader. Shows once per session on first page load.
+// Skipped when prefers-reduced-motion is set.
+---
+<div id="snes-loader" class="snes-loader" aria-hidden="true" role="presentation">
+  <div class="snes-loader__inner">
+    <div class="snes-loader__brand">▸ CHDEVSEC.SYS</div>
+    <div class="snes-loader__caption">LOADING<span class="snes-loader__dots"></span></div>
+    <div class="snes-loader__bar" aria-hidden="true">
+      <div class="snes-loader__bar-fill"></div>
+    </div>
+    <div class="snes-loader__pct">0%</div>
+  </div>
+</div>
+
+<style>
+  .snes-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #050308;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity 280ms ease-out;
+  }
+  .snes-loader.is-done {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .snes-loader__inner {
+    text-align: center;
+    font-family: 'Press Start 2P', monospace;
+    transform: translateY(-4vh);
+  }
+
+  .snes-loader__brand {
+    color: #7C5CD8;
+    font-size: 16px;
+    margin-bottom: 14px;
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 6px rgba(124, 92, 216, 0.55), 2px 2px 0 #2A1F40;
+    animation: snes-flicker 1.6s ease-in-out infinite;
+  }
+
+  .snes-loader__caption {
+    color: #D4D0E0;
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    opacity: 0.78;
+    margin-bottom: 26px;
+  }
+
+  .snes-loader__dots::after {
+    content: '';
+    display: inline-block;
+    width: 1.2em;
+    text-align: left;
+    animation: snes-dots 800ms steps(4, end) infinite;
+  }
+
+  .snes-loader__bar {
+    width: 248px;
+    height: 18px;
+    border: 2px solid #4A3680;
+    background: #150E1F;
+    padding: 2px;
+    margin: 0 auto;
+    box-shadow: 0 0 0 2px #050308, 0 0 14px rgba(124, 92, 216, 0.35);
+    image-rendering: pixelated;
+  }
+
+  .snes-loader__bar-fill {
+    width: 0%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      90deg,
+      #D4A82C 0,
+      #D4A82C 8px,
+      #B8902A 8px,
+      #B8902A 10px
+    );
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.08);
+    transition: width 60ms linear;
+  }
+
+  .snes-loader__pct {
+    color: #D4A82C;
+    font-size: 10px;
+    margin-top: 14px;
+    letter-spacing: 0.18em;
+    text-shadow: 0 0 4px rgba(212, 168, 44, 0.45);
+  }
+
+  @keyframes snes-flicker {
+    0%, 100% { opacity: 1; }
+    47% { opacity: 1; }
+    48% { opacity: 0.55; }
+    49% { opacity: 1; }
+  }
+
+  @keyframes snes-dots {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+    100% { content: ''; }
+  }
+
+  /* prefers-reduced-motion: hide loader entirely (script also short-circuits) */
+  @media (prefers-reduced-motion: reduce) {
+    .snes-loader { display: none; }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var KEY = 'chdevsec.boot.v1';
+    var loader = document.getElementById('snes-loader');
+    if (!loader) return;
+
+    function destroy() {
+      if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+      document.documentElement.style.overflow = '';
+      document.body && (document.body.style.overflow = '');
+    }
+
+    // Skip on repeat visits in same session
+    try {
+      if (sessionStorage.getItem(KEY) === '1') {
+        destroy();
+        return;
+      }
+    } catch (e) { /* sessionStorage may be unavailable */ }
+
+    // Skip when reduced motion is requested
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      destroy();
+      return;
+    }
+
+    // Lock scroll while loader is visible
+    document.documentElement.style.overflow = 'hidden';
+    if (document.body) document.body.style.overflow = 'hidden';
+
+    var fill = loader.querySelector('.snes-loader__bar-fill');
+    var pct = loader.querySelector('.snes-loader__pct');
+
+    var DURATION = 2400; // 2.4s total fill
+    var start = performance.now();
+
+    function frame(now) {
+      var elapsed = now - start;
+      var ratio = Math.min(elapsed / DURATION, 1);
+      // Quantize to 25 chunky steps for SNES feel
+      var quantized = Math.floor(ratio * 25) / 25;
+      var p = Math.round(quantized * 100);
+      if (fill) fill.style.width = p + '%';
+      if (pct) pct.textContent = p + '%';
+      if (ratio < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        if (fill) fill.style.width = '100%';
+        if (pct) pct.textContent = '100%';
+        try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
+        setTimeout(function () {
+          loader.classList.add('is-done');
+          setTimeout(destroy, 320);
+        }, 240);
+      }
+    }
+    requestAnimationFrame(frame);
+  })();
+</script>

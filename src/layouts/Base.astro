@@ -2,6 +2,7 @@
 import '@/styles/global.css';
 import Nav from '@/components/Nav.astro';
 import Footer from '@/components/Footer.astro';
+import Loader from '@/components/Loader.astro';
 import { profile } from '@/data/profile';
 import type { Lang } from '@/data/i18n';
 import { detectLang } from '@/data/i18n';
@@ -97,6 +98,7 @@ const personJsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(personJsonLd)} />
   </head>
   <body class="min-h-screen flex flex-col">
+    <Loader />
     <Nav lang={lang} />
     <main class="flex-1">
       <slot />
