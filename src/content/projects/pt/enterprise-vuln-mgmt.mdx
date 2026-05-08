@@ -32,6 +32,35 @@ Construí um programa enterprise de vulnerability management com três pilares:
 - **Priorização baseada em risco** — todo finding é scoreado contra criticidade do asset, exploitability e impacto de negócio antes de chegar na engenharia.
 - **Alinhamento cross-team** — Fóruns mensais de Vulnerabilidade trazem Security, DevOps e Engenharia pra mesma sala com dashboards compartilhados, tracking de SLA e ownership de remediação.
 
+## Arquitetura
+
+```mermaid
+flowchart LR
+    subgraph Scanners
+    A1[Nessus]
+    A2[Snyk]
+    A3[SentinelOne]
+    A4[AWS Inspector]
+    end
+
+    A1 --> B[API Aggregator]
+    A2 --> B
+    A3 --> B
+    A4 --> B
+
+    B --> C[Risk Scoring Engine]
+    C --> D{Severity}
+
+    D -->|P0/P1| E[Jira · SLA 7d]
+    D -->|P2| F[Jira · SLA 30d]
+    D -->|P3/P4| G[Backlog]
+
+    E --> H[Engineering Owner]
+    F --> H
+    H --> I[Vulnerability Forum · Monthly]
+    I --> J[Security · DevOps · Engineering]
+```
+
 ## O impacto
 
 - **212 vulnerabilidades sob gestão ativa** com visibilidade de status e SLA enforcement

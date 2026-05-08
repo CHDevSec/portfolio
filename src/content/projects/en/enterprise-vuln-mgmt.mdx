@@ -32,6 +32,35 @@ I built an enterprise vulnerability management program with three pillars:
 - **Risk-based prioritization** — every finding gets scored against asset criticality, exploitability, and business impact before it hits engineering.
 - **Cross-team alignment** — monthly Vulnerability Forums bring Security, DevOps, and Engineering into the same room with shared dashboards, SLA tracking, and remediation ownership.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Scanners
+    A1[Nessus]
+    A2[Snyk]
+    A3[SentinelOne]
+    A4[AWS Inspector]
+    end
+
+    A1 --> B[API Aggregator]
+    A2 --> B
+    A3 --> B
+    A4 --> B
+
+    B --> C[Risk Scoring Engine]
+    C --> D{Severity}
+
+    D -->|P0/P1| E[Jira · SLA 7d]
+    D -->|P2| F[Jira · SLA 30d]
+    D -->|P3/P4| G[Backlog]
+
+    E --> H[Engineering Owner]
+    F --> H
+    H --> I[Vulnerability Forum · Monthly]
+    I --> J[Security · DevOps · Engineering]
+```
+
 ## The impact
 
 - **212 vulnerabilities under active management** with full status visibility and SLA enforcement

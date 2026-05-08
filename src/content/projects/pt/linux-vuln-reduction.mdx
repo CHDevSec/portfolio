@@ -35,6 +35,24 @@ Construí um framework automatizado de redução de vulnerabilidades em Bash e P
 
 O framework roda em cadência controlada: scans semanais, batches semanais, com gates de revisão da engenharia em mudanças critical-severity.
 
+## Arquitetura
+
+```mermaid
+flowchart LR
+    A[Ubuntu Fleet] --> B[Inventory Scan]
+    B --> C{Outdated kernel?}
+    C -->|Yes| D[Pre-flight Validation]
+    C -->|No| Z[Skip endpoint]
+    D --> E[Kernel Update + GRUB Patch]
+    E --> F[Reboot]
+    F --> G{Health Check OK?}
+    G -->|Yes| H[SentinelOne Telemetry]
+    G -->|No| I[Auto Rollback]
+    I --> J[Alert Engineering]
+    H --> K[Grafana Dashboards]
+    K --> L[Slack #infrasec]
+```
+
 ## O impacto
 
 - **569k → 318k vulnerabilidades** — 44% de redução na fleet Ubuntu

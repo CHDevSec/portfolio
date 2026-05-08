@@ -32,6 +32,24 @@ SentinelOne's UI surfaces vulnerabilities one endpoint at a time. With a fleet g
 
 I built a Python automation that pulls the full vulnerability inventory from the SentinelOne API, normalizes data across operating systems, filters known false positives via pattern matching, and syncs structured output to 12 Google Sheets tabs (Top 10, Historic, Weekly Comparison, and more). The pipeline is orchestrated via Node-RED with a Friday weekly cron plus monthly consolidated reports. Grafana dashboards track real-time trends, and Slack alerts hit `#infrasec` whenever thresholds are breached.
 
+## Architecture
+
+```mermaid
+flowchart TB
+    A[SentinelOne API] -->|Pull full inventory| B[Python Normalizer]
+    B --> C{OS dispatch}
+    C --> D[Linux 379k]
+    C --> E[Windows 12k]
+    C --> F[macOS 2.7k]
+    D --> G[FP Pattern Filter]
+    E --> G
+    F --> G
+    G --> H[Node-RED Orchestrator]
+    H --> I[Google Sheets · 12 tabs]
+    H --> J[Grafana Dashboards]
+    H --> K[Slack #infrasec]
+```
+
 ## The impact
 
 - **394,706 vulnerabilities processed** in a single sync — full fleet visibility without manual SQL or UI scrolling

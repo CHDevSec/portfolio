@@ -23,6 +23,44 @@ summary: "Implantei firewalls pfSense com segmentação, VPNs e Suricata IDS/IPS
 - **VPNs** pra acesso remoto — substituindo RDP exposto e port forwarding ad-hoc
 - **Wazuh + Active Directory** integrados — telemetria e IAM unificados entre clientes
 
+## Arquitetura
+
+```mermaid
+flowchart TB
+    subgraph Sources [Telemetry Sources]
+    A1[Firewall]
+    A2[VPN Gateway]
+    A3[Primary WAN Link]
+    A4[Secondary WAN Link]
+    A5[Endpoints]
+    end
+
+    A1 --> B[Zabbix Collector]
+    A2 --> B
+    A3 --> B
+    A4 --> B
+    A5 --> B
+
+    A1 --> C[Prometheus Scraper]
+    A2 --> C
+    A3 --> C
+    A4 --> C
+    A5 --> C
+
+    B --> D[Kubernetes Cluster]
+    C --> D
+
+    D --> E[Grafana Dashboards]
+    E --> F[Networks View]
+    E --> G[Firewall View]
+    E --> H[Primary Link]
+    E --> I[Secondary Link]
+
+    B --> J{Predictive Triggers}
+    J -->|Threshold breach| K[On-Call Routing]
+    K --> L[Severity escalation]
+```
+
 ## Resultado
 
 Redução quantificada de ~70% em vetores de ataque por cliente. Mais importante: times de cliente conseguiam responder "o que tá exposto?" sem chutar.

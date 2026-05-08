@@ -35,6 +35,24 @@ I built an automated vulnerability-reduction framework in Bash and Python that:
 
 The framework runs on a controlled cadence: weekly scans, weekly batches, with engineering review gates on critical-severity changes.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    A[Ubuntu Fleet] --> B[Inventory Scan]
+    B --> C{Outdated kernel?}
+    C -->|Yes| D[Pre-flight Validation]
+    C -->|No| Z[Skip endpoint]
+    D --> E[Kernel Update + GRUB Patch]
+    E --> F[Reboot]
+    F --> G{Health Check OK?}
+    G -->|Yes| H[SentinelOne Telemetry]
+    G -->|No| I[Auto Rollback]
+    I --> J[Alert Engineering]
+    H --> K[Grafana Dashboards]
+    K --> L[Slack #infrasec]
+```
+
 ## The impact
 
 - **569k → 318k vulnerabilities** — 44% reduction across the Ubuntu fleet

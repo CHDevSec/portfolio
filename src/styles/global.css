@@ -454,3 +454,23 @@
     }
   }
 }
+
+/* Mermaid architecture diagrams (rendered as inline SVG at build time) */
+.mermaid,
+[data-mermaid] {
+  display: block;
+  margin: 2rem auto;
+  max-width: 100%;
+  overflow-x: auto;
+  background: #150E1F;
+  border: 1px solid #2A1F40;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.mermaid svg,
+[data-mermaid] svg {
+  max-width: 100%;
+  height: auto;
+}
+

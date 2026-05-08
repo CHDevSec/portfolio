@@ -23,6 +23,44 @@ summary: "Deployed pfSense firewalls with network segmentation, VPNs and Suricat
 - **VPNs** for remote access — replacing exposed RDP and ad-hoc port forwarding
 - **Wazuh + Active Directory** integration — unified telemetry and IAM across clients
 
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph Sources [Telemetry Sources]
+    A1[Firewall]
+    A2[VPN Gateway]
+    A3[Primary WAN Link]
+    A4[Secondary WAN Link]
+    A5[Endpoints]
+    end
+
+    A1 --> B[Zabbix Collector]
+    A2 --> B
+    A3 --> B
+    A4 --> B
+    A5 --> B
+
+    A1 --> C[Prometheus Scraper]
+    A2 --> C
+    A3 --> C
+    A4 --> C
+    A5 --> C
+
+    B --> D[Kubernetes Cluster]
+    C --> D
+
+    D --> E[Grafana Dashboards]
+    E --> F[Networks View]
+    E --> G[Firewall View]
+    E --> H[Primary Link]
+    E --> I[Secondary Link]
+
+    B --> J{Predictive Triggers}
+    J -->|Threshold breach| K[On-Call Routing]
+    K --> L[Severity escalation]
+```
+
 ## Result
 
 Quantified ~70% reduction in attack vectors per client. More importantly: client teams could now answer "what's exposed?" without guessing.
