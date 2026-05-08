@@ -13,50 +13,91 @@ metrics:
   - { value: "−44%", label: "Vuln reduction", tone: "alert" }
   - { value: "569K → 318K", label: "Ubuntu fleet", tone: "phosphor" }
   - { value: "−151K", label: "Beyond target", tone: "amber" }
-stack: ["Bash", "Python", "SentinelOne API", "Grafana", "Ubuntu", "GRUB", "Linux Kernel"]
-summary: "Bash + Python remediation framework that reduced an Ubuntu fleet from 569k to 318k vulnerabilities — automating kernel updates with GRUB hardening, rollback safety, and SentinelOne telemetry verification, with overdelivery against the 469k target."
+stack: ["Bash", "Python", "SentinelOne API", "JumpCloud", "Wazuh", "Grafana", "Ubuntu", "GRUB", "APT"]
+summary: "Bash + Python remediation framework that reduced an Ubuntu fleet from 569k to 318k vulnerabilities — automating kernel updates with GRUB-safe boot ordering, rollback safety, JumpCloud + Wazuh false-positive triage, and APT hygiene recovery, with overdelivery against the 469k target."
+repo: "https://github.com/CHDevSec/Ubuntu-Kernel-Guardian"
 proofs:
   - { src: "/fonts/projects/kernel.png", alt: "Grafana dashboard — vulnerability trending across Linux/Windows/macOS" }
 ---
 
 ## The problem
 
-The Ubuntu server fleet was carrying 569,000 vulnerabilities — overwhelmingly tied to outdated kernels, unpatched GRUB configurations, and inconsistent remediation across hundreds of endpoints. Manual patching was slow, error-prone, and never reached the long tail. Standard fleet management tools surfaced findings but didn't act on them. Engineering had a 469k target to hit; nobody believed it was possible without breaking production.
+The Ubuntu server fleet was carrying **569,000 vulnerabilities** — overwhelmingly tied to outdated kernels, unpatched GRUB chains, and inconsistent remediation across hundreds of endpoints. Manual patching was slow, blast-radius unbounded, and never reached the long tail. Standard fleet management tools surfaced findings but stopped at the report. Engineering had a 469k corporate target to hit; nobody trusted automation enough to pursue it without breaking production.
 
-## The solution
+## The approach
 
-I built an automated vulnerability-reduction framework in Bash and Python that:
+I built **Ubuntu Kernel Guardian** — a Bash + Python framework that turned kernel remediation into a deterministic, observable pipeline:
 
-- **Detects outdated kernels** across the fleet via inventory checks against current Ubuntu security advisories
-- **Applies hardened kernel updates with rollback safety** — pre-flight validation, GRUB patching, and post-reboot health checks
-- **Enforces consistent remediation** across hundreds of endpoints — same patch baseline everywhere, no snowflakes
-- **Integrates SentinelOne API** for real-time telemetry — every remediation is verified against actual endpoint state, not inventory drift
-- **Feeds Grafana dashboards** for visibility — Critical/High/Medium/Low breakdown by OS, weekly + monthly trending
+- **Discovery first.** Inventory every installed kernel, header package, and tooling dependency on each host before touching anything. No guesses, no drift.
+- **Side-by-side upgrades, never destructive.** Install the new kernel, headers, and tools alongside the existing ones. The previous kernel stays present and bootable until the new one proves stable in production.
+- **GRUB-aware boot ordering.** The framework rewrites the boot order *before* reboot so the new kernel is the default and the previous one remains as a fallback entry. If the upgrade panics, the user reboots once into the previous kernel and we're back to a known-good state — no fleet-wide outage.
+- **Pre-flight + post-reboot validation.** Health checks gate every transition: package integrity, dependency resolution, GRUB config syntax, and post-reboot telemetry confirmation via the SentinelOne API.
+- **Engineering review gates** on critical-severity changes. Fully automated for routine upgrades; humans in the loop for anything touching kernel signing or LTS transitions.
 
-The framework runs on a controlled cadence: weekly scans, weekly batches, with engineering review gates on critical-severity changes.
+The framework runs on a controlled cadence: weekly inventory scans, weekly batched upgrades, with auto-rollback on health-check failure.
 
 ## Architecture
 
 ```mermaid
-flowchart LR
-    A[Ubuntu Fleet] --> B[Inventory Scan]
-    B --> C{Outdated kernel?}
-    C -->|Yes| D[Pre-flight Validation]
+flowchart TB
+    A[Ubuntu Fleet] --> B[Kernel + Headers Inventory]
+    B --> C{Outdated?}
     C -->|No| Z[Skip endpoint]
-    D --> E[Kernel Update + GRUB Patch]
-    E --> F[Reboot]
-    F --> G{Health Check OK?}
-    G -->|Yes| H[SentinelOne Telemetry]
-    G -->|No| I[Auto Rollback]
-    I --> J[Alert Engineering]
-    H --> K[Grafana Dashboards]
-    K --> L[Slack #infrasec]
+    C -->|Yes| D[Pre-flight Validation]
+    D --> E[Install kernel side-by-side]
+    E --> F[Rewrite GRUB boot order]
+    F --> G[Reboot]
+    G --> H{Health Check?}
+    H -->|Fail| I[Auto-rollback to previous kernel]
+    H -->|Pass| J[SentinelOne Telemetry]
+
+    subgraph Triage [FP Triage Layer]
+    K[JumpCloud Inventory]
+    L[Wazuh SIEM Correlation]
+    M[Frozen Evidence Store]
+    end
+
+    J --> K
+    K --> L
+    L --> M
+    L --> N[Grafana Dashboards]
+    N --> O[Slack #infrasec]
+    I --> P[Alert Engineering]
 ```
+
+## Reality check: when the EDR isn't the source of truth
+
+Halfway through the rollout we hit an honest problem. SentinelOne was double-counting kernels and flagging vulnerabilities that had already been remediated upstream — a kernel would ship with a CVE patched, but the EDR's inventory still surfaced the finding for days. Trusting the EDR's vuln count blindly would have made our metrics lie.
+
+I solved it with a parallel visibility layer:
+
+- **JumpCloud** as system inventory ground truth — what's actually installed, version-pinned per host.
+- **Wazuh SIEM** correlating JumpCloud inventory against SentinelOne findings to flag known false positives without dropping the data.
+- **Frozen evidence retention.** Even ignored findings are archived in cold storage. If a "false positive" later turns out real, or if compliance asks for an audit trail, the raw history is intact.
+
+This isn't bypassing the EDR — it's giving the program a second source so the metric we report is the metric that's true.
+
+## Keeping APT honest
+
+A second script handles fleet hygiene around the upgrade pipeline. Hosts accumulate broken GPG keys, expired repository signatures, and corrupted APT caches — any one of which can silently block a kernel upgrade and stall the entire batch. The script runs weekly:
+
+- Detects and repairs broken or expired GPG keys on `apt update` failure
+- Re-syncs corrupted package indexes
+- Surfaces hosts that fall outside the recoverable set for engineering review
+
+Without this, the kernel pipeline would have ratcheted to a halt on the long tail of misconfigured hosts.
 
 ## The impact
 
 - **569k → 318k vulnerabilities** — 44% reduction across the Ubuntu fleet
-- **Surpassed corporate target** of 469k by 151k — overdelivered by 32%
-- **Sample dashboard snapshot:** 285,671 monthly Linux findings tracked across Critical/High/Medium/Low — enabling data-driven prioritization at scale
-- **Multi-OS visibility** — same framework dashboards extended to Windows (30,202 monthly findings) and macOS (2,361 monthly findings)
-- **Zero production incidents** caused by automated patching during the rollout — pre-flight validation and rollback safety paid off
+- **Surpassed the 469k corporate target by 151k** — overdelivered by 32%
+- **285,671 monthly Linux findings** tracked continuously across Critical/High/Medium/Low — enabling data-driven prioritization at scale
+- **Multi-OS visibility** — same telemetry pipeline extended to Windows (30,202 monthly findings) and macOS (2,361 monthly findings)
+- **Zero production incidents** caused by automated patching during the rollout — pre-flight validation, GRUB ordering, and rollback safety paid off
+
+## Engineering principles
+
+- **Discovery before mutation.** Knowing what's there is half the work; the patch is the easy part.
+- **Never destructive.** Keep the previous kernel until the new one proves itself. Rollback paths exist or the system isn't safe to automate.
+- **Don't trust a single source for vulnerability data.** EDRs lie by omission and over-counting; cross-reference or your numbers are fiction.
+- **Hygiene is part of the pipeline.** Broken GPG keys, expired repos, and stale caches will quietly stall any patch program — automate the recovery, not just the upgrade.
