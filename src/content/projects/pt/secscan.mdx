@@ -10,10 +10,10 @@ categoryIconAlt: "Ferramenta de scanner pentest"
 featured: true
 order: 1
 metrics:
-  - { value: "3 MODOS", label: "LOCAL · REMOTO · GITLAB", tone: "phosphor" }
-  - { value: "Multi · Repo", label: "BATCH SCANNING", tone: "amber" }
-  - { value: "CI/CD", label: "EXIT CODES NATIVOS", tone: "phosphor" }
-stack: ["GO", "SNYK CLI", "COBRA", "VIPER", "GITHUB ACTIONS", "GITLAB CI"]
+  - { value: "3", label: "Modos de scan", tone: "phosphor" }
+  - { value: "60%+", label: "Adoção stack Go", tone: "amber" }
+  - { value: "3", label: "Templates CI · GH · GitLab · Jenkins", tone: "phosphor" }
+stack: ["Go", "Snyk CLI", "Cobra", "Viper", "GitHub Actions", "GitLab CI", "Jenkins"]
 summary: "CLI em Go que orquestra scans Snyk em centenas de repositórios — local, remoto e GitLab — com output determinístico e exit codes prontos pra CI/CD."
 repo: "https://github.com/CHDevSec/ScannerSecurity"
 proofs:
@@ -36,6 +36,38 @@ Construí SecScan em Go — um CLI orchestrator que envelopa o Snyk CLI com trê
 - **scanGitLab** — aceita ID de projeto GitLab, puxa metadata via API e escaneia o repo com credenciais corretas
 
 Os três modos alimentam o Snyk Monitor pra dashboards centralizados, suportam precedência de config `.env` / YAML / CLI e retornam exit codes amigáveis pra gating em pipeline.
+
+## Arquitetura
+
+```mermaid
+flowchart TB
+    A[Operator / CI Pipeline] --> B[SecScan CLI · Cobra]
+    B --> C{Mode dispatch}
+
+    C -->|scanLocal| D[Discovery recursiva go.mod]
+    C -->|scanMonitor| E[Clone · scan · cleanup]
+    C -->|scanGitLab| F[GitLab API · metadata + clone]
+
+    D --> G[Adapter: Snyk CLI]
+    E --> G
+    F --> G
+
+    G --> H[Sanitizador de argumentos<br/>guarda formato --org=&lt;value&gt;]
+    H --> I[Execução do scan Snyk]
+
+    I --> J[Snyk Monitor · dashboard centralizado]
+    I --> K{Findings?}
+    K -->|Critical reachable| L[Exit code · pipeline block]
+    K -->|None / non-blocking| M[Exit 0 · pipeline pass]
+
+    subgraph Config [Precedência de config]
+    N[ENV vars]
+    O[YAML config]
+    P[CLI flags]
+    end
+
+    Config -.-> G
+```
 
 ## Detalhes de engenharia que importam
 

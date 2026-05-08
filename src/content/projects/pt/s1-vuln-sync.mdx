@@ -32,6 +32,8 @@ A UI do SentinelOne mostra vulnerabilidades um endpoint por vez. Com uma fleet g
 
 Construí uma automação Python que puxa o inventário completo de vulnerabilidades via API do SentinelOne, normaliza dados entre sistemas operacionais, filtra falsos positivos conhecidos via pattern matching e sincroniza output estruturado em 12 abas Google Sheets (Top 10, Histórico, Comparação Semanal e mais). O pipeline é orquestrado via Node-RED com cron semanal nas sextas mais relatórios mensais consolidados. Dashboards Grafana trackeiam trends em tempo real, e alertas Slack chegam no `#infrasec` quando thresholds estouram.
 
+O filtro de FP é a metade do pipeline que ganhou mais confiança. O padrão dominante: CVEs de kernel já remediadas upstream que o SentinelOne continuava flagando por dias porque o inventário dele não tinha reconciliado. Regras no filtro removem essas, mais matches reconhecidos como falso pelo vendor, mais duplicatas de instalação multi-agente — e todo finding filtrado vai pra cold storage pra que um "falso positivo" que se revele real depois seja recuperável.
+
 ## Arquitetura
 
 ```mermaid

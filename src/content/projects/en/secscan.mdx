@@ -10,10 +10,10 @@ categoryIconAlt: "Pentest scanner tool"
 featured: true
 order: 1
 metrics:
-  - { value: "3 MODES", label: "LOCAL · REMOTE · GITLAB", tone: "phosphor" }
-  - { value: "Multi · Repo", label: "BATCH SCANNING", tone: "amber" }
-  - { value: "CI/CD", label: "NATIVE EXIT CODES", tone: "phosphor" }
-stack: ["GO", "SNYK CLI", "COBRA", "VIPER", "GITHUB ACTIONS", "GITLAB CI"]
+  - { value: "3", label: "Scan modes", tone: "phosphor" }
+  - { value: "60%+", label: "Go stack adoption", tone: "amber" }
+  - { value: "3", label: "CI templates · GH · GitLab · Jenkins", tone: "phosphor" }
+stack: ["Go", "Snyk CLI", "Cobra", "Viper", "GitHub Actions", "GitLab CI", "Jenkins"]
 summary: "Go CLI that orchestrates Snyk scans across hundreds of repositories — local, remote, and GitLab — with deterministic output and CI/CD-ready exit codes."
 repo: "https://github.com/CHDevSec/ScannerSecurity"
 proofs:
@@ -36,6 +36,38 @@ Built SecScan in Go — a CLI orchestrator that wraps Snyk CLI with three opinio
 - **scanGitLab** — accepts a GitLab project ID, pulls metadata via API, and scans the repo with proper credentials
 
 All three modes feed Snyk Monitor for centralized dashboards, support `.env` / YAML / CLI config precedence, and return CI-friendly exit codes for pipeline gating.
+
+## Architecture
+
+```mermaid
+flowchart TB
+    A[Operator / CI Pipeline] --> B[SecScan CLI · Cobra]
+    B --> C{Mode dispatch}
+
+    C -->|scanLocal| D[Recursive go.mod discovery]
+    C -->|scanMonitor| E[Clone · scan · cleanup]
+    C -->|scanGitLab| F[GitLab API · metadata + clone]
+
+    D --> G[Adapter: Snyk CLI]
+    E --> G
+    F --> G
+
+    G --> H[Argument sanitizer<br/>--org=&lt;value&gt; format guard]
+    H --> I[Snyk scan execution]
+
+    I --> J[Snyk Monitor · centralized dashboard]
+    I --> K{Findings?}
+    K -->|Critical reachable| L[Exit code · pipeline block]
+    K -->|None / non-blocking| M[Exit 0 · pipeline pass]
+
+    subgraph Config [Config precedence]
+    N[ENV vars]
+    O[YAML config]
+    P[CLI flags]
+    end
+
+    Config -.-> G
+```
 
 ## Engineering details that matter
 
