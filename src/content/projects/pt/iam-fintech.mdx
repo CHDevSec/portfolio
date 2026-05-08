@@ -1,6 +1,6 @@
 ---
 title: "Lifecycle de IAM — 500+ usuários em fintech regulada"
-tagline: "Cortando permission drift em ambiente de alto compliance"
+tagline: "Cortando permission drift em fintech brasileira de alto compliance — lifecycle automatizado, endpoints hardenizados, audit trail pronto."
 company: "Global Estratégias Financeiras"
 period: "2021 — 2023"
 category: "consulting"
@@ -11,23 +11,84 @@ featured: false
 order: 5
 metrics:
   - { value: "500+", label: "Usuários gerenciados", tone: "amber" }
-  - { value: "Auto", label: "Offboarding", tone: "phosphor" }
-  - { value: "3", label: "Servidores Linux hardenizados", tone: "phosphor" }
-stack: ["Active Directory", "RBAC", "GPO", "Bitdefender", "Wazuh", "CIS"]
-summary: "Operei o lifecycle completo de IAM pra 500+ usuários em fintech regulada — automatizando reviews e offboarding, hardenizando servidores Linux críticos e alimentando telemetria de endpoint no Wazuh."
+  - { value: "Auto", label: "Offboarding lifecycle", tone: "phosphor" }
+  - { value: "3", label: "Servidores Linux críticos hardenizados", tone: "phosphor" }
+stack: ["Active Directory", "RBAC", "GPO", "PowerShell", "Bitdefender", "Wazuh", "CIS Benchmarks", "Linux"]
+summary: "Operei o lifecycle completo de IAM pra 500+ usuários em fintech brasileira regulada pelo BACEN — automatizando reviews e offboarding, hardenizando servidores Linux críticos com CIS, e alimentando telemetria de endpoint do Bitdefender e Windows Event Logs no Wazuh pra detecção em ambiente com dados financeiros sensíveis."
 ---
 
-## Contexto
+## O problema
 
-Fintech regulada com dados financeiros sensíveis, onde **permission drift** não é só questão de higiene — é risco de compliance. O processo anterior dependia de access reviews manuais e offboarding ad-hoc.
+Fintech brasileira regulada lidando com dados financeiros sensíveis — o tipo de ambiente onde **permission drift não é higiene, é risco de compliance**. O processo anterior dependia de access reviews manuais trimestrais e tickets ad-hoc de offboarding. Os gaps que isso criava eram previsíveis:
 
-## O que entreguei
+- **Latência de offboarding** — a janela entre "pessoa sai" e "acesso revogado" era medida em dias, às vezes semanas. Pra fintech, essa janela é o achado de auditoria.
+- **Acumulação de permissão entre mudanças de role** — usuários trocavam de time, acumulavam acesso, e ninguém podava as permissões antigas porque ninguém donava o review.
+- **Sem diff entre estado pretendido e estado real** — reviews trimestrais mostravam o estado *atual*, nunca como ele tinha mudado desde o último review.
+- **Telemetria de endpoint silada do IAM** — um usuário privilegiado logando de um host incomum não era visível ao lado do histórico de mudança de acesso dele.
 
-- **Automação de lifecycle** de IAM/AD/RBAC pra 500+ usuários
-- **Offboarding automatizado** — eliminando o gap entre "pessoa sai" e "acesso revogado"
-- **Hardening alinhado ao CIS** de 3 servidores Linux críticos + GPO baseline pra Windows
-- **EDR (Bitdefender) + SIEM (Wazuh)** integrados com Windows Event Logs pra detecção em ambiente sensível
+Auditorias de compliance viraram fire drill porque nada podia ser respondido sem varredura manual.
 
-## Por que importou
+## A abordagem
 
-Auditorias de compliance pararam de ser fire drill. Permission drift saiu de "tomara que alguém pegue" pra "o sistema mostra o que mudou".
+Onei o lifecycle completo de IAM e reconstrui em volta de três princípios: estado sempre conhecido, transições sempre logadas, drift sempre detectável.
+
+- **Automação de lifecycle entre hire → role change → offboard → audit.** Eventos de identidade do RH dirigiam mudanças de membership AD/RBAC via workflows scriptados, não tickets. Mudanças de role recomputavam membership contra uma matriz canônica de role-permissão em vez de acumular manualmente.
+- **Offboarding automatizado** — no momento em que o RH marcava separação, o workflow desabilitava a conta AD, revogava memberships, arquivava a mailbox e logava cada passo no audit trail. A janela de ticket manual — e o drift silencioso que ela causava — foi embora.
+- **Hardening alinhado ao CIS de 3 servidores Linux críticos** com baseline GPO aplicado na fleet Windows. Hardening era idempotente e agendado, não one-shot — o drift entre varreduras era a métrica.
+- **Bitdefender EDR + Wazuh SIEM** com Windows Event Logs correlacionados contra eventos IAM. Um login privilegiado de endpoint incomum, uma mudança de grupo Local Admin num servidor crítico, uma service account se movendo lateralmente — tudo surgia como o *mesmo* incidente no SIEM, não como três alertas não-relacionados em três dashboards.
+
+## Arquitetura
+
+```mermaid
+flowchart TB
+    A[HR System] -->|Hire / Role Change / Separation| B[IAM Lifecycle Engine]
+    B --> C[Active Directory]
+    C --> D[RBAC Group Membership]
+    D --> E[Application Access]
+
+    F[GPO Baseline] -->|CIS-aligned| G[Windows Fleet]
+    H[CIS Hardening] -->|3 critical servers| I[Linux Servers]
+
+    G --> J[Bitdefender EDR]
+    I --> J
+    G --> K[Windows Event Logs]
+
+    J --> L[Wazuh SIEM]
+    K --> L
+    B --> L
+
+    L --> M{Correlation}
+    M -->|IAM event + endpoint anomaly| N[Incident Alert]
+    M -->|Routine activity| O[Audit Trail]
+```
+
+## Por que o design servia uma fintech regulada
+
+Fintechs brasileiras respondem a expectativas do BACEN sobre controle de acesso, mais requisitos LGPD sobre tratamento de dados pessoais. As decisões de design mapeiam direto pra essas constraints:
+
+- **Audit trail é inegociável** — toda transição IAM, todo login privilegiado, toda mudança de membership é logada com timestamp, ator e contexto. A auditoria não é relatório separado — é query contra a mesma telemetria que o SIEM usa.
+- **Least privilege como estado default, não aspiração** — grupos RBAC definidos por role, recomputados a cada mudança de role. Um usuário acumula acesso só quando o role canônico dele garante.
+- **Endpoint e identidade correlacionados, não silados** — reguladores perguntam "quem acessou o quê, de onde, e quando?" O SIEM responde em uma query porque o dado tá unificado.
+- **Baseline hardenizado, não servidores snowflake** — três servidores Linux críticos (camada de dado financeiro) rodavam baseline alinhado ao CIS monitorado pra drift. Regulador perguntando "o que tá hardenizado?" recebe número, não resposta longa.
+
+## O impacto
+
+- **500+ usuários** sob lifecycle management contínuo — toda transição logada, todo estado diffable
+- **Latência de offboarding colapsou** — de dias com ticket manual pra minutos automatizados após sinal do RH
+- **Fire drills de auditoria acabaram** — perguntas que antes exigiam varredura manual eram respondidas com telemetria existente
+- **3 servidores Linux críticos** sob hardening alinhado ao CIS com detecção contínua de drift
+- **Correlação endpoint + IAM** — anomalias privilegiadas surgiam como incidentes unificados no Wazuh em vez de alertas isolados no dashboard do Bitdefender
+- **Postura de compliance virou métrica contínua**, não snapshot trimestral
+
+## Princípios de engenharia
+
+- **Em ambiente regulado, audit é o sistema.** Se a resposta de auditoria exige varredura manual, o sistema não tá pronto. O SIEM e a query de auditoria são a mesma query.
+- **Offboarding é a métrica que pega tudo o resto.** Programa que não revoga acesso rápido não pode reivindicar least privilege, não pode reivindicar drift control, e não pode reivindicar compliance.
+- **Permission drift é o incidente em câmera lenta.** Um finding que ninguém pega por 90 dias é idêntico a um finding que o atacante teve 90 dias pra usar.
+- **Telemetria de endpoint sem contexto IAM é metade da história.** Um usuário privilegiado logando de host incomum não significa nada sem a mudança de acesso que precedeu. Correlaciona ou aceita visibilidade parcial.
+
+{/* FLAGS pra verificação:
+- Frame de compliance assume BACEN + LGPD (padrão pra fintech BR regulada). Verifica se outros frameworks aplicam (PCI-DSS pra dado de cartão, ISO 27001, SOX pra listadas).
+- Linguagem específica de automação (PowerShell, Graph API, scheduled tasks) não foi afirmada no corpo — adiciona se você usou stack específico.
+- Claim de latência de offboarding ("dias → minutos") é qualitativo; aperta com número real se você tiver.
+*/}

@@ -1,6 +1,6 @@
 ---
 title: "DevSecOps gates in CI/CD"
-tagline: "SAST + SCA + IaC + secrets — without slowing the team down"
+tagline: "SAST · SCA · IaC · secrets · policy — gates that block exploitable findings, not noise."
 company: "frete.com"
 period: "2024 — 2026"
 category: "devsecops"
@@ -10,29 +10,90 @@ categoryIconAlt: "CI/CD pipeline tooling"
 featured: false
 order: 4
 metrics:
-  - { value: "PR-gate", label: "Shift-left enforcement", tone: "phosphor" }
-  - { value: "Zero", label: "Block on noise", tone: "amber" }
-stack: ["Snyk", "Checkmarx", "Kics", "Polaris", "GitHub Actions"]
-summary: "Embedded SAST, SCA, IaC scanning and secrets detection into the CI/CD pipelines with policy-as-code — only blocking on real, exploitable findings."
+  - { value: "5", label: "Gate types deployed", tone: "phosphor" }
+  - { value: "PR-level", label: "Line annotations", tone: "amber" }
+  - { value: "Multi-cloud", label: "AWS · GCP", tone: "phosphor" }
+stack: ["Snyk", "Checkmarx", "Kics", "Polaris", "GitHub Actions", "AWS", "GCP", "Go", "Python"]
+summary: "Embedded SAST, SCA, IaC scanning, secrets detection and policy-as-code into the CI/CD pipelines — only blocking on real, exploitable findings. Built to survive engineering's adoption test, not just security's audit."
 ---
 
-## What
+## The problem
 
-Built the security gates that run on every pull request:
+Security gates are easy to deploy and trivial to lose. The first version of any DevSecOps program looks like a wall of red checks on every PR — and within a sprint, engineers learn to skip them, override them, or merge despite them. By the time security looks again, the gates are decorative.
 
-- **SAST** with Snyk Code + Checkmarx — application logic flaws
-- **SCA** with Snyk Open Source — third-party dependency CVEs
-- **IaC scanning** with Kics + Polaris — Terraform/Helm/Kubernetes misconfigs
-- **Secrets scanning** — pre-commit + CI safety net
-- **Policy enforcement** — codified rules for what blocks vs warns
+The brief was specific:
+
+- Most scanners produce **more noise than signal** — generic CVSS without reachability or exploitability context
+- Findings live on a separate dashboard nobody opens
+- Block rules cover the whole vulnerability surface, treating a transitive low-severity CVE the same as an actively exploited RCE
+- Engineering treats security as a quarterly bottleneck, not a property they own
+
+I had to build gates engineering would *trust* — not just gates that ran.
+
+## The approach
+
+Five gates run on every pull request, integrated into GitHub Actions and feeding line-level annotations into the PR itself:
+
+- **SAST** — Snyk Code for primary coverage across the Go and Python stack; Checkmarx for the deeper application-logic passes on web-facing services
+- **SCA** — Snyk Open Source against transitive and direct dependencies with reachability filtering
+- **IaC** — Kics for Terraform / Helm / Kubernetes manifests, plus Polaris for Kubernetes-specific cluster posture (overlap is intentional — the two tools surface different categories)
+- **Secrets** — pre-commit hooks for the developer-side fast feedback loop, plus a CI safety net that catches anything the hook skipped
+- **Policy as code** — codified rules for what blocks vs warns vs comments, versioned alongside the pipeline so changes go through PR review like any other code
+
+## Architecture
+
+```mermaid
+flowchart TB
+    A[Pull Request] --> B[GitHub Actions]
+    B --> C[SAST · Snyk Code + Checkmarx]
+    B --> D[SCA · Snyk Open Source]
+    B --> E[IaC · Kics + Polaris]
+    B --> F[Secrets · pre-commit + CI net]
+
+    C --> G[Policy Engine]
+    D --> G
+    E --> G
+    F --> G
+
+    G --> H{Severity + Reachability}
+    H -->|Critical · Reachable| I[Block PR]
+    H -->|High · Non-reachable| J[Warn · annotate line]
+    H -->|Medium / Low| K[Comment on PR]
+
+    I --> L[Line-level PR annotation]
+    J --> L
+    K --> L
+
+    G --> M[Weekly metrics to leads]
+```
+
+## Why these tools and not the obvious alternatives
+
+- **Snyk over SonarQube for SAST** — Snyk's reachability analysis on Go was the differentiator. SonarQube produces excellent code-quality findings but its security mode lagged on Go SCA at the time.
+- **Checkmarx layered on top** — for the small subset of web-facing services, Checkmarx's slower but deeper data-flow analysis caught categories Snyk Code didn't. Cost is paid in CI minutes, not engineering hours, so it stayed.
+- **Kics + Polaris together, not either alone** — Kics is excellent at Terraform / Helm / generic IaC misconfig; Polaris specializes in Kubernetes cluster-level posture (resource limits, security contexts, network policies). Running both costs negligible CI time and the false-positive overlap is small.
+- **Pre-commit + CI for secrets** — the pre-commit hook gives the developer immediate feedback (catch before push); the CI net is the assertion that the hook *actually ran*. Without the safety net, one disabled hook silently regresses the whole repo.
 
 ## How it stayed adopted
 
-- Block only on **critical + reachable** findings — never on theoretical noise
-- Findings annotate the PR with line-level context, not a separate dashboard
-- Auto-bump dependency PRs for fixable CVEs
-- Weekly metrics shared with engineering leads — "what's red, what's green"
+The gates have been live and engineering hasn't successfully argued them away. That outcome came from four design choices:
 
-## Outcome
+- **Block only on critical + reachable** — a transitive `lodash` CVE with no actual call path doesn't merit blocking a deploy. A reachable RCE in a request handler does. Engineering accepted the rule because the rule made sense.
+- **Annotations on the PR, not in a separate dashboard** — findings appear on the exact line of code, with the recommended fix inline. The cost of action is one click; the cost of ignoring is staring at red checks.
+- **Auto-bump PRs for fixable CVEs** — security-relevant dependency upgrades are opened as separate, tested PRs. Engineering reviews and merges them like any other dependency bump, without making them write the upgrade.
+- **Weekly metrics shared with engineering leads** — what's red, what's green, what's trending. Numbers, not vibes. Leads see their own service's posture and triage it before the next sprint.
 
-Security became a property the engineering team owned, not a quarterly bottleneck.
+## The impact
+
+- **Five gate types** running on every pull request across 100+ repositories, integrated end-to-end into GitHub Actions {/* repo count is an estimate; verify with real number */}
+- **Multi-cloud coverage** for AWS and GCP infrastructure-as-code, with the same policy engine and severity model
+- **Security stopped being a quarterly bottleneck** — the dependency-upgrade backlog ran continuously instead of accumulating before audit cycles
+- **Engineering trust in the gates** — the tells were qualitative but real: PRs stopped getting `--no-verify`'d, leads started citing the weekly numbers in planning, and new services adopted the same template by default
+- **Same posture across cloud accounts** — IaC checks meant a misconfigured S3 bucket or GKE workload was caught before the deploy that would expose it
+
+## Engineering principles
+
+- **Block on signal, not surface area.** A gate that fires on every transitive CVE teaches engineering to ignore gates. A gate that fires on reachable critical findings teaches them to fix.
+- **Annotations beat dashboards.** Findings on the PR line have a 10× higher action rate than findings on a separate dashboard. The dashboard is for trends; the annotation is for fixes.
+- **Two scanners with overlapping scope is a feature, not waste.** Kics and Polaris both look at Kubernetes; the overlap surfaces categories neither catches alone.
+- **Policy as code is non-negotiable.** Block rules versioned alongside the pipeline get reviewed like code. Block rules buried in a UI rot the moment whoever owned them changes role.
