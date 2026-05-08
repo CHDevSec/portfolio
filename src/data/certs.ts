@@ -14,6 +14,7 @@ export const certs: Cert[] = [
   { name: 'ISO/IEC 27001 Foundation', issuer: 'SkillFront', date: 'Feb 2023', status: 'completed', category: 'general' },
   { name: 'Python Essentials 1', issuer: 'Cisco / OpenEDG', date: '2024', status: 'completed', category: 'devsecops' },
   // In-progress
+  { name: 'Offensive Security Certified Professional (OSCP)', issuer: 'OffSec', date: 'In progress', status: 'in-progress', category: 'red' },
   { name: 'Certified Ethical Hacker (CEH)', issuer: 'EC-Council', date: 'In progress', status: 'in-progress', category: 'red' },
   { name: 'CompTIA Security+ (SY0-701)', issuer: 'CompTIA', date: 'In progress', status: 'in-progress', category: 'general' },
 ];
