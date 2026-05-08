@@ -196,8 +196,8 @@ export const t = {
   contactLocationLabel: { en: 'Location', pt: 'Localização' } satisfies StringMap,
   contactCopy: { en: 'COPY ▸', pt: 'COPIAR ▸' } satisfies StringMap,
   contactCopied: { en: 'COPIED ✓', pt: 'COPIADO ✓' } satisfies StringMap,
-  contactSendEmail: { en: '✉ Send email', pt: '✉ Enviar email' } satisfies StringMap,
-  contactLinkedIn: { en: '⌬ LinkedIn', pt: '⌬ LinkedIn' } satisfies StringMap,
+  contactSendEmail: { en: 'Send email', pt: 'Enviar email' } satisfies StringMap,
+  contactLinkedIn: { en: 'LinkedIn', pt: 'LinkedIn' } satisfies StringMap,
   leadFreePlaybook: { en: '▸ FREE PLAYBOOK', pt: '▸ PLAYBOOK GRÁTIS' } satisfies StringMap,
   leadTitle: { en: 'Linux Hardening Checklist', pt: 'Linux Hardening Checklist' } satisfies StringMap,
   leadDesc: {

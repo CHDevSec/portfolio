@@ -43,13 +43,17 @@ const accentText = {
 ---
 <section id="how" class="relative bg-bg-inset border-y-2 border-line py-16 sm:py-20">
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
-    <p class="section-eyebrow">{t.methodEyebrow[lang]}</p>
-    <h2 class="section-title">{t.methodTitle[lang]}</h2>
-    <p class="section-subtitle">{t.methodSubtitle[lang]}</p>
+    <p class="section-eyebrow" data-reveal="slide-down">{t.methodEyebrow[lang]}</p>
+    <h2 class="section-title" data-reveal="slide-down" style="--d: 80ms">{t.methodTitle[lang]}</h2>
+    <p class="section-subtitle" data-reveal="appear" style="--d: 160ms">{t.methodSubtitle[lang]}</p>
 
     <div class="grid md:grid-cols-3 gap-5">
       {principles.map((p, i) => (
-        <article class="pixel-frame relative p-6 sm:p-7 hover:border-phosphor transition group">
+        <article
+          class="pixel-frame relative p-6 sm:p-7 hover:border-phosphor transition-colors duration-150 group"
+          data-reveal="appear"
+          style={`--d: ${i * 90}ms`}
+        >
           <span class={`absolute -top-3 left-5 px-2 py-0.5 bg-bg-inset font-pixel text-[10px] ${accentText[p.accent]} border-2 ${accentColor[p.accent]}`}>
             0{i + 1}
           </span>

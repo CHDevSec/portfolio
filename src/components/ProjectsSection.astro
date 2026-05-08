@@ -16,25 +16,98 @@ const featured = sorted.filter((p) => p.data.featured);
 const more = sorted.filter((p) => !p.data.featured);
 ---
 <section id="projects" class="section">
-  <p class="section-eyebrow">{t.projectsEyebrow[lang]}</p>
-  <h2 class="section-title">{t.projectsTitle[lang]}</h2>
-  <p class="section-subtitle">{t.projectsSubtitle[lang]}</p>
+  <p class="section-eyebrow" data-reveal="slide-down">{t.projectsEyebrow[lang]}</p>
+  <h2 class="section-title" data-reveal="slide-down" style="--d: 80ms">{t.projectsTitle[lang]}</h2>
+  <p class="section-subtitle" data-reveal="appear" style="--d: 160ms">{t.projectsSubtitle[lang]}</p>
 
   <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-    {featured.map((p) => <ProjectCard project={p} lang={lang} />)}
+    {featured.map((p, i) => (
+      <div data-reveal="appear" class="h-full" style={`--d: ${i * 60}ms`}>
+        <ProjectCard project={p} lang={lang} />
+      </div>
+    ))}
   </div>
 
   {more.length > 0 && (
-    <div class="mt-12 mb-6 flex items-center gap-4">
-      <span class="hr-pixel flex-1"></span>
-      <p class="font-pixel text-[11px] text-ink-dim uppercase tracking-wider whitespace-nowrap">
-        {t.projectsMoreWork[lang]} · {more.length}
-      </p>
-      <span class="hr-pixel flex-1"></span>
-    </div>
-  )}
+    <>
+      <div class="mt-12 mb-6 flex items-center gap-4">
+        <span class="hr-pixel flex-1"></span>
+        <p class="font-pixel text-[11px] text-ink-dim uppercase tracking-wider whitespace-nowrap">
+          {t.projectsMoreWork[lang]} · {more.length}
+        </p>
+        <span class="hr-pixel flex-1"></span>
+      </div>
 
-  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    {more.map((p) => <ProjectCard project={p} lang={lang} />)}
-  </div>
+      <div class="relative" data-carousel>
+        <!-- Track: horizontal scroll-snap. Native swipe on touch, button-driven on desktop. -->
+        <div
+          class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 hide-scrollbar items-stretch"
+          data-carousel-track
+        >
+          {more.map((p, i) => (
+            <div
+              class="snap-start shrink-0 w-[280px] sm:w-[300px] lg:w-[320px]"
+              data-reveal="appear"
+              style={`--d: ${i * 50}ms`}
+            >
+              <ProjectCard project={p} lang={lang} />
+            </div>
+          ))}
+        </div>
+
+        <!-- Prev / Next: pixel-styled, hidden on touch, disable at edges via JS -->
+        <button
+          type="button"
+          data-carousel-prev
+          aria-label={lang === 'pt' ? 'Anterior' : 'Previous'}
+          class="carousel-arrow carousel-arrow-prev"
+        >
+          ◂
+        </button>
+        <button
+          type="button"
+          data-carousel-next
+          aria-label={lang === 'pt' ? 'Próximo' : 'Next'}
+          class="carousel-arrow carousel-arrow-next"
+        >
+          ▸
+        </button>
+      </div>
+    </>
+  )}
 </section>
+
+<script>
+  // Carousel: prev/next buttons + edge-state management.
+  // Scroll-snap handles the snapping; we only manage button state and click-scroll.
+  const carousels = document.querySelectorAll<HTMLElement>('[data-carousel]');
+  for (const root of carousels) {
+    const track = root.querySelector<HTMLElement>('[data-carousel-track]');
+    const prev = root.querySelector<HTMLButtonElement>('[data-carousel-prev]');
+    const next = root.querySelector<HTMLButtonElement>('[data-carousel-next]');
+    if (!track || !prev || !next) continue;
+
+    const updateState = () => {
+      const atStart = track.scrollLeft <= 1;
+      const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 1;
+      prev.toggleAttribute('disabled', atStart);
+      next.toggleAttribute('disabled', atEnd);
+      // Hide buttons entirely if no overflow
+      const noOverflow = track.scrollWidth <= track.clientWidth + 1;
+      root.classList.toggle('no-overflow', noOverflow);
+    };
+
+    const stepWidth = () => {
+      const firstChild = track.firstElementChild as HTMLElement | null;
+      if (!firstChild) return 320;
+      const gap = parseFloat(getComputedStyle(track).columnGap || '16');
+      return firstChild.getBoundingClientRect().width + gap;
+    };
+
+    prev.addEventListener('click', () => track.scrollBy({ left: -stepWidth(), behavior: 'smooth' }));
+    next.addEventListener('click', () => track.scrollBy({ left:  stepWidth(), behavior: 'smooth' }));
+    track.addEventListener('scroll', updateState, { passive: true });
+    window.addEventListener('resize', updateState);
+    updateState();
+  }
+</script>

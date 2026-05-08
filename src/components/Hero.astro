@@ -104,13 +104,13 @@ const cvAriaLabel = lang === 'pt' ? 'Baixar currículo (PDF)' : 'Download CV (PD
 
       <!-- CTAs: only 2 -->
       <div class="mt-6 flex flex-wrap gap-3">
-        <a href="#impact" class="pixel-btn-primary">
+        <a href="#impact" class="pixel-btn-primary glitch-on-hover">
           {t.heroCtaImpact[lang]}
         </a>
         <a
           href={cvHref}
           download
-          class="pixel-btn-ghost"
+          class="pixel-btn-ghost glitch-on-hover"
           aria-label={cvAriaLabel}
         >
           {t.heroCtaCV[lang]}
@@ -118,7 +118,7 @@ const cvAriaLabel = lang === 'pt' ? 'Baixar currículo (PDF)' : 'Download CV (PD
       </div>
 
       <!-- Trust line (replaces inline social links — those live in the footer) -->
-      <div class="mt-6 pt-3 border-t border-line">
+      <div class="mt-6 pt-3 border-t border-primary/30">
         <p class="font-mono text-xs text-ink-dim">
           {t.heroTrustLine[lang]}{' '}
           <span class="text-ink">{t.heroTrustCompanies[lang]}</span>

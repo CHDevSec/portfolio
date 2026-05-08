@@ -26,13 +26,17 @@ const toneBg = {
 };
 ---
 <section id="experience" class="section">
-  <p class="section-eyebrow">{t.experienceEyebrow[lang]}</p>
-  <h2 class="section-title">{t.experienceTitle[lang]}</h2>
-  <p class="section-subtitle">{t.experienceSubtitle[lang]}</p>
+  <p class="section-eyebrow" data-reveal="slide-down">{t.experienceEyebrow[lang]}</p>
+  <h2 class="section-title" data-reveal="slide-down" style="--d: 80ms">{t.experienceTitle[lang]}</h2>
+  <p class="section-subtitle" data-reveal="appear" style="--d: 160ms">{t.experienceSubtitle[lang]}</p>
 
   <!-- CURRENT ROLE: Dramatic full-width treatment -->
   {current && (
-    <article class="group pixel-frame relative overflow-hidden border-phosphor shadow-glow-phosphor mb-10">
+    <article
+      class="group pixel-frame border-draw relative overflow-hidden border-phosphor shadow-glow-phosphor mb-10"
+      data-reveal="fade-up"
+    >
+      <span class="border-draw-v" aria-hidden="true"></span>
       <!-- Top accent bar -->
       <div class="absolute top-0 left-0 right-0 h-1 bg-phosphor"></div>
 
@@ -92,10 +96,10 @@ const toneBg = {
   <p class="font-pixel text-[10px] text-ink-mute uppercase tracking-widest mb-5">▸ Previous chapters</p>
 
   <ol class="relative border-l-2 border-line ml-3 sm:ml-6 space-y-6">
-    {past.map((job) => (
-      <li class="pl-6 sm:pl-10 relative">
+    {past.map((job, i) => (
+      <li class="pl-6 sm:pl-10 relative" data-reveal="appear" style={`--d: ${i * 70}ms`}>
         <span class={`absolute -left-[9px] top-1 w-4 h-4 bg-bg border-2 ${toneBorder[job.tone]}`}></span>
-        <article class={`group pixel-frame p-5 transition hover:${toneBorder[job.tone]}`}>
+        <article class={`group pixel-frame p-5 transition-colors duration-150 hover:${toneBorder[job.tone]}`}>
           <header class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div class="flex items-start gap-3 min-w-0">
               <div class={`shrink-0 w-10 h-10 grid place-items-center border-2 ${toneBorder[job.tone]} ${toneBg[job.tone]}`}>

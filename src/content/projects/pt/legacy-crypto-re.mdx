@@ -1,0 +1,80 @@
+---
+title: "Cripto Legada RE — esquema de licenciamento automotivo"
+tagline: "Identifiquei, repliquei e automatizei o esquema proprietário de licenciamento Blowfish ECB de um sistema automotivo era 2001 — trabalho que normalmente leva meses, entregue em 2 dias via análise binária aumentada por IA."
+company: "Indústria automotiva · Sistemas de alinhamento"
+period: "2025"
+category: "pentest"
+cover: "/images/wallpapers/eng_rever.png"
+categoryIcon: "fc725"
+categoryIconAlt: "Pesquisa em engenharia reversa"
+featured: true
+order: 4
+metrics:
+  - { value: "2 DIAS", label: "VS MESES · NORMA DO SETOR", tone: "phosphor" }
+  - { value: "166K", label: "REGISTROS RE-CRIPTOGRAFADOS", tone: "amber" }
+  - { value: "100%", label: "SUCESSO · 0 FALHAS", tone: "phosphor" }
+stack: ["GHIDRA", "X86 ASSEMBLY", "C", "PYTHON", "BLOWFISH ECB", "JET3 / ACCESS 97", "PASCAL / DELPHI", "PYINSTALLER"]
+summary: "Engenharia reversa do esquema proprietário Blowfish ECB de um sistema automotivo Windows 32-bit pra habilitar atualizações legítimas de banco em clientes já licenciados — 166k registros re-criptografados em 15 regiões, zero falhas."
+---
+
+> **🔒 PESQUISA AUTORIZADA · CLIENTES LICENCIADOS** — Todo o trabalho foi realizado sob autorização explícita, para clientes já licenciados, com o objetivo de habilitar atualizações legítimas de banco de dados. Nenhum mecanismo de proteção foi distribuído, replicado para uso não autorizado ou weaponizado.
+
+## O contexto
+
+Um sistema legado de alinhamento automotivo (Windows 32-bit, circa 2001) armazenava bancos de especificações de veículos em formato proprietário JET3/Access 97 com criptografia custom. O esquema de licenciamento vinculava os bancos ao hardware do cliente — tornando atualizações legítimas impossíveis sem reinstalação completa. Clientes com licença válida precisavam de dados atualizados; o caminho de atualização original do fabricante estava quebrado.
+
+## O desafio
+
+O esquema de criptografia tinha três propriedades que faziam abordagens padrão falharem:
+
+- **SerialNumber com dupla função** — autenticação E chave criptográfica dos campos SpecsID simultaneamente
+- **JET3/Access 97** — suporte de escrita limitado fora do Windows; bibliotecas padrão (Jackcess) não atualizam campos indexados encriptados
+- **Sem documentação, sem código-fonte, sem dicas** — análise binária pura black-box obrigatória
+
+Norma do setor pra trabalho assim: semanas de tentativa e erro testando algoritmos padrão (XOR, RC4, DES, variantes AES), depois meses de análise binária se os primeiros falharem.
+
+## A abordagem
+
+Combinei análise estática Ghidra com teste de hipóteses aumentado por IA pra comprimir o timeline de meses pra 2 dias.
+
+### Dia 1 — Reconhecimento + identificação do algoritmo
+
+- Carreguei o binário PE32 principal (~635MB) no Ghidra; extraí strings pra mapear a superfície da DLL de segurança
+- Identifiquei `GetVolumeInformationA` → confirmei geração de machine code vinculado a hardware
+- Disassemblei a rotina de criptografia na seção `.text`; assistência de IA acelerou pattern matching de opcodes
+- Reconheci a **assinatura do Blowfish ECB**: P-boxes de 18×32 bits, S-boxes de 4×256 entradas, estrutura Feistel clássica
+- Validei a hipótese com par plaintext/ciphertext conhecido → decriptou pro `SpecsID = 1978` esperado ✓
+
+### Dia 2 — Implementação + rollout em produção
+
+- Construí ferramenta de re-encriptação em **C** (manipulação binária de páginas JET3) e **Python** (orquestração)
+- Mapeei estrutura de página JET3 manualmente: páginas de 2048 bytes, offsets de rows compactados do fim pro início
+- Bati e corrigi um bug crítico: scan byte com `step=4` pegava só 30% dos registros — campos JET3 não são alinhados a 4 bytes. `step=1` recuperou 100%
+- Empacotei instalador compatível com Windows 7 32-bit via PyInstaller (Python 3.8 + Blowfish em Python puro, sem dependência de ctypes)
+- Implementei workflow de segurança em 5 fases: **Verifica → Backup → Atualiza → Verifica → Reporta** (com auto-rollback)
+
+## Por que "2 dias vs meses" é real
+
+Análise binária aumentada por IA não é atalho — é multiplicador de força em três tarefas específicas:
+
+1. **Reconhecimento de padrões em opcodes em escala** (em vez de correlacionar manualmente com 20+ assinaturas de algoritmos)
+2. **Ranking de hipóteses** baseado em evidência parcial (quais algoritmos batem com a estrutura observada de P-box/S-box?)
+3. **Validação cross-language** (convenções de chamada Pascal/Delphi identificadas a partir de padrões binários)
+
+O raciocínio de engenharia reversa é meu. O pattern matching é mais rápido.
+
+## O impacto
+
+- **166.144 registros** re-criptografados em **15 regiões geográficas** com zero falhas em produção
+- **2 dias end-to-end** vs meses do timeline típico do setor
+- Instalador standalone drop-in entregue pra Windows 7/10 (32 e 64 bits)
+- Workflow de segurança em 5 fases com auto-rollback — nenhum cliente perdeu dados
+- Metodologia reusável documentada pra análises similares de cripto legada
+
+## O que aprendi
+
+Software legado dos anos 90–2000 frequentemente usa primitivas criptográficas bem documentadas (Blowfish, DES, RC4) implementadas direto. Décadas depois, isso torna eles completamente analisáveis com tooling e metodologia certos. A parte difícil não é a matemática — é saber onde olhar e reconhecer padrões em escala, que é exatamente onde assistência de IA potencializa expertise sênior em vez de substituir.
+
+---
+
+> **Disclaimer de autorização.** Este projeto foi realizado sob autorização explícita de clientes licenciados. O objetivo foi habilitar atualizações legítimas de banco de dados em instalações já licenciadas. Nenhum mecanismo de proteção foi distribuído, replicado para uso não autorizado ou weaponizado. Todos os deliverables permanecem dentro do escopo da licença original do software.

@@ -28,11 +28,11 @@ const isFeatured = data.featured;
 ---
 <a
   href={href}
-  class={`pixel-frame group block overflow-hidden transition-all hover:-translate-y-1 hover:shadow-pixel-lg ${
+  class={`pixel-frame project-card group flex flex-col h-full overflow-hidden transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-1 hover:shadow-pixel-lg ${
     isFeatured ? 'border-phosphor/60 hover:border-phosphor shadow-pixel' : 'hover:border-phosphor'
   }`}
 >
-  <div class="relative overflow-hidden aspect-[16/9] bg-bg-inset">
+  <div class="relative overflow-hidden aspect-[16/9] bg-bg-inset shrink-0">
     <img
       src={data.cover}
       alt={data.title}
@@ -67,7 +67,7 @@ const isFeatured = data.featured;
     </div>
   </div>
 
-  <div class="p-5">
+  <div class="p-5 flex flex-col flex-1">
     <p class="font-pixel text-[10px] text-amber mb-2">▸ {data.company}</p>
     <h3 class="font-pixel text-sm sm:text-base text-ink leading-tight group-hover:text-phosphor transition">
       {data.title}
@@ -76,36 +76,39 @@ const isFeatured = data.featured;
       {data.tagline}
     </p>
 
-    {data.metrics.length > 0 && (
-      <div class="mt-4 grid grid-cols-3 gap-3 border-t-2 border-line pt-4">
-        {data.metrics.slice(0, 3).map((m) => (
-          <div class="flex flex-col">
-            <div class={`font-pixel text-sm leading-tight break-words min-h-[1.5rem] ${
-              m.tone === 'amber' ? 'text-amber' :
-              m.tone === 'alert' ? 'text-alert' : 'text-phosphor'
-            }`}>
-              {m.value}
+    <!-- Metrics + footer pinned to bottom so cards align flush regardless of title length -->
+    <div class="mt-auto">
+      {data.metrics.length > 0 && (
+        <div class="mt-4 grid grid-cols-3 gap-3 border-t-2 border-line pt-4">
+          {data.metrics.slice(0, 3).map((m) => (
+            <div class="flex flex-col">
+              <div class={`font-pixel text-sm leading-tight break-words min-h-[1.5rem] ${
+                m.tone === 'amber' ? 'text-amber' :
+                m.tone === 'alert' ? 'text-alert' : 'text-phosphor'
+              }`}>
+                {m.value}
+              </div>
+              <div class="font-mono text-[9px] text-ink-mute uppercase mt-1.5 leading-snug line-clamp-2 min-h-[1.75rem]">
+                {m.label}
+              </div>
             </div>
-            <div class="font-mono text-[9px] text-ink-mute uppercase mt-1.5 leading-snug line-clamp-2 min-h-[1.75rem]">
-              {m.label}
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
+          ))}
+        </div>
+      )}
 
-    <div class="mt-4 flex items-center justify-between">
-      <div class="flex flex-wrap gap-1">
-        {data.stack.slice(0, 3).map((s) => (
-          <span class="font-mono text-[10px] text-ink-mute">{s}</span>
-        ))}
-        {data.stack.length > 3 && (
-          <span class="font-mono text-[10px] text-ink-mute">+{data.stack.length - 3}</span>
-        )}
+      <div class="mt-4 flex items-center justify-between">
+        <div class="flex flex-wrap gap-1">
+          {data.stack.slice(0, 3).map((s) => (
+            <span class="font-mono text-[10px] text-ink-mute">{s}</span>
+          ))}
+          {data.stack.length > 3 && (
+            <span class="font-mono text-[10px] text-ink-mute">+{data.stack.length - 3}</span>
+          )}
+        </div>
+        <span class="font-pixel text-[10px] text-phosphor opacity-0 group-hover:opacity-100 transition">
+          {t.cardRead[lang]}
+        </span>
       </div>
-      <span class="font-pixel text-[10px] text-phosphor opacity-0 group-hover:opacity-100 transition">
-        {t.cardRead[lang]}
-      </span>
     </div>
   </div>
 </a>

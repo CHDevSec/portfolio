@@ -100,36 +100,65 @@ const id = `term-${Math.random().toString(36).slice(2, 8)}`;
     };
 
     const staticEl = root.querySelector('.terminal-static');
+    let isVisible = false;
+    let stopRequested = false;
 
-    const run = async () => {
-      // Hide the static placeholder when animation begins
-      if (staticEl) staticEl.style.display = 'none';
-      const lineEls = root.querySelectorAll('[data-line]');
-      for (const el of lineEls) {
-        const line = JSON.parse(el.dataset.line);
-        await renderLine(el, line);
+    const waitWhileHidden = async () => {
+      while (!isVisible && !stopRequested) {
+        await sleep(200);
       }
-      // Append a final cursor at the end
-      // Loop back: clear and run again, but with a longer delay first
-      await sleep(2400);
-      lineEls.forEach((el) => {
-        el.innerHTML = '';
-        el.style.visibility = 'hidden';
-      });
-      run();
     };
 
-    if (autoplay) {
-      // Defer until visible
+    const run = async () => {
+      if (staticEl) staticEl.style.display = 'none';
+      while (!stopRequested) {
+        await waitWhileHidden();
+        const lineEls = root.querySelectorAll('[data-line]');
+        for (const el of lineEls) {
+          if (!isVisible) break;
+          const line = JSON.parse(el.dataset.line);
+          await renderLine(el, line);
+        }
+        await sleep(2400);
+        lineEls.forEach((el) => {
+          el.innerHTML = '';
+          el.style.visibility = 'hidden';
+        });
+      }
+    };
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (autoplay && !reduce) {
       const obs = new IntersectionObserver((entries) => {
         for (const e of entries) {
-          if (e.isIntersecting) {
-            obs.disconnect();
-            run();
-          }
+          isVisible = e.isIntersecting;
         }
       }, { threshold: 0.2 });
       obs.observe(root);
+      run();
+    } else if (reduce) {
+      // Reduced motion: render all lines instantly, no loop
+      if (staticEl) staticEl.style.display = 'none';
+      const lineEls = root.querySelectorAll('[data-line]');
+      lineEls.forEach((el) => {
+        const line = JSON.parse(el.dataset.line);
+        el.style.visibility = 'visible';
+        const wrap = document.createElement('div');
+        wrap.className = 'font-mono text-[13px] sm:text-sm leading-6';
+        if (line.cmd !== undefined) {
+          wrap.innerHTML = `<span class="text-phosphor mr-2">${line.prompt || '$'}</span><span>${line.cmd}</span>`;
+        }
+        el.appendChild(wrap);
+        if (line.out !== undefined) {
+          const outs = Array.isArray(line.out) ? line.out : [line.out];
+          for (const out of outs) {
+            const outEl = document.createElement('div');
+            outEl.className = `font-mono text-[13px] sm:text-sm leading-6 ${toneClass(line.tone)}`;
+            outEl.textContent = out;
+            el.appendChild(outEl);
+          }
+        }
+      });
     }
   }
 </script>

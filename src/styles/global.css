@@ -9,16 +9,18 @@
 
   html {
     @apply bg-bg text-ink font-sans;
-    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
   }
 
   body {
     @apply min-h-screen antialiased;
     background-color: #050308;
     background-image:
-      linear-gradient(rgba(124, 92, 216, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(124, 92, 216, 0.04) 1px, transparent 1px);
-    background-size: 40px 40px;
+      linear-gradient(rgba(124, 92, 216, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124, 92, 216, 0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
   }
 
   ::selection {
@@ -66,10 +68,13 @@
 }
 
 @layer components {
-  /* Pixel-style border (square, no radius, hard shadow) */
+  /* Pixel-style border (square, no radius, hard stair-step shadow).
+     Shadow uses primary-dim (#4A3680) — same color as buttons — so cards
+     read as "sitting above" the bg with a phosphor afterimage. */
   .pixel-frame {
     @apply relative bg-bg-card border-2 border-line;
     image-rendering: pixelated;
+    box-shadow: 4px 4px 0 0 #4A3680;
   }
 
   /* Hero avatar variant: primary border + bg "ring" gap + outer primary glow */
@@ -100,7 +105,7 @@
     z-index: 0;
     pointer-events: none;
     background-color: #050308;
-    background-image: url('/images/wallpapers/wallpaper_web_app.webp');
+    background-image: url('/images/wallpapers/xss.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -126,17 +131,17 @@
     z-index: 1;
     pointer-events: none;
     background-image:
-      linear-gradient(to right,  rgba(74, 54, 128, 0.25) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(74, 54, 128, 0.25) 1px, transparent 1px);
-    background-size: 32px 32px;
+      linear-gradient(to right,  rgba(74, 54, 128, 0.09) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(74, 54, 128, 0.09) 1px, transparent 1px);
+    background-size: 40px 40px;
     mask-image: radial-gradient(
-      ellipse 80% 70% at center,
-      rgba(0, 0, 0, 1) 40%,
+      ellipse 70% 60% at center,
+      rgba(0, 0, 0, 0.8) 30%,
       rgba(0, 0, 0, 0) 100%
     );
     -webkit-mask-image: radial-gradient(
-      ellipse 80% 70% at center,
-      rgba(0, 0, 0, 1) 40%,
+      ellipse 70% 60% at center,
+      rgba(0, 0, 0, 0.8) 30%,
       rgba(0, 0, 0, 0) 100%
     );
   }
@@ -191,8 +196,9 @@
   }
 
   .pixel-btn-ghost {
-    @apply pixel-btn bg-transparent text-ink border-line
-           hover:border-phosphor hover:text-phosphor hover:shadow-[4px_4px_0_0_#4A3680];
+    @apply pixel-btn bg-primary/10 text-primary border-primary
+           shadow-[4px_4px_0_0_#4A3680]
+           hover:bg-primary/20 hover:border-primary-glow hover:text-primary-glow;
   }
 
   /* Pixel art PNG icons (decorative, multi-color) — distinct from PixelIcon SVG */
@@ -256,6 +262,33 @@
     mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
   }
 
+  /* Carousel — scrollbar hidden but scroll functional */
+  .hide-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+  /* Carousel arrows: pixel-frame buttons floating at left/right of the track.
+     Hidden on coarse-pointer devices (touch swipe is natural there). */
+  .carousel-arrow {
+    @apply absolute top-1/2 -translate-y-1/2 z-10
+           w-10 h-10 grid place-items-center
+           font-pixel text-base text-primary
+           bg-bg-card/90 backdrop-blur border-2 border-primary
+           shadow-[3px_3px_0_0_#4A3680]
+           transition-[opacity,transform,background-color] duration-100
+           hover:bg-primary/20 hover:text-primary-glow
+           active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_#4A3680]
+           disabled:opacity-30 disabled:pointer-events-none;
+  }
+  .carousel-arrow-prev { left: -8px; }
+  .carousel-arrow-next { right: -8px; }
+  @media (pointer: coarse) {
+    .carousel-arrow { display: none; }
+  }
+  [data-carousel].no-overflow .carousel-arrow { display: none; }
+
   /* Badge */
   .pixel-badge {
     @apply inline-flex items-center gap-1.5 px-2 py-1 font-pixel text-[9px] uppercase border-2;
@@ -298,56 +331,21 @@
     z-index: 1;
   }
 
-  .text-glow-phosphor {
-    text-shadow: 0 0 8px rgba(124, 92, 216, 0.6), 0 0 24px rgba(124, 92, 216, 0.2);
-  }
-
+  .text-glow-phosphor,
   .text-glow-primary {
     text-shadow: 0 0 8px rgba(124, 92, 216, 0.6), 0 0 24px rgba(124, 92, 216, 0.2);
   }
 
-  .text-glow-amber {
-    text-shadow: 0 0 8px rgba(212, 168, 44, 0.6), 0 0 24px rgba(212, 168, 44, 0.2);
-  }
-
+  .text-glow-amber,
   .text-glow-gold {
     text-shadow: 0 0 8px rgba(212, 168, 44, 0.6), 0 0 24px rgba(212, 168, 44, 0.2);
   }
 
-  /* Status pill dot pulse — used in Hero v2 status pill */
-  @keyframes pulse-phosphor {
-    0%, 100% {
-      transform: scale(1);
-      opacity: 1;
-      box-shadow: 0 0 0 0 rgba(124, 92, 216, 0.6);
-    }
-    50% {
-      transform: scale(1.25);
-      opacity: 0.85;
-      box-shadow: 0 0 0 6px rgba(124, 92, 216, 0);
-    }
-  }
-
-  @keyframes pulse-primary {
-    0%, 100% {
-      transform: scale(1);
-      opacity: 1;
-      box-shadow: 0 0 0 0 rgba(124, 92, 216, 0.6);
-    }
-    50% {
-      transform: scale(1.25);
-      opacity: 0.85;
-      box-shadow: 0 0 0 6px rgba(124, 92, 216, 0);
-    }
-  }
-
-  .animate-pulse-phosphor {
-    animation: pulse-phosphor 2s ease-in-out infinite;
-  }
-
-  .animate-pulse-primary {
-    animation: pulse-primary 2s ease-in-out infinite;
-  }
+  /* =========================================================================
+     8/16-BIT MOTION — discrete frames, hard cuts, no springs/blur/gradients
+     Used SPARINGLY: titles, hero big number, current role, hover micro-jitter.
+     Cards/grids stay static (8-bit sprites don't fade in as you walk past).
+     ========================================================================= */
 
   /* Status pill green pulse — semantic "available / OK / secure" */
   @keyframes pulse-success {
@@ -362,8 +360,97 @@
       box-shadow: 0 0 0 6px rgba(91, 170, 128, 0);
     }
   }
+  .animate-pulse-success { animation: pulse-success 2s ease-in-out infinite; }
 
-  .animate-pulse-success {
-    animation: pulse-success 2s ease-in-out infinite;
+  /* ── Reveal base: hidden until JS toggles .is-visible. No transform default
+     so static elements aren't shifted on first paint. ─────────────────── */
+  [data-reveal] { opacity: 0; }
+  [data-reveal].is-visible { opacity: 1; }
+  [data-reveal][style*="--d"].is-visible { animation-delay: var(--d); }
+
+  /* ── slide-down: Zelda menu drop. 4-step hard translate, no easing. ──── */
+  @keyframes slide-down {
+    0%   { opacity: 0; transform: translateY(-6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  [data-reveal="slide-down"] { transform: translateY(-6px); }
+  [data-reveal="slide-down"].is-visible {
+    animation: slide-down 200ms steps(4) forwards;
+  }
+
+  /* ── appear: dim → bright. Card is already half-visible; reveal just lights
+     it up. Much subtler than 0→1 cut. 3 steps for a quick palette ramp. ── */
+  @keyframes appear {
+    0%   { opacity: 0.4; }
+    100% { opacity: 1; }
+  }
+  [data-reveal="appear"] { opacity: 0.4; }
+  [data-reveal="appear"].is-visible {
+    animation: appear 180ms steps(3) forwards;
+  }
+
+  /* ── border-draw: 4 sides paint sequentially. Snappier than v1. ─────── */
+  @keyframes border-draw-h { from { width: 0;  } to { width: 100%; } }
+  @keyframes border-draw-v { from { height: 0; } to { height: 100%; } }
+  .border-draw { position: relative; }
+  .border-draw::before,
+  .border-draw::after,
+  .border-draw > .border-draw-v::before,
+  .border-draw > .border-draw-v::after {
+    content: '';
+    position: absolute;
+    background: #7C5CD8;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .border-draw::before        { top: -2px;    left: -2px;  height: 2px; width: 0; }
+  .border-draw::after         { bottom: -2px; right: -2px; height: 2px; width: 0; }
+  .border-draw > .border-draw-v::before { top: -2px;    right: -2px; width: 2px; height: 0; }
+  .border-draw > .border-draw-v::after  { bottom: -2px; left: -2px;  width: 2px; height: 0; }
+  .border-draw.is-visible::before                       { animation: border-draw-h 80ms steps(6) 0ms   forwards; }
+  .border-draw.is-visible > .border-draw-v::before      { animation: border-draw-v 80ms steps(6) 80ms  forwards; }
+  .border-draw.is-visible::after                        { animation: border-draw-h 80ms steps(6) 160ms forwards; }
+  .border-draw.is-visible > .border-draw-v::after       { animation: border-draw-v 80ms steps(6) 240ms forwards; }
+
+  /* ── sprite-jitter: 1px hard translate. Mario damage frames vibe. ──── */
+  @keyframes sprite-jitter {
+    0%, 100% { transform: translate(0, 0); }
+    25%      { transform: translate(1px, -1px); }
+    50%      { transform: translate(-1px, 1px); }
+    75%      { transform: translate(1px, 0); }
+  }
+  .glitch-on-hover:hover {
+    animation: sprite-jitter 160ms steps(4);
+  }
+
+
+  /* =========================================================================
+     REDUCED MOTION — collapse to instant opacity, no transforms/clips
+     ========================================================================= */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important;
+      scroll-behavior: auto !important;
+    }
+    [data-reveal] {
+      opacity: 0;
+      transform: none !important;
+      clip-path: none !important;
+    }
+    [data-reveal].is-visible {
+      opacity: 1 !important;
+      animation: none !important;
+      transition: opacity 160ms linear !important;
+    }
+    .border-draw::before,
+    .border-draw::after,
+    .border-draw > .border-draw-v::before,
+    .border-draw > .border-draw-v::after {
+      display: none !important;
+    }
   }
 }

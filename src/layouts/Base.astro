@@ -102,5 +102,28 @@ const personJsonLd = {
       <slot />
     </main>
     <Footer lang={lang} />
+
+    <script>
+      // 8-bit reveal: watches [data-reveal] and toggles .is-visible once visible.
+      // Used sparingly on titles, hero number, current role — not on every card.
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const targets = document.querySelectorAll<HTMLElement>('[data-reveal]');
+      if (targets.length && reduce) {
+        targets.forEach((el) => el.classList.add('is-visible'));
+      } else if (targets.length) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                io.unobserve(entry.target);
+              }
+            }
+          },
+          { threshold: 0.15, rootMargin: '0px 0px -8% 0px' }
+        );
+        targets.forEach((el) => io.observe(el));
+      }
+    </script>
   </body>
 </html>

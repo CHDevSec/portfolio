@@ -51,8 +51,8 @@ const periodTranslate = (period: string): string => {
 
   <h3 class="font-pixel text-xs text-amber mb-4">{t.certsEducation[lang]}</h3>
   <div class="grid md:grid-cols-3 gap-4 mb-12">
-    {education.map((e) => (
-      <article class="pixel-frame p-4">
+    {education.map((e, i) => (
+      <article class="pixel-frame p-4" data-reveal="appear" style={`--d: ${i * 70}ms`}>
         <PixelIcon name="book" size={28} class="text-amber" />
         <h4 class="font-mono text-sm font-semibold text-ink mt-3">{eduTranslate(e.degree)}</h4>
         <p class="font-mono text-[11px] text-ink-dim mt-1">{e.school}</p>
@@ -67,8 +67,8 @@ const periodTranslate = (period: string): string => {
 
   <h3 class="font-pixel text-xs text-phosphor mb-4">{t.certsCompleted[lang]} · {completed.length}</h3>
   <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-10">
-    {completed.map((c) => (
-      <article class="pixel-frame p-4 hover:border-phosphor transition">
+    {completed.map((c, i) => (
+      <article class="pixel-frame p-4 hover:border-phosphor transition-colors duration-150" data-reveal="appear" style={`--d: ${i * 30}ms`}>
         <div class="flex items-start gap-3">
           <div class={`shrink-0 w-9 h-9 grid place-items-center border-2 ${catColor[c.category]}`}>
             <PixelIcon name="cert" size={20} />
@@ -85,26 +85,21 @@ const periodTranslate = (period: string): string => {
     ))}
   </div>
 
-  <details class="group">
-    <summary class="cursor-pointer font-pixel text-xs text-amber list-none flex items-center gap-2 mb-4">
-      <span class="group-open:rotate-90 transition inline-block">▸</span>
-      {t.certsInProgressDot[lang]} · {inProgress.length}
-    </summary>
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      {inProgress.map((c) => (
-        <article class="pixel-frame p-4 border-amber/30">
-          <div class="flex items-start gap-3">
-            <div class="shrink-0 w-9 h-9 grid place-items-center border-2 border-amber text-amber">
-              <PixelIcon name="gear" size={20} />
-            </div>
-            <div class="min-w-0 flex-1">
-              <h4 class="font-mono text-[13px] text-ink leading-snug">{c.name}</h4>
-              <p class="font-mono text-[11px] text-ink-dim mt-1">{c.issuer}</p>
-              <span class="mt-2 inline-block pixel-badge-amber">{t.certsInProgress[lang]}</span>
-            </div>
+  <h3 class="font-pixel text-xs text-amber mb-4">▸ {t.certsInProgressDot[lang]} · {inProgress.length}</h3>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    {inProgress.map((c, i) => (
+      <article class="pixel-frame p-4 border-amber/30" data-reveal="appear" style={`--d: ${i * 30}ms`}>
+        <div class="flex items-start gap-3">
+          <div class="shrink-0 w-9 h-9 grid place-items-center border-2 border-amber text-amber">
+            <PixelIcon name="gear" size={20} />
           </div>
-        </article>
-      ))}
-    </div>
-  </details>
+          <div class="min-w-0 flex-1">
+            <h4 class="font-mono text-[13px] text-ink leading-snug">{c.name}</h4>
+            <p class="font-mono text-[11px] text-ink-dim mt-1">{c.issuer}</p>
+            <span class="mt-2 inline-block pixel-badge-amber">{t.certsInProgress[lang]}</span>
+          </div>
+        </div>
+      </article>
+    ))}
+  </div>
 </section>

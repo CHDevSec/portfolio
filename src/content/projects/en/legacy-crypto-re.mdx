@@ -1,0 +1,80 @@
+---
+title: "Legacy Crypto RE — automotive licensing scheme"
+tagline: "Identified, replicated, and automated a 2001-era automotive system's proprietary Blowfish ECB licensing scheme — work that typically takes months, delivered in 2 days through AI-augmented binary analysis."
+company: "Automotive industry · Wheel alignment systems"
+period: "2025"
+category: "pentest"
+cover: "/images/wallpapers/eng_rever.png"
+categoryIcon: "fc725"
+categoryIconAlt: "Reverse engineering research"
+featured: true
+order: 4
+metrics:
+  - { value: "2 DAYS", label: "VS MONTHS · INDUSTRY NORM", tone: "phosphor" }
+  - { value: "166K", label: "RECORDS RE-ENCRYPTED", tone: "amber" }
+  - { value: "100%", label: "SUCCESS · 0 FAILURES", tone: "phosphor" }
+stack: ["GHIDRA", "X86 ASSEMBLY", "C", "PYTHON", "BLOWFISH ECB", "JET3 / ACCESS 97", "PASCAL / DELPHI", "PYINSTALLER"]
+summary: "Reverse engineered a proprietary Blowfish ECB licensing scheme on a Windows 32-bit automotive alignment system to enable legitimate database updates for already-licensed customers — 166k records re-encrypted across 15 regions, zero failures."
+---
+
+> **🔒 AUTHORIZED RESEARCH · LICENSED CUSTOMERS** — All work was performed under explicit authorization, for already-licensed customers, to enable legitimate database updates. No protection mechanism was distributed, replicated for unauthorized use, or weaponized.
+
+## The context
+
+A legacy automotive alignment system (Windows 32-bit, circa 2001) stored vehicle specification databases in proprietary JET3/Access 97 format with custom encryption. The licensing scheme bound databases to the customer's hardware — making legitimate database updates impossible without full reinstallation. Customers with valid licenses needed updated vehicle data; the original vendor's update path was broken.
+
+## The challenge
+
+The encryption scheme had three properties that made standard approaches fail:
+
+- **SerialNumber served two functions** simultaneously — both authentication AND cryptographic key for SpecsID fields
+- **JET3/Access 97** — limited write support outside Windows; standard libraries (Jackcess) couldn't update encrypted indexed fields
+- **No documentation, no source, no hints** — pure black-box binary analysis required
+
+Industry norm for this kind of work: weeks of trial-and-error testing standard algorithms (XOR, RC4, DES, AES variants), then months of binary analysis if those fail.
+
+## The approach
+
+I combined Ghidra static analysis with AI-augmented hypothesis testing to compress the timeline from months to 2 days.
+
+### Day 1 — Reconnaissance + algorithm identification
+
+- Loaded the PE32 main binary (~635MB) into Ghidra; extracted strings to map the security DLL surface
+- Identified `GetVolumeInformationA` → confirmed hardware-bound machine code generation
+- Disassembled the encryption routine in `.text` section; AI assistance accelerated opcode pattern matching
+- Recognized the **Blowfish ECB signature**: 18×32-bit P-boxes, 4×256-entry S-boxes, classic Feistel structure
+- Validated hypothesis with a known plaintext/ciphertext pair → decrypted to expected `SpecsID = 1978` ✓
+
+### Day 2 — Implementation + production rollout
+
+- Built re-encryption tool in **C** (binary-level JET3 page manipulation) and **Python** (orchestration)
+- Mapped JET3 page structure manually: 2048-byte pages, row offsets compacted from end to start
+- Hit and fixed a critical bug: byte-scan with `step=4` only caught 30% of records — JET3 fields aren't 4-byte aligned. `step=1` recovered 100%
+- Packaged Windows 7 32-bit-compatible installer with PyInstaller (Python 3.8 + pure-Python Blowfish, no ctypes dependency)
+- Implemented 5-phase safety workflow: **Verify → Backup → Update → Verify → Report** (with auto-rollback)
+
+## Why "2 days vs months" is real
+
+AI-augmented binary analysis isn't a shortcut — it's a force multiplier on three specific tasks:
+
+1. **Opcode pattern recognition at scale** (instead of manually correlating with 20+ algorithm fingerprints)
+2. **Hypothesis ranking** based on partial evidence (which algorithms match the observed P-box/S-box layout?)
+3. **Cross-language validation** (Pascal/Delphi calling conventions identified from binary patterns)
+
+The reverse engineering thinking is mine. The pattern matching is faster.
+
+## The impact
+
+- **166,144 records** re-encrypted across **15 geographic regions** with zero production failures
+- **2 days end-to-end** vs months of typical industry research timeline
+- Drop-in standalone `.exe` delivered for Windows 7/10 (32-bit and 64-bit)
+- 5-phase safety workflow with automatic rollback — no customer ever lost data
+- Reusable methodology documented for similar legacy crypto analysis
+
+## What I learned
+
+Legacy software from the 1990s–2000s often uses well-documented cryptographic primitives (Blowfish, DES, RC4) implemented straightforwardly. Decades later, this makes them completely analyzable with the right tooling and methodology. The hard part isn't the math — it's knowing where to look and recognizing patterns at scale, which is exactly where AI assistance compounds senior expertise instead of replacing it.
+
+---
+
+> **Authorization disclaimer.** This project was performed under explicit authorization from licensed customers. The objective was to enable legitimate database updates on already-licensed installations. No protection mechanism was distributed, replicated for unauthorized use, or weaponized. All deliverables remain in scope of the original software license.

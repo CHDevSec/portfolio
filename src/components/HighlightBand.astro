@@ -21,7 +21,7 @@ const copy = {
   },
 };
 const c = copy[lang];
-const caseUrl = lang === 'pt' ? '/pt/projects/cis-auditor' : '/projects/cis-auditor';
+const caseUrl = lang === 'pt' ? '/pt/projects/linux-vuln-reduction' : '/projects/linux-vuln-reduction';
 ---
 <section id="impact" class="relative overflow-hidden border-y-2 border-line">
   <!-- Pixel-art decoration: skull (top-left, the 569k vulns "before") -->
@@ -64,37 +64,37 @@ const caseUrl = lang === 'pt' ? '/pt/projects/cis-auditor' : '/projects/cis-audi
   <!-- Content -->
   <div class="relative max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28 grid lg:grid-cols-12 gap-8 items-center">
     <div class="lg:col-span-7">
-      <p class="font-pixel text-[10px] text-amber uppercase tracking-widest mb-4">{c.eyebrow}</p>
+      <p class="font-pixel text-[10px] text-amber uppercase tracking-widest mb-4" data-reveal="slide-down">{c.eyebrow}</p>
 
-      <!-- BIG NUMBER (movie-poster style) -->
+      <!-- BIG NUMBER — static, no reveal (clip-path was unreliable) -->
       <p class="font-pixel text-4xl sm:text-6xl lg:text-7xl text-phosphor text-glow-phosphor leading-none mb-6">
         {c.big}
       </p>
 
-      <h2 class="font-pixel text-xl sm:text-2xl text-ink mb-4">
+      <h2 class="font-pixel text-xl sm:text-2xl text-ink mb-4" data-reveal="slide-down" style="--d: 120ms">
         {c.headline}
       </h2>
 
-      <p class="font-mono text-base text-ink-dim leading-relaxed max-w-xl">
+      <p class="font-mono text-base text-ink-dim leading-relaxed max-w-xl" data-reveal="appear" style="--d: 200ms">
         {c.sub}
       </p>
 
-      <a href={caseUrl} class="mt-7 inline-flex pixel-btn-amber">
+      <a href={caseUrl} class="mt-7 inline-flex pixel-btn-amber glitch-on-hover">
         {c.cta}
       </a>
     </div>
 
-    <!-- Right column: small dramatic stat tiles -->
+    <!-- Right column: stat tiles, snap on with light stagger -->
     <div class="lg:col-span-5 grid grid-cols-2 gap-3">
-      <div class="pixel-frame p-4 border-phosphor bg-bg/60 backdrop-blur">
+      <div class="pixel-frame p-4 border-phosphor bg-bg/60 backdrop-blur" data-reveal="appear" style="--d: 200ms">
         <p class="font-pixel text-xl sm:text-2xl leading-tight text-phosphor">SecScan</p>
         <p class="font-mono text-[11px] text-ink-dim mt-2">Go scanner · CI/CD gating</p>
       </div>
-      <div class="pixel-frame p-4 border-amber bg-bg/60 backdrop-blur">
+      <div class="pixel-frame p-4 border-amber bg-bg/60 backdrop-blur" data-reveal="appear" style="--d: 280ms">
         <p class="font-pixel text-xl sm:text-2xl leading-tight text-amber">CIS-Auditor</p>
         <p class="font-mono text-[11px] text-ink-dim mt-2">70% benchmark coverage</p>
       </div>
-      <div class="pixel-frame p-4 col-span-2 border-line bg-bg/60 backdrop-blur">
+      <div class="pixel-frame p-4 col-span-2 border-line bg-bg/60 backdrop-blur" data-reveal="appear" style="--d: 360ms">
         <p class="font-mono text-sm text-ink leading-relaxed">
           <span class="text-phosphor">▸</span> 251k vulnerabilities removed across hundreds of services — without blocking engineering.
         </p>
