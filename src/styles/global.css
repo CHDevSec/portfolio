@@ -297,7 +297,7 @@
   .pixel-badge-success { @apply pixel-badge bg-phosphor/10 text-phosphor border-phosphor; }
   .pixel-badge-amber { @apply pixel-badge bg-amber/10 text-amber border-amber; }
   .pixel-badge-alert { @apply pixel-badge bg-alert/10 text-alert border-alert; }
-  .pixel-badge-mute { @apply pixel-badge bg-line/40 text-ink-dim border-line; }
+  .pixel-badge-mute { @apply pixel-badge bg-bg-surface text-ink-dim border-line-accent/60; }
   .pixel-badge-completed { @apply pixel-badge bg-success/10 text-success border-success; }
 }
 
