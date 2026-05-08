@@ -18,7 +18,7 @@ export const experience: ExperienceI18n[] = [
   {
     company: 'CHDevSec',
     initials: 'CH',
-    logo: '/company/chdevsec.png',
+    logo: '/portfolio/company/chdevsec.png',
     sector: { en: 'Independent · Consulting', pt: 'Independente · Consultoria' },
     role: { en: 'Cybersecurity Consultant · Pentest & Cloud Security', pt: 'Consultor de Cibersegurança · Pentest & Cloud Security' },
     period: { en: 'Mar 2026 — Present', pt: 'Mar 2026 — Presente' },
@@ -48,7 +48,7 @@ export const experience: ExperienceI18n[] = [
   {
     company: 'frete.com',
     initials: 'FC',
-    logo: '/company/frete.png',
+    logo: '/portfolio/company/frete.png',
     sector: { en: 'Logistics SaaS · Series C', pt: 'SaaS de Logística · Series C' },
     role: { en: 'Security Engineer · Cloud & DevSecOps', pt: 'Engenheiro de Segurança · Cloud & DevSecOps' },
     period: { en: 'Sep 2024 — Mar 2026 · 1y 7m', pt: 'Set 2024 — Mar 2026 · 1a 7m' },
@@ -77,7 +77,7 @@ export const experience: ExperienceI18n[] = [
   {
     company: 'Volt Sport',
     initials: 'VS',
-    logo: '/company/logo-volt.svg',
+    logo: '/portfolio/company/logo-volt.svg',
     sector: { en: 'Sports Retail · Multi-branch', pt: 'Varejo Esportivo · Multi-filial' },
     role: { en: 'Security Engineer · Cloud & DevSecOps', pt: 'Engenheiro de Segurança · Cloud & DevSecOps' },
     period: { en: 'Jun 2023 — Aug 2024 · 1y 3m', pt: 'Jun 2023 — Ago 2024 · 1a 3m' },
@@ -104,7 +104,7 @@ export const experience: ExperienceI18n[] = [
   {
     company: 'Evolution Soluções Empresariais',
     initials: 'EV',
-    logo: '/company/evolutionsul.avif',
+    logo: '/portfolio/company/evolutionsul.avif',
     sector: { en: 'IT Services · Consulting', pt: 'Serviços de TI · Consultoria' },
     role: { en: 'Network & Infrastructure Analyst', pt: 'Analista de Rede & Infraestrutura' },
     period: { en: 'Jan 2023 — May 2023 · 5m', pt: 'Jan 2023 — Mai 2023 · 5m' },
@@ -129,7 +129,7 @@ export const experience: ExperienceI18n[] = [
   {
     company: 'Global Estratégias Financeiras',
     initials: 'GE',
-    logo: '/company/global.png',
+    logo: '/portfolio/company/global.png',
     sector: { en: 'Fintech · Regulated', pt: 'Fintech · Regulada' },
     role: { en: 'Junior Cybersecurity Analyst', pt: 'Analista Jr. de Cibersegurança' },
     period: { en: 'Feb 2021 — Jan 2023 · 2y', pt: 'Fev 2021 — Jan 2023 · 2a' },
@@ -154,7 +154,7 @@ export const experience: ExperienceI18n[] = [
   {
     company: 'CHDevSec',
     initials: 'CH',
-    logo: '/company/chdevsec.png',
+    logo: '/portfolio/company/chdevsec.png',
     sector: { en: 'Independent · Early Career', pt: 'Independente · Carreira Inicial' },
     role: {
       en: 'Independent Security Consultant · Pentest & Infra',

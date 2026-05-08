@@ -3,23 +3,40 @@ export type Lang = 'en' | 'pt';
 export const langs: Lang[] = ['en', 'pt'];
 export const defaultLang: Lang = 'en';
 
-// Build localized URL. EN is at root, PT at /pt/.
+// Astro base URL ('/' in dev, '/portfolio/' in prod). Strip trailing slash for prefix use.
+const BASE = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+
+// Strip the deploy base from a pathname so internal logic is base-agnostic.
+// Returns a path that always starts with '/' and has no base prefix.
+const stripBase = (pathname: string): string => {
+  if (BASE && pathname.startsWith(BASE)) {
+    const rest = pathname.slice(BASE.length);
+    return rest.startsWith('/') ? rest : `/${rest}`;
+  }
+  return pathname;
+};
+
+// Build localized URL from a base- and lang-free path. Returns full deploy URL with base + lang prefix.
+// e.g. localizedUrl('/projects/secscan', 'pt') -> '/portfolio/pt/projects/secscan'
 export const localizedUrl = (path: string, lang: Lang): string => {
   const clean = path.startsWith('/') ? path : `/${path}`;
-  if (lang === 'en') return clean;
-  return `/pt${clean === '/' ? '' : clean}`;
+  const langPath = lang === 'en' ? clean : `/pt${clean === '/' ? '' : clean}`;
+  return `${BASE}${langPath}`;
 };
 
-// Strip language prefix from URL
+// Strip both base and language prefix from a pathname. Always returns base-/lang-free path starting with '/'.
+// Use to get the canonical "logical" path before re-localizing for the other language.
 export const stripLang = (path: string): string => {
-  if (path.startsWith('/pt/')) return path.slice(3);
-  if (path === '/pt') return '/';
-  return path;
+  const p = stripBase(path);
+  if (p.startsWith('/pt/')) return p.slice(3) || '/';
+  if (p === '/pt') return '/';
+  return p;
 };
 
-// Detect lang from URL pathname
+// Detect lang from URL pathname (base-aware)
 export const detectLang = (pathname: string): Lang => {
-  if (pathname === '/pt' || pathname.startsWith('/pt/')) return 'pt';
+  const p = stripBase(pathname);
+  if (p === '/pt' || p.startsWith('/pt/')) return 'pt';
   return 'en';
 };
 

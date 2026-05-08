@@ -11,8 +11,8 @@ export const profile = {
   links: {
     linkedin: 'https://www.linkedin.com/in/caio-henrique-security',
     github: 'https://github.com/chdevsec',
-    cv: '/cv/CV-CaioHenrique-PT.pdf',
-    cvLinkedin: '/cv/Profile-LinkedIn.pdf',
+    cv: '/portfolio/cv/CV-CaioHenrique-PT.pdf',
+    cvLinkedin: '/portfolio/cv/Profile-LinkedIn.pdf',
   },
   languages: [
     { name: 'Português', level: 'Native' },

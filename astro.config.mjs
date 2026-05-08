@@ -6,7 +6,9 @@ import rehypeMermaid from 'rehype-mermaid';
 import rehypeShiki from '@shikijs/rehype';
 
 export default defineConfig({
-  site: 'https://caiohenrique.dev',
+  site: 'https://chdevsec.com.br',
+  base: '/portfolio',
+  trailingSlash: 'always',
   integrations: [
     tailwind({ applyBaseStyles: false }),
     mdx({

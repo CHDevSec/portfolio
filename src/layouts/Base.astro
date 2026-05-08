@@ -19,7 +19,7 @@ const detected = detectLang(Astro.url.pathname);
 const {
   title = `${profile.name} — ${profile.title}`,
   description = profile.bio.short,
-  image = '/images/og/og-default.png',
+  image = '/portfolio/images/og/og-default.png',
   noindex = false,
   lang = detected,
 } = Astro.props;
@@ -59,7 +59,7 @@ const personJsonLd = {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
-    <link rel="icon" type="image/png" href="/fonts/icons/fc854.png" />
+    <link rel="icon" type="image/png" href="/portfolio/fonts/icons/fc854.png" />
     <link rel="canonical" href={canonical} />
     <link rel="alternate" hreflang={lang === 'en' ? 'pt-BR' : 'en'} href={altCanonical} />
     <link rel="alternate" hreflang="x-default" href={new URL('/', Astro.site).toString()} />

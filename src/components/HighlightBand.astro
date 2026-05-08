@@ -21,12 +21,13 @@ const copy = {
   },
 };
 const c = copy[lang];
-const caseUrl = lang === 'pt' ? '/pt/projects/linux-vuln-reduction' : '/projects/linux-vuln-reduction';
+import { localizedUrl } from '@/data/i18n';
+const caseUrl = localizedUrl('/projects/linux-vuln-reduction', lang);
 ---
 <section id="impact" class="relative overflow-hidden border-y-2 border-line">
   <!-- Pixel-art decoration: skull (top-left, the 569k vulns "before") -->
   <img
-    src="/fonts/icons/fc673.png"
+    src="/portfolio/fonts/icons/fc673.png"
     alt=""
     aria-hidden="true"
     width="32"
@@ -37,7 +38,7 @@ const caseUrl = lang === 'pt' ? '/pt/projects/linux-vuln-reduction' : '/projects
 
   <!-- Pixel-art decoration: shield-check (bottom-right, the defended state "after") -->
   <img
-    src="/fonts/icons/fc855.png"
+    src="/portfolio/fonts/icons/fc855.png"
     alt=""
     aria-hidden="true"
     width="32"
@@ -49,7 +50,7 @@ const caseUrl = lang === 'pt' ? '/pt/projects/linux-vuln-reduction' : '/projects
   <!-- Background wallpaper, heavily tinted -->
   <div class="absolute inset-0 bg-bg-inset">
     <img
-      src="/images/wallpapers/wallpaper_linux_forge.webp"
+      src="/portfolio/images/wallpapers/wallpaper_linux_forge.webp"
       alt=""
       class="w-full h-full object-cover smooth opacity-30"
       loading="lazy"
