@@ -43,7 +43,7 @@ export const experience: ExperienceI18n[] = [
         'Desenvolvo automações em Python / Bash / Go para scanning, relatórios e auto-remediation.',
       ],
     },
-    stack: ['Python', 'Go', 'Bash', 'Wazuh', 'DefectDojo', 'CIS Benchmarks', 'Linux'],
+    stack: ['Python', 'Go', 'Bash', 'Wazuh', 'DefectDojo', 'Cloudflare WAF', 'OWASP', 'ISO 27001', 'CIS Benchmarks', 'Linux'],
   },
   {
     company: 'frete.com',
