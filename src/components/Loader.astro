@@ -148,7 +148,7 @@
     var fill = loader.querySelector('.snes-loader__bar-fill');
     var pct = loader.querySelector('.snes-loader__pct');
 
-    var DURATION = 2400; // 2.4s total fill
+    var DURATION = 1500; // 1.5s total fill
     var start = performance.now();
 
     function frame(now) {
@@ -167,8 +167,8 @@
         try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
         setTimeout(function () {
           loader.classList.add('is-done');
-          setTimeout(destroy, 320);
-        }, 240);
+          setTimeout(destroy, 220);
+        }, 140);
       }
     }
     requestAnimationFrame(frame);
