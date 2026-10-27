@@ -1,6 +1,6 @@
 ---
-title: "Legacy Crypto RE — automotive licensing scheme"
-tagline: "Identified, replicated, and automated a 2001-era automotive system's proprietary Blowfish ECB licensing scheme — work that typically takes months, delivered in 2 days through AI-augmented binary analysis."
+title: "Legacy crypto reverse engineering — 166,144 records re-encrypted with zero failures"
+tagline: "I identified the Blowfish ECB scheme inside a legacy automotive licensing check in two days and re-encrypted 166,144 records across 15 regions for already-licensed customers, with zero failures."
 company: "Automotive industry · Wheel alignment systems"
 period: "2025"
 category: "pentest"
@@ -8,73 +8,114 @@ cover: "/portfolio/images/wallpapers/eng_rever.png"
 categoryIcon: "fc725"
 categoryIconAlt: "Reverse engineering research"
 featured: true
-order: 4
+order: 7
 metrics:
-  - { value: "2 DAYS", label: "VS MONTHS · INDUSTRY NORM", tone: "phosphor" }
-  - { value: "166K", label: "RECORDS RE-ENCRYPTED", tone: "amber" }
-  - { value: "100%", label: "SUCCESS · 0 FAILURES", tone: "phosphor" }
-stack: ["GHIDRA", "X86 ASSEMBLY", "C", "PYTHON", "BLOWFISH ECB", "JET3 / ACCESS 97", "PASCAL / DELPHI", "PYINSTALLER"]
-summary: "Reverse engineered a proprietary Blowfish ECB licensing scheme on a Windows 32-bit automotive alignment system to enable legitimate database updates for already-licensed customers — 166k records re-encrypted across 15 regions, zero failures."
+  - { value: "166K", label: "Records re-encrypted", tone: "amber" }
+  - { value: "0", label: "Production failures", tone: "phosphor" }
+  - { value: "2 days", label: "From binary to delivery", tone: "phosphor" }
+stack: ["Ghidra", "x86 Assembly", "C", "Python", "Delphi", "JET3 / Access 97", "PyInstaller"]
+summary: "Reverse engineering of the Blowfish ECB licensing format in a 32-bit automotive alignment system enabled legitimate database updates: 166,144 records re-encrypted across 15 regions in two days, with no failures."
 ---
+import BeforeAfter from '@/components/case/BeforeAfter.astro';
+import StatGrid from '@/components/case/StatGrid.astro';
+import Timeline from '@/components/case/Timeline.astro';
+import Callout from '@/components/case/Callout.astro';
 
-> **🔒 AUTHORIZED RESEARCH · LICENSED CUSTOMERS** — All work was performed under explicit authorization, for already-licensed customers, to enable legitimate database updates. No protection mechanism was distributed, replicated for unauthorized use, or weaponized.
+<Callout kind="scope" lang="en">
+All work was performed under explicit authorization from licensed customers, to enable legitimate database updates on already-licensed installations. No protection mechanism was distributed, replicated for unauthorized use or used offensively. All deliverables remain within the scope of the original software license.
+</Callout>
 
-## The context
+## Context
 
-A legacy automotive alignment system (Windows 32-bit, circa 2001) stored vehicle specification databases in proprietary JET3/Access 97 format with custom encryption. The licensing scheme bound databases to the customer's hardware — making legitimate database updates impossible without full reinstallation. Customers with valid licenses needed updated vehicle data; the original vendor's update path was broken.
+A legacy automotive alignment system (Windows 32-bit, from around 2001) stored its vehicle specification databases in a proprietary JET3 / Access 97 format with proprietary encryption. The licensing scheme bound each database to the customer's hardware, which made legitimate database updates impossible without a full reinstallation. Customers with valid licenses needed updated vehicle data, and the original vendor's update path was broken.
 
-## The challenge
+- **SerialNumber served two functions at once** — authentication and the cryptographic key for the SpecsID fields.
+- **JET3 / Access 97 has limited write support outside Windows** — standard libraries (Jackcess) could not update encrypted indexed fields.
+- **No documentation, no source, no hints** — the scheme had to be recovered by black-box binary analysis.
 
-The encryption scheme had three properties that made standard approaches fail:
+## What I did
 
-- **SerialNumber served two functions** simultaneously — both authentication AND cryptographic key for SpecsID fields
-- **JET3/Access 97** — limited write support outside Windows; standard libraries (Jackcess) couldn't update encrypted indexed fields
-- **No documentation, no source, no hints** — pure black-box binary analysis required
+I used Ghidra for static analysis and an AI assistant to compare algorithm hypotheses with patterns in the binary. I checked each candidate against observed behavior; the work took two days.
 
-Industry norm for this kind of work: weeks of trial-and-error testing standard algorithms (XOR, RC4, DES, AES variants), then months of binary analysis if those fail.
+### Day 1 — Reconnaissance and algorithm identification
 
-## The approach
+- Loaded the PE32 main binary of the complete ~635MB application into Ghidra and extracted strings to map the security DLL surface.
+- Found the call to `GetVolumeInformationA`, which confirmed a hardware-bound machine ID.
+- Disassembled the encryption routine in the `.text` section; AI assistance sped up opcode pattern matching.
+- Recognized the **Blowfish ECB signature**: an 18-entry P-array and four 256-entry S-boxes in a classic Feistel structure.
+- Validated the hypothesis with a known plaintext/ciphertext pair, which decrypted to the expected `SpecsID = 1978`.
 
-I combined Ghidra static analysis with AI-augmented hypothesis testing to compress the timeline from months to 2 days.
+### Day 2 — Implementation and production rollout
 
-### Day 1 — Reconnaissance + algorithm identification
+- Built the re-encryption tool in **C** (binary-level JET3 page manipulation) and **Python** (orchestration).
+- Mapped the JET3 page structure by hand: 2,048-byte pages, with row offsets packed from the end toward the start.
+- Found and fixed a critical bug: a byte scan with `step=4` caught only 30% of the records, because JET3 fields are not 4-byte aligned. `step=1` recovered 100%.
+- Packaged a Windows 7 32-bit-compatible installer with PyInstaller (Python 3.8 and a pure-Python Blowfish, with no ctypes dependency).
+- Implemented a 5-phase safety workflow — **Verify → Backup → Update → Verify → Report** — with automatic rollback.
 
-- Loaded the PE32 main binary (~635MB) into Ghidra; extracted strings to map the security DLL surface
-- Identified `GetVolumeInformationA` → confirmed hardware-bound machine code generation
-- Disassembled the encryption routine in `.text` section; AI assistance accelerated opcode pattern matching
-- Recognized the **Blowfish ECB signature**: 18×32-bit P-boxes, 4×256-entry S-boxes, classic Feistel structure
-- Validated hypothesis with a known plaintext/ciphertext pair → decrypted to expected `SpecsID = 1978` ✓
+### How I used AI assistance
 
-### Day 2 — Implementation + production rollout
+The assistant helped with three bounded tasks:
 
-- Built re-encryption tool in **C** (binary-level JET3 page manipulation) and **Python** (orchestration)
-- Mapped JET3 page structure manually: 2048-byte pages, row offsets compacted from end to start
-- Hit and fixed a critical bug: byte-scan with `step=4` only caught 30% of records — JET3 fields aren't 4-byte aligned. `step=1` recovered 100%
-- Packaged Windows 7 32-bit-compatible installer with PyInstaller (Python 3.8 + pure-Python Blowfish, no ctypes dependency)
-- Implemented 5-phase safety workflow: **Verify → Backup → Update → Verify → Report** (with auto-rollback)
+1. **Opcode pattern recognition at scale**, instead of manually correlating against 20+ algorithm fingerprints.
+2. **Hypothesis ranking** from partial evidence — which algorithms match the observed P-array and S-box layout?
+3. **Cross-language validation** — Pascal/Delphi calling conventions identified from binary patterns.
 
-## Why "2 days vs months" is real
+The analysis and implementation decisions remained mine. I verified the identified algorithm against a known plaintext/ciphertext pair before building the update tool.
 
-AI-augmented binary analysis isn't a shortcut — it's a force multiplier on three specific tasks:
+## How it works
 
-1. **Opcode pattern recognition at scale** (instead of manually correlating with 20+ algorithm fingerprints)
-2. **Hypothesis ranking** based on partial evidence (which algorithms match the observed P-box/S-box layout?)
-3. **Cross-language validation** (Pascal/Delphi calling conventions identified from binary patterns)
+```mermaid
+flowchart TB
+    A[Licensed installation] --> B[Read SerialNumber]
+    B --> C[SerialNumber as Blowfish ECB key]
+    A --> D[(JET3 database · 2,048-byte pages)]
+    C --> E[1 · Verify current records]
+    D --> E
+    E --> F[2 · Backup]
+    F --> G[3 · Update · re-encrypt SpecsID fields<br/>byte scan step=1]
+    G --> H{4 · Verify}
+    H -->|Fail| I[Automatic rollback from backup]
+    H -->|Pass| J[5 · Report]
+```
 
-The reverse engineering thinking is mine. The pattern matching is faster.
+The installation's SerialNumber is both the license check and the key, so the tool reads it, re-encrypts each SpecsID field in place with that key and verifies the result before reporting. Any failed verification restores the backup automatically.
 
-## The impact
+## Results
 
-- **166,144 records** re-encrypted across **15 geographic regions** with zero production failures
-- **2 days end-to-end** vs months of typical industry research timeline
-- Drop-in standalone `.exe` delivered for Windows 7/10 (32-bit and 64-bit)
-- 5-phase safety workflow with automatic rollback — no customer ever lost data
-- Reusable methodology documented for similar legacy crypto analysis
+<Timeline title="Two days, binary to delivery" steps={[
+  { when: 'Day 1', title: 'Hardware binding found', detail: 'GetVolumeInformationA call in the binary' },
+  { when: 'Day 1', title: 'Blowfish ECB identified', detail: 'P-array and S-box layout recognized' },
+  { when: 'Day 1', title: 'Hypothesis confirmed', detail: 'Known pair decrypted to SpecsID = 1978', key: true },
+  { when: 'Day 2', title: 'Scan bug fixed', detail: 'step=4 → step=1, 30% → 100% of records' },
+  { when: 'Day 2', title: 'Rollout', detail: '166,144 records across 15 regions, 5-phase safety workflow' },
+]} />
 
-## What I learned
+<BeforeAfter lang="en" title="Records found by the byte scan" items={[
+  { label: 'Share of records found, step=4 vs step=1', before: 30, after: 100, beforeText: '30%', afterText: '100%', better: 'higher' },
+]} caption="JET3 fields are not 4-byte aligned; scanning every byte recovered all records." />
 
-Legacy software from the 1990s–2000s often uses well-documented cryptographic primitives (Blowfish, DES, RC4) implemented straightforwardly. Decades later, this makes them completely analyzable with the right tooling and methodology. The hard part isn't the math — it's knowing where to look and recognizing patterns at scale, which is exactly where AI assistance compounds senior expertise instead of replacing it.
+<StatGrid title="Production rollout" stats={[
+  { value: '166,144', label: 'Records re-encrypted', detail: 'Zero production failures' },
+  { value: '15', label: 'Geographic regions' },
+  { value: '5', label: 'Safety phases', detail: 'With automatic rollback' },
+]} />
 
----
+- **166,144 records** re-encrypted across **15 geographic regions** with zero production failures.
+- **2 days end to end**, from the first look at the binary to the delivered tool.
+- **Standalone `.exe`** delivered for Windows 7/10 (32-bit and 64-bit).
+- **5-phase safety workflow** with automatic rollback — no customer lost data.
+- **Reusable methodology** documented for similar legacy crypto analysis.
 
-> **Authorization disclaimer.** This project was performed under explicit authorization from licensed customers. The objective was to enable legitimate database updates on already-licensed installations. No protection mechanism was distributed, replicated for unauthorized use, or weaponized. All deliverables remain in scope of the original software license.
+## Business value
+
+<Callout kind="value" lang="en">
+Customers who had already paid for their licenses got current vehicle data on the equipment they owned, without a full reinstallation and without waiting on a vendor update path that no longer worked. The update shipped in two days as a single installer with automatic rollback, so every workshop could apply it safely, and the documented method makes the next legacy format faster to handle.
+</Callout>
+
+## Lessons
+
+- **Confirm the hypothesis before building on it.** One known plaintext/ciphertext pair decrypting to `SpecsID = 1978` settled the algorithm before any tool code was written.
+- **Check your assumptions about alignment.** A `step=4` scan silently found only 30% of the records; scanning every byte found all of them.
+- **Keep AI on bounded tasks.** Pattern matching and hypothesis ranking went faster with the assistant; the decision and the verification stayed manual.
+- **Ship the rollback with the update.** Verify → Backup → Update → Verify → Report meant 166,144 records could be changed with a way back at every step.

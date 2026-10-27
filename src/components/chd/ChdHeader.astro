@@ -1,0 +1,42 @@
+---
+import { profile } from '@/data/profile';
+import { localizedUrl, type Lang } from '@/data/i18n';
+import ChdLangSwitcher from './ChdLangSwitcher.astro';
+
+interface Props { lang: Lang; home?: string }
+const { lang, home = '' } = Astro.props;
+const to = (hash: string) => (home ? `${home}${hash}` : hash);
+const t = lang === 'pt'
+  ? { exp: 'EXPERIÊNCIA', projects: 'PROJETOS', method: 'MÉTODO', about: 'CHDEVSEC', notes: 'NOTAS', contact: 'CONTATO', menu: 'MENU', nav: 'Navegação principal', navMobile: 'Navegação mobile', open: 'Abrir navegação', home: 'início' }
+  : { exp: 'EXPERIENCE', projects: 'PROJECTS', method: 'METHOD', about: 'CHDEVSEC', notes: 'NOTES', contact: 'CONTACT', menu: 'MENU', nav: 'Main navigation', navMobile: 'Mobile navigation', open: 'Open navigation', home: 'home' };
+
+const NAV = [
+  { href: to('#experience'), label: t.exp },
+  { href: to('#projects'), label: t.projects },
+  { href: to('#how'), label: t.method },
+  { href: localizedUrl('/about/', lang), label: t.about },
+  { href: localizedUrl('/blog/', lang), label: t.notes },
+];
+const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+---
+<header class="site-header">
+  <a class="site-brand" href={home || '#top'} aria-label={`chdevsec.com.br — ${t.home}`}>
+    <img class="brand-mark" src={`${base}/images/logo-mark.png`} alt="" width="28" height="28" />
+    <span>chdevsec.com.br</span>
+  </a>
+  <span class="site-version">{profile.handle.toUpperCase()}</span>
+  <nav class="desktop-nav" aria-label={t.nav}>
+    {NAV.map((item) => <a href={item.href}>{item.label}</a>)}
+    <ChdLangSwitcher current={lang} path={Astro.url.pathname} />
+  </nav>
+  <a class="header-install" href={to('#contact')}>
+    {t.contact}<span>↓</span>
+  </a>
+  <details class="mobile-menu">
+    <summary aria-label={t.open}>{t.menu}</summary>
+    <nav aria-label={t.navMobile}>
+      {NAV.map((item) => <a href={item.href}>{item.label}</a>)}
+      <ChdLangSwitcher current={lang} path={Astro.url.pathname} />
+    </nav>
+  </details>
+</header>

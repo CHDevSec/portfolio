@@ -1,0 +1,53 @@
+---
+// Framed note inside a case study. `value` states what the work was worth to
+// the business; `scope` carries authorization and disclosure notes; `note` is
+// for anything else the reader must not miss.
+interface Props {
+  kind?: 'value' | 'scope' | 'note';
+  lang?: 'en' | 'pt';
+  title?: string;
+}
+const { kind = 'note', lang = 'en', title } = Astro.props;
+const defaults = {
+  en: { value: 'Business value', scope: 'Scope and authorization', note: 'Note' },
+  pt: { value: 'Valor para o negócio', scope: 'Escopo e autorização', note: 'Nota' },
+};
+const heading = title ?? defaults[lang][kind];
+---
+<aside class:list={['case-callout', `case-callout--${kind}`]}>
+  <p class="case-callout__title">{heading}</p>
+  <div class="case-callout__body"><slot /></div>
+</aside>
+
+<style>
+  .case-callout {
+    border: 1px solid var(--chd-rule);
+    border-left-width: 3px;
+    background: var(--chd-surface);
+    padding: 1rem 1.15rem;
+  }
+  .case-callout--value {
+    border-left-color: var(--chd-signal-text);
+  }
+  .case-callout--scope {
+    border-left-color: var(--chd-paper-muted);
+  }
+  .case-callout__title {
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    text-transform: uppercase;
+    margin: 0 0 0.5rem;
+  }
+  .case-callout--value .case-callout__title {
+    color: var(--chd-signal-text);
+  }
+  .case-callout__body > :global(* + *) {
+    margin-top: 0.6rem;
+  }
+  .case-callout__body > :global(:first-child) {
+    margin-top: 0;
+  }
+  .case-callout__body > :global(:last-child) {
+    margin-bottom: 0;
+  }
+</style>

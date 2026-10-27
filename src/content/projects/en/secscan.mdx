@@ -1,47 +1,66 @@
 ---
-title: "SecScan — Snyk scanning orchestrator"
-tagline: "Go CLI that orchestrates Snyk scans across hundreds of repositories — local, remote, and GitLab — with deterministic output and CI/CD-ready exit codes."
+title: "SecScan — one Snyk binary for 60%+ of the Go stack"
+tagline: "I built a Go CLI that replaced ad-hoc Snyk shell scripts with one binary for local, remote and GitLab repositories, adopted across more than 60% of the Go stack with stable exit codes for CI/CD."
 company: "frete.com"
 period: "2024 — 2025"
 category: "devsecops"
 cover: "/portfolio/images/wallpapers/devsecops.png"
 categoryIcon: "fc725"
-categoryIconAlt: "Pentest scanner tool"
+categoryIconAlt: "Dependency scanning orchestrator"
 featured: true
-order: 1
+order: 3
 metrics:
-  - { value: "3", label: "Scan modes", tone: "phosphor" }
   - { value: "60%+", label: "Go stack adoption", tone: "amber" }
-  - { value: "3", label: "CI templates · GH · GitLab · Jenkins", tone: "phosphor" }
+  - { value: "3", label: "Scan modes in one binary", tone: "phosphor" }
+  - { value: "3", label: "CI templates included", tone: "phosphor" }
 stack: ["Go", "Snyk CLI", "Cobra", "Viper", "GitHub Actions", "GitLab CI", "Jenkins"]
-summary: "Go CLI that orchestrates Snyk scans across hundreds of repositories — local, remote, and GitLab — with deterministic output and CI/CD-ready exit codes."
+summary: "SecScan is a Go orchestrator for Snyk that scans local, remote and GitLab repositories with one binary, standardizes output and exit codes for CI/CD, and was adopted across more than 60% of the Go stack."
 repo: "https://github.com/CHDevSec/ScannerSecurity"
 proofs:
-  - { src: "/portfolio/fonts/projects/sec1.png", alt: "SecScan output sample 1" }
-  - { src: "/portfolio/fonts/projects/sec2.png", alt: "SecScan output sample 2" }
-  - { src: "/portfolio/fonts/projects/sec3.png", alt: "SecScan output sample 3" }
-  - { src: "/portfolio/fonts/projects/sec4.png", alt: "SecScan output sample 4" }
+  - { src: "/portfolio/fonts/projects/sec1.png", alt: "Snyk project page for a Go service's go.mod, imported from CI/CLI, with 195 dependencies and 3 issues, including a high-severity golang.org/x/net/html denial-of-service finding and its fix version", caption: "Every scanned go.mod lands in Snyk Monitor with its source marked CI/CLI, its dependency tree and the fix version for each issue. Identifying fields redacted." }
+  - { src: "/portfolio/fonts/projects/sec2.png", alt: "Terminal output of a local SecScan run: one Go project found, snyk test and snyk monitor executed, 4 vulnerabilities reported and a JSON report saved", caption: "One local run end to end — discovery, test, Snyk Monitor registration and a saved JSON report. Tokens and paths redacted." }
+  - { src: "/portfolio/fonts/projects/sec3.png", alt: "Source tree with application, cmd, internal adapters, cli, mocks and ports folders, next to the GitLab adapter reading its base URL and token through Viper and environment variables", caption: "Hexagonal layout with ports, adapters and mocks; the GitLab adapter takes its credentials from the environment, never from arguments." }
+  - { src: "/portfolio/fonts/projects/sec4.png", alt: "GitHub Actions workflow with a test job running go test with the race detector and uploading coverage, and a build job that depends on it and builds the secScan binary", caption: "SecScan's own CI — race-enabled tests and coverage run before the binary is built." }
 ---
+import StatGrid from '@/components/case/StatGrid.astro';
+import Callout from '@/components/case/Callout.astro';
 
-## The problem
+## Context
 
-Running Snyk against a fleet of microservices means running the CLI by hand for every repository, every branch, every pipeline. Engineers either skipped scans or copy-pasted shell scripts that drifted between teams. There was no consistent way to scan dozens of Go services at scale, no batch mode, and no clean integration with GitLab project IDs without writing custom glue every time.
+Running Snyk against a fleet of Go microservices meant running the CLI by hand for every repository, every branch and every pipeline. Engineers either skipped scans or copied shell scripts that drifted between teams, and every GitLab integration needed its own glue code.
 
-## The approach
+- **No consistent way to scan** dozens of Go services at scale.
+- **No batch mode** — each repository was a manual run.
+- **No clean GitLab integration** — project IDs needed custom scripts every time.
+- **No stable output for pipelines** — a scan that ran was not always a scan that registered in Snyk.
 
-Built SecScan in Go — a CLI orchestrator that wraps Snyk CLI with three opinionated modes:
+## What I did
 
-- **scanLocal** — recursively discovers `go.mod` files in a workspace and scans each as a separate project
-- **scanMonitor** — clones one or many repositories from a URL list and scans them ephemerally (cleans up after)
-- **scanGitLab** — accepts a GitLab project ID, pulls metadata via API, and scans the repo with proper credentials
+### One binary, three modes
 
-All three modes feed Snyk Monitor for centralized dashboards, support `.env` / YAML / CLI config precedence, and return CI-friendly exit codes for pipeline gating.
+I built SecScan in Go: a CLI orchestrator that wraps the Snyk CLI with three opinionated modes.
 
-## Architecture
+- **scanLocal** — recursively discovers `go.mod` files in a workspace and scans each one as a separate project.
+- **scanMonitor** — clones one or many repositories from a URL list, scans them and cleans up afterwards.
+- **scanGitLab** — takes a GitLab project ID, pulls its metadata through the API and scans the repository with the right credentials.
+
+All three modes feed Snyk Monitor for central dashboards, read configuration from `.env`, YAML and CLI flags in a fixed precedence, and return exit codes a pipeline can gate on.
+
+### Engineering decisions
+
+- **Hexagonal architecture** — the CLI layer (Cobra), the adapters (Snyk CLI, Git, GitLab) and the domain logic are separated behind ports, so each adapter can be mocked in tests.
+- **Argument sanitization** — explicit `--org=<value>` formatting avoids a Snyk CLI parsing ambiguity (`--org=true`) that I hit in production.
+- **Credential isolation** — secrets stay in environment variables, never in arguments or temp files.
+- **Repository batching** — `--repo-file` accepts a URL list for parallel scanning through GNU parallel.
+- **CI templates** — GitHub Actions, GitLab CI and Jenkins pipelines documented in the README.
+
+The hard part of wrapping a CLI is the edge cases: transient Git credentials, the `--org` parsing bug, and the difference between "the scan ran" and "the scan ran and registered in the Snyk dashboard". That thin layer is where the engineering is.
+
+## How it works
 
 ```mermaid
 flowchart TB
-    A[Operator / CI Pipeline] --> B[SecScan CLI · Cobra]
+    A[Operator / CI pipeline] --> B[SecScan CLI · Cobra]
     B --> C{Mode dispatch}
 
     C -->|scanLocal| D[Recursive go.mod discovery]
@@ -55,10 +74,10 @@ flowchart TB
     G --> H[Argument sanitizer<br/>--org=&lt;value&gt; format guard]
     H --> I[Snyk scan execution]
 
-    I --> J[Snyk Monitor · centralized dashboard]
+    I --> J[Snyk Monitor · central dashboard]
     I --> K{Findings?}
-    K -->|Critical reachable| L[Exit code · pipeline block]
-    K -->|None / non-blocking| M[Exit 0 · pipeline pass]
+    K -->|Blocking| L[Non-zero exit · pipeline blocks]
+    K -->|None / non-blocking| M[Exit 0 · pipeline passes]
 
     subgraph Config [Config precedence]
     N[ENV vars]
@@ -69,21 +88,32 @@ flowchart TB
     Config -.-> G
 ```
 
-## Engineering details that matter
+Three entry points converge on one Snyk adapter, so every scan gets the same sanitized arguments, the same Snyk Monitor registration and the same exit-code contract.
 
-- **Hexagonal architecture** — clean separation between CLI layer (Cobra), adapters (Snyk CLI, Git), and domain logic
-- **Argument sanitization** — explicit `--org=<value>` formatting prevents Snyk CLI parsing ambiguities (a real bug I hit in production)
-- **Credential isolation** — secrets stay in env vars, never in args, never in temp files
-- **Repository batching** — `--repo-file` accepts URL lists for parallel scanning via GNU parallel
-- **Three CI templates included** — GitHub Actions, GitLab CI, Jenkins pipelines documented in README
+## Results
 
-## The impact
+<StatGrid title="What shipped" stats={[
+  { value: '60%+', label: 'Go stack adoption', detail: 'One binary replacing ad-hoc scripts' },
+  { value: '3', label: 'Scan modes', detail: 'Local, remote list, GitLab project' },
+  { value: '3', label: 'CI templates', detail: 'GitHub Actions, GitLab CI, Jenkins' },
+  { value: '3', label: 'Config sources', detail: 'ENV, YAML, CLI flags' },
+]} />
 
-- Replaced ad-hoc Snyk shell scripts with a single binary used across the Go stack
-- Standardized vulnerability scanning for every Go service in the fleet
-- CI/CD-native — same binary runs locally for dev triage and in pipelines for gate enforcement
-- Open-source under MIT, with full README, architecture diagrams, troubleshooting guide, and three CI integration templates
+- **Adopted across more than 60% of the Go stack**, replacing ad-hoc Snyk shell scripts with a single binary.
+- **3 scan modes in one tool** — the same binary runs locally for developer triage and in pipelines for gate enforcement.
+- **Every scan registered in Snyk Monitor** — the evidence shows a project imported from CI/CLI with 195 dependencies tracked and fix versions for each issue.
+- **3 CI templates** (GitHub Actions, GitLab CI, Jenkins) so a team could adopt it without writing pipeline code.
+- **Open source under MIT**, with README, architecture diagrams, troubleshooting guide and the CI templates.
 
-## What I learned
+## Business value
 
-Wrapping a CLI looks trivial until you hit edge cases like Snyk's `--org=true` parsing bug, transient Git credentials, and the difference between "scan worked" and "scan worked AND registered in Snyk dashboard." The thin layer of abstraction is where the real engineering lives.
+<Callout kind="value" lang="en">
+Dependency scanning stopped depending on who remembered to run it and which script they copied. One binary gave the Go stack the same scan, the same output and the same exit-code contract in every pipeline, and every result landed in the Snyk dashboard where security could see the whole fleet instead of one repository at a time.
+</Callout>
+
+## Lessons
+
+- **Standardize the runner before the rules.** Copied shell scripts drifted between teams; one binary with fixed exit codes made results comparable across services.
+- **"It ran" is not "it registered".** Checking that each scan reached Snyk Monitor mattered as much as running it, because the dashboard is where the fleet view lives.
+- **Wrappers live or die on edge cases.** The `--org=true` parsing bug and transient Git credentials were where the real work was, not the happy path.
+- **Make adoption free.** Shipping three CI templates meant teams could add the gate without writing pipeline code.

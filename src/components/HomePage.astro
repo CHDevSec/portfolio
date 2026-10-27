@@ -16,11 +16,11 @@ interface Props { lang: Lang; }
 const { lang } = Astro.props;
 
 const titleStr = lang === 'pt'
-  ? `${profile.name} — Engenheiro de Segurança Sênior · DevSecOps · Cloud Security`
-  : `${profile.name} — Senior Security Engineer · DevSecOps · Cloud Security`;
+  ? `${profile.name} — Staff Security Engineer · AppSec · Cloud Security`
+  : `${profile.name} — Staff Security Engineer · AppSec · Cloud Security`;
 const descStr = lang === 'pt'
-  ? 'Engenheiro de Segurança Sênior com 7+ anos reduzindo risco em escala. Reduzi 569k → 318k vulnerabilidades (−44%) na frete.com. Criei SecScan e CIS-Auditor. Aberto a vagas Senior Security Engineer globais.'
-  : 'Senior Security Engineer with 7+ years cutting risk at scale. Reduced 569k → 318k vulnerabilities (−44%) at frete.com. Built SecScan and CIS-Auditor. Open to global Senior Security Engineer roles.';
+  ? 'Staff Security Engineer com 7+ anos em AppSec, DevSecOps e segurança cloud. Reduzi 569k → 318k vulnerabilidades na frete.com e desenvolvi ferramentas usadas por times de engenharia.'
+  : 'Staff Security Engineer with 7+ years across AppSec, DevSecOps, and cloud security. Reduced Ubuntu vulnerabilities from 569k to 318k at frete.com and built tools used by engineering teams.';
 ---
 <Base title={titleStr} description={descStr} lang={lang}>
   <!-- Hero + CompaniesBar above the fold (1 viewport min, minus sticky Nav h-16).

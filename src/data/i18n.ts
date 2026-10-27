@@ -20,7 +20,8 @@ const stripBase = (pathname: string): string => {
 // e.g. localizedUrl('/projects/secscan', 'pt') -> '/portfolio/pt/projects/secscan'
 export const localizedUrl = (path: string, lang: Lang): string => {
   const clean = path.startsWith('/') ? path : `/${path}`;
-  const langPath = lang === 'en' ? clean : `/pt${clean === '/' ? '' : clean}`;
+  // Root keeps its trailing slash ('/pt/'): the site is built with trailingSlash 'always'.
+  const langPath = lang === 'en' ? clean : `/pt${clean}`;
   return `${BASE}${langPath}`;
 };
 
@@ -63,8 +64,8 @@ export const t = {
   heroAvailable: { en: 'AVAILABLE FOR HIRE', pt: 'DISPONÍVEL PARA CONTRATAÇÃO' } satisfies StringMap,
   heroGlobal: { en: 'GLOBAL', pt: 'GLOBAL' } satisfies StringMap,
   heroRemote: { en: 'REMOTE', pt: 'REMOTO' } satisfies StringMap,
-  heroTitle1: { en: 'SENIOR', pt: 'ENGENHEIRO DE' } satisfies StringMap,
-  heroTitle2: { en: 'SECURITY ENGINEER', pt: 'SEGURANÇA SÊNIOR' } satisfies StringMap,
+  heroTitle1: { en: 'STAFF', pt: 'STAFF' } satisfies StringMap,
+  heroTitle2: { en: 'SECURITY ENGINEER', pt: 'SECURITY ENGINEER' } satisfies StringMap,
   heroPitchLine1: { en: 'DevSecOps · Cloud Security', pt: 'DevSecOps · Cloud Security' } satisfies StringMap,
   heroPitchLine2: { en: 'Vulnerability Management', pt: 'Vulnerability Management' } satisfies StringMap,
   heroTagline: { en: '7+ years reducing risk at scale', pt: '7+ anos reduzindo risco em escala' } satisfies StringMap,
@@ -77,15 +78,15 @@ export const t = {
   heroCtaSeeProjects: { en: '› See projects', pt: '› Ver projetos' } satisfies StringMap,
   heroAvailableBadge: { en: 'AVAILABLE', pt: 'DISPONÍVEL' } satisfies StringMap,
   heroXP: { en: '7Y · XP', pt: '7A · XP' } satisfies StringMap,
-  heroSeniorEng: { en: 'Senior Security Engineer', pt: 'Engenheiro de Segurança Sênior' } satisfies StringMap,
+  heroSeniorEng: { en: 'Staff Security Engineer', pt: 'Staff Security Engineer' } satisfies StringMap,
 
   // Hero v2 (redesign — additive, do not remove legacy keys above)
   heroStatusAvailable: {
-    en: 'AVAILABLE FOR SENIOR ROLES · BR/REMOTE',
-    pt: 'DISPONÍVEL PARA VAGAS SENIOR · BR/REMOTO',
+    en: 'AVAILABLE FOR STAFF & SENIOR ROLES · BR/REMOTE',
+    pt: 'DISPONÍVEL PARA POSIÇÕES STAFF E SÊNIOR · BR/REMOTO',
   } satisfies StringMap,
   heroNameLabel: { en: '// Caio Henrique', pt: '// Caio Henrique' } satisfies StringMap,
-  heroRoleLine1: { en: 'Senior', pt: 'Senior' } satisfies StringMap,
+  heroRoleLine1: { en: 'Staff', pt: 'Staff' } satisfies StringMap,
   heroRoleHighlight: { en: 'Security', pt: 'Security' } satisfies StringMap,
   heroRoleLine2: { en: 'Engineer', pt: 'Engineer' } satisfies StringMap,
   heroSubtitle: {
@@ -99,8 +100,8 @@ export const t = {
     pt: 'em uma frota Ubuntu sem travar a engenharia.',
   } satisfies StringMap,
   heroPitchSecondary: {
-    en: '7 years shipping security at scale — from Go scanners to CI/CD pipelines. Open to senior roles.',
-    pt: '7 anos entregando security em escala — de scanners em Go a pipelines de CI/CD. Aberto a vagas sênior.',
+    en: '7 years building security at scale — from Go scanners to CI/CD pipelines. Open to Staff and senior roles.',
+    pt: '7 anos trabalhando com segurança em escala — de scanners em Go a pipelines de CI/CD. Aberto a posições Staff e sênior.',
   } satisfies StringMap,
   heroCtaImpact: { en: '▸ SEE IMPACT', pt: '▸ VER IMPACTO' } satisfies StringMap,
   heroCtaCV: { en: '▸ CV', pt: '▸ CV' } satisfies StringMap,
@@ -110,8 +111,8 @@ export const t = {
     pt: 'CHDEVSEC',
   } satisfies StringMap,
   heroAvatarAlt: {
-    en: 'Caio Henrique, Senior DevSecOps Engineer',
-    pt: 'Caio Henrique, Senior DevSecOps Engineer',
+    en: 'Caio Henrique, Staff Security Engineer',
+    pt: 'Caio Henrique, Staff Security Engineer',
   } satisfies StringMap,
   heroVersionLabel: { en: 'v_7.2026', pt: 'v_7.2026' } satisfies StringMap,
 
@@ -204,8 +205,8 @@ export const t = {
   contactEyebrow: { en: '// REACH OUT', pt: '// CONTATO' } satisfies StringMap,
   contactTitle: { en: "Let's talk security", pt: 'Vamos conversar sobre segurança' } satisfies StringMap,
   contactSubtitle: {
-    en: "Open to Senior Security Engineer roles, consulting engagements and pentest scopes. Reply usually within 24h.",
-    pt: 'Aberto a vagas de Engenheiro de Segurança Sênior, consultoria e escopos de pentest. Resposta normalmente em até 24h.',
+    en: 'Open to Staff and senior security roles, consulting engagements, and scoped penetration tests.',
+    pt: 'Aberto a posições Staff e sênior em segurança, consultorias e pentests com escopo definido.',
   } satisfies StringMap,
   contactDirect: { en: '▸ DIRECT', pt: '▸ DIRETO' } satisfies StringMap,
   contactEmailLabel: { en: 'Email', pt: 'Email' } satisfies StringMap,
@@ -241,8 +242,8 @@ export const t = {
   footerReach: { en: '// Reach', pt: '// Contato' } satisfies StringMap,
   footerOpenTo: { en: '// Open to', pt: '// Aberto a' } satisfies StringMap,
   footerOpenToDesc: {
-    en: 'Senior Security Engineer roles — global, high-performance environments. Cloud Security · DevSecOps · Vulnerability Management.',
-    pt: 'Vagas de Engenheiro de Segurança Sênior — ambientes globais e de alta performance. Cloud Security · DevSecOps · Vulnerability Management.',
+    en: 'Staff and senior security roles — global teams working across AppSec, Cloud Security, and DevSecOps.',
+    pt: 'Posições Staff e sênior em segurança — times globais de AppSec, Cloud Security e DevSecOps.',
   } satisfies StringMap,
   footerHireMe: { en: '▸ Hire me →', pt: '▸ Me contrate →' } satisfies StringMap,
   footerBuilt: { en: 'Built with Astro · Tailwind · pixels.', pt: 'Construído com Astro · Tailwind · pixels.' } satisfies StringMap,
@@ -276,8 +277,8 @@ export const t = {
   projectBack: { en: '← BACK TO PROJECTS', pt: '← VOLTAR PARA PROJETOS' } satisfies StringMap,
   projectFooterTitle: { en: 'Want results like this in your environment?', pt: 'Quer resultados assim no seu ambiente?' } satisfies StringMap,
   projectFooterDesc: {
-    en: 'Available for Senior Security Engineer roles · DevSecOps consulting · Pentest engagements.',
-    pt: 'Disponível para vagas Sênior · Consultoria DevSecOps · Engajamentos de Pentest.',
+    en: 'Available for Staff and senior security roles · DevSecOps consulting · penetration tests.',
+    pt: 'Disponível para posições Staff e sênior em segurança · consultoria DevSecOps · pentests.',
   } satisfies StringMap,
   projectCtaTalk: { en: "▸ Let's talk", pt: '▸ Vamos conversar' } satisfies StringMap,
   projectCtaMoreWork: { en: '› See more work', pt: '› Ver mais trabalhos' } satisfies StringMap,

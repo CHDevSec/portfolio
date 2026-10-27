@@ -1,0 +1,19 @@
+---
+interface Props {
+  id: string;
+  class?: string;
+  labelledBy?: string;
+  motionClass?: string;
+}
+const { id, class: className = '', labelledBy, motionClass } = Astro.props;
+---
+<section
+  id={id}
+  data-section-id={id}
+  aria-labelledby={labelledBy}
+  class={`snap-section ${className}`}
+>
+  <div class={`snap-section__motion${motionClass ? ` ${motionClass}` : ''}`}>
+    <slot />
+  </div>
+</section>

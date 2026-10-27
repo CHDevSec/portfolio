@@ -17,6 +17,6 @@ export const deepStats: Stat[] = [
   { value: '400+', label: 'Assets monitored', hint: 'Wazuh SOC, ~80% visibility', tone: 'phosphor' },
   { value: '16', label: 'Critical CVEs', hint: 'Infra pentest', tone: 'alert' },
   { value: '~70%', label: 'Attack surface cut', hint: 'pfSense + Suricata', tone: 'amber' },
-  { value: '5', label: 'Companies', hint: '2021 → present', tone: 'ink' },
+  { value: '6', label: 'Companies', hint: '2018 → present', tone: 'ink' },
   { value: '15+', label: 'Security projects', hint: 'Tools, automations, audits', tone: 'phosphor' },
 ];

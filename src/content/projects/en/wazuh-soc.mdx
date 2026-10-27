@@ -1,6 +1,6 @@
 ---
-title: "SOC stand-up with Wazuh — 400+ asset environment"
-tagline: "Wazuh SOC + infrastructure pentest for a 400+ asset multi-branch retail — telemetry onboarded, correlation tuned for the actual threat model, 16 critical findings closed."
+title: "Wazuh SOC — 400+ assets onboarded and 16 critical findings closed"
+tagline: "I stood up a Wazuh SOC that brought 400+ assets of a multi-branch retailer into centralized detection, and validated it with an infrastructure pentest whose 16 critical findings were each closed with a SIEM rule update."
 company: "Volt Sport"
 period: "2023 — 2024"
 category: "soc"
@@ -8,128 +8,145 @@ cover: "/portfolio/images/wallpapers/wallpaper_soc.png"
 categoryIcon: "fc664"
 categoryIconAlt: "Defensive blue team shield"
 featured: false
-order: 3
+order: 6
 metrics:
   - { value: "400+", label: "Assets onboarded", tone: "phosphor" }
   - { value: "~80%", label: "Critical asset visibility", tone: "phosphor" }
-  - { value: "16", label: "Critical CVEs closed", tone: "alert" }
-stack: ["Wazuh", "Elastic", "Bitdefender", "Sysmon", "Active Directory", "Linux", "Windows", "Cloudflare WAF", "Zero Trust"]
-summary: "Designed and operated a Wazuh-based SOC for a 400+ asset multi-branch retail environment — log ingestion across Windows, Linux, network appliances and endpoints; correlation rules tuned for retail-specific tradecraft; paired with infrastructure pentest that surfaced 16 critical vulnerabilities closed before steady-state operation."
+  - { value: "16", label: "Critical findings closed", tone: "alert" }
+stack: ["Wazuh", "Elastic", "Sysmon", "Bitdefender", "Active Directory", "pfSense", "Suricata", "Cloudflare WAF", "Linux", "Windows"]
+summary: "Wazuh SOC for a multi-branch retailer: 400+ assets onboarded to centralized detection, ~80% visibility on critical assets in the first year, and 16 critical pentest findings closed, each with a SIEM rule update."
 ---
+import StatGrid from '@/components/case/StatGrid.astro';
+import Timeline from '@/components/case/Timeline.astro';
+import Callout from '@/components/case/Callout.astro';
 
-## The starting point
+## Context
 
-A growing multi-branch retail business with **400+ critical assets** spread across HQ servers, branch endpoints, point-of-sale systems, network appliances and a small fleet of Linux infrastructure boxes. The operational reality:
+Volt Sport was a growing multi-branch retailer with **400+ assets** spread across HQ servers, branch endpoints, point-of-sale systems, network appliances and a small group of Linux infrastructure servers. There was no detection layer: incidents arrived as tickets ("the cashiers can't connect"), not as telemetry. The SOC had to be useful from week one, not become a dashboard engineering learned to ignore.
 
-- **No centralized log collection** — every system kept its own logs locally and rotated them on a schedule that erased history before anyone could correlate
-- **No correlation layer** — Bitdefender flagged endpoint events on its dashboard, AD logged authentication events on the DC, the firewall logged perimeter events into pfSense — three separate stories nobody read together
-- **No defined threat model** — generic "we should monitor stuff" without specificity meant any SOC effort would either drown in noise or miss the actual threats
-- **Reactive incident response** — issues surfaced via tickets ("the cashiers can't connect"), not telemetry, and forensics started after the fact with whatever logs hadn't rotated
+- **No centralized logs** — every system kept its own logs and rotated them before anyone could correlate.
+- **No correlation** — Bitdefender, the domain controllers and pfSense each told a separate story, and nobody read them together.
+- **No threat model** — without one, any SOC effort would either drown in noise or miss the real threats.
+- **Reactive forensics** — investigations started after the fact, with whatever logs had not rotated yet.
 
-I had to stand up a SOC that was useful from week one, not a dashboard that engineering would learn to ignore.
+## What I did
 
-## What I built
+### Wazuh SOC
 
-### 1. Wazuh-based SOC
+I centralized log ingestion and correlation across the asset surface:
 
-Centralized log ingestion and correlation across the full asset surface:
+- **Windows servers** (domain controllers, file servers, application hosts) — Sysmon for process, network and registry telemetry, Windows Event Logs for authentication and policy events.
+- **Linux infrastructure** — auditd, syslog and application logs from the internal services.
+- **Network appliances** — pfSense, Suricata IDS alerts (handed off from the [network defense work](/portfolio/projects/network-defense/)) and VPN gateway logs.
+- **Endpoints** — Bitdefender EDR alerts feeding Wazuh, so endpoint, AD and network telemetry sit in one incident view.
 
-- **Windows servers** (Domain Controllers, file servers, application hosts) — Sysmon for process/network/registry telemetry, Windows Event Logs for authentication and policy events
-- **Linux infrastructure** — auditd, syslog, application logs from the small fleet of internal services
-- **Network appliances** — pfSense, Suricata IDS alerts (handed off from the network defense work), VPN gateway logs
-- **Endpoints** — Bitdefender EDR feeding alerts into Wazuh for unified incident view alongside AD and network telemetry
+I tuned the correlation rules to the threat model of a multi-branch retailer instead of keeping generic defaults:
 
-Correlation rules were **tuned for the actual threat model of a multi-branch retail environment**, not generic noise:
+- Brute-force and credential-spray patterns against AD accounts, especially service accounts.
+- Privileged user logon from a non-administrator host.
+- Lateral SMB / RDP movement from workstations outside the IT team.
+- POS-host outbound connections outside the payment-gateway allowlist.
+- Membership changes on critical AD groups (Domain Admins, Backup Operators, anything with delegation rights).
+- DNS callback patterns matching common C2 beacon profiles.
 
-- Brute-force and credential-spray patterns against AD accounts (especially service accounts)
-- Privileged user logon from a non-administrator host
-- Lateral SMB / RDP movement from non-IT-team workstations
-- Suspicious POS-host outbound connections (any process talking outside the payment-gateway allowlist is interesting by definition)
-- Group-membership changes on critical AD groups (Domain Admins, Backup Operators, anything with delegation rights)
-- DNS callback patterns matching common C2 beacon profiles
+The long tail — legacy POS terminals, branches with intermittent WAN, kiosk-class devices — was named as the next phase of the program instead of being hidden in the coverage number.
 
-**~80% visibility on critical assets** within the first year — the long tail (legacy POS terminals, branches with intermittent WAN, kiosk-class devices) was explicitly acknowledged as the next phase of the program rather than papered over.
+### Infrastructure pentest before go-live
 
-### 2. Infrastructure pentest
+Before declaring the SOC live, I ran an internal-perspective pentest covering network, AD, endpoints and exposed services. The SOC was supposed to detect attackers like me, and I wanted to know what it would miss.
 
-Before declaring the SOC "live," I ran an internal-perspective pentest covering network, AD, endpoints and exposed services. The point wasn't theater — the SOC was supposed to detect attackers like me, and I wanted to know what it would miss.
+- **16 critical findings**, scored by exploitability and business impact.
+- **A severity-driven remediation roadmap** — a Jira board with owners and SLAs, not a 200-page PDF.
+- I worked with the infra and dev teams to close the findings. Every fix included a SIEM rule update, so the same class of finding would be caught next time.
+- The pentest showed which Wazuh rules fired on real activity and which stayed silent — half of the rule tuning that mattered came from this exercise.
 
-- **16 critical vulnerabilities** identified, scored by exploitability and business impact
-- **Severity-driven remediation roadmap** — not a 200-page PDF, a Jira board with owners and SLAs
-- Worked directly with infra and dev teams to close findings — every closure included a SIEM rule update so the same class of finding would be caught next time
-- The pentest validated which Wazuh rules actually fired on real activity and which were silent — half the rule tuning that mattered came from this exercise
+### Attack-surface reduction
 
-### 3. Attack-surface reduction
+Detection without reducing exposure means monitoring the inevitable, so I reduced the surface in parallel:
 
-Standing up detection without reducing what's exposed is monitoring the inevitable. Three parallel reductions:
+- **Zero Trust architecture** across branches — authenticated, segmented access instead of implicit-trust LANs. Branch staff get only what their role needs; vendor and admin access goes through dedicated paths.
+- **Cloudflare WAF** in front of public-facing services — rate limiting, OWASP rule packs tuned to the application stack, and bot management for the e-commerce surface.
+- **Hardening** of Linux and Windows infrastructure — CIS-aligned baselines, GPO enforcement, unnecessary services disabled.
+- **IAM governance and privileged access** — role-based groups, audited admin elevation, no shared credentials.
 
-- **Zero Trust architecture** rolled out across branches — replacing implicit-trust LANs with authenticated, segmented access. Branch staff get only what their role needs; vendor/admin access goes through dedicated paths, not "we trust the office network"
-- **Cloudflare WAF** in front of public-facing services — rate-limiting, OWASP rule packs tuned for the application stack, bot management for the high-traffic e-commerce surface
-- **Hardening sweep** of Linux and Windows infrastructure — CIS-aligned baselines, GPO enforcement, unnecessary services disabled
-- **IAM governance + privileged access controls** — role-based access groups, audited admin elevation, no shared credentials
-
-## Architecture
+## How it works
 
 ```mermaid
 flowchart TB
-    subgraph Sources [Telemetry Sources]
-    A1[Windows Servers · Sysmon + Event Logs]
-    A2[Linux Infra · auditd + syslog]
+    subgraph Sources [Telemetry sources]
+    A1[Windows servers · Sysmon + Event Logs]
+    A2[Linux infra · auditd + syslog]
     A3[Network · pfSense + Suricata]
     A4[Endpoints · Bitdefender EDR]
-    A5[Active Directory · Authentication]
+    A5[Active Directory · authentication]
     end
 
-    A1 --> B[Wazuh Manager]
+    A1 --> B[Wazuh manager]
     A2 --> B
     A3 --> B
     A4 --> B
     A5 --> B
 
-    B --> C[Elastic · Indexed Telemetry]
-    B --> D[Correlation Engine]
+    B --> C[Elastic · indexed telemetry]
+    B --> D[Correlation engine]
 
-    D --> E{Tuned Rules}
-    E -->|Brute-force / spray| F[AD-credential alert]
-    E -->|Privileged login anomaly| G[Lateral-movement alert]
-    E -->|POS outbound deviation| H[Egress-policy alert]
-    E -->|AD group change| I[Privilege-escalation alert]
+    D --> E{Tuned rules}
+    E -->|Brute-force / spray| F[AD credential alert]
+    E -->|Privileged login anomaly| G[Lateral movement alert]
+    E -->|POS outbound deviation| H[Egress policy alert]
+    E -->|AD group change| I[Privilege escalation alert]
     E -->|DNS C2 pattern| J[Beacon alert]
 
-    F --> K[On-Call Operator Workflow]
+    F --> K[On-call operator workflow]
     G --> K
     H --> K
     I --> K
     J --> K
 
-    K --> L[Triage · Containment · IR]
+    K --> L[Triage · containment · IR]
     K --> M[Rule tuning feedback loop]
 ```
 
-## A representative incident
+Five telemetry sources land in one Wazuh manager, Elastic indexes everything, and the tuned rules turn raw events into a small set of alert types the on-call operator acts on. Every triage feeds back into the rules.
 
-The kind of detection the tuned rules made possible (illustrative, anonymized):
+## Results
 
-A finance contractor's laptop opened SMB connections to multiple branch servers within a 90-second window — a pattern the *"lateral SMB from non-IT workstation"* rule was tuned to catch. The Wazuh alert fired with full context: the source host, the user account, the destination set, the time window, and the prior week's baseline showing this user had never made these connections before.
+<StatGrid title="SOC after the first year" stats={[
+  { value: '400+', label: 'Assets onboarded', detail: 'Centralized telemetry' },
+  { value: '~80%', label: 'Critical asset visibility', detail: 'Long tail planned as phase two' },
+  { value: '16', label: 'Critical findings closed', detail: 'Each with a SIEM rule update' },
+  { value: '5', label: 'Telemetry sources correlated', detail: 'Windows, Linux, network, EDR, AD' },
+]} />
 
-Triage in under 10 minutes: the laptop was isolated via the EDR, the credentials were rotated, the lateral movement chain was reconstructed from Sysmon telemetry, and the rule was tightened to catch the pattern earlier in future.
+### A real detection
 
-The win wasn't the catch — it was that the *catch came with a story*. The SIEM didn't say "anomaly." It said "this account, this host, this destination set, this time, never before."
+An incident the tuned rules caught in production (anonymized). A finance contractor's laptop opened SMB connections to several branch servers, matching the "lateral SMB from non-IT workstation" rule. The alert arrived with the source host, the account, the destination set, the time window and the previous week's baseline showing this user had never made these connections.
 
-## The result
+<Timeline title="Lateral movement alert" steps={[
+  { when: '90-second window', title: 'Laptop opens SMB connections to several branch servers', detail: 'Matches the lateral SMB rule' },
+  { when: 'Alert', title: 'Wazuh fires with full context', detail: "Host, account, destinations, time window, last week's baseline" },
+  { when: 'Under 10 min', title: 'Triage done, laptop isolated via EDR', key: true },
+  { when: 'Follow-up', title: 'Credentials rotated, movement chain rebuilt from Sysmon' },
+  { when: 'After', title: 'Rule tightened to catch the pattern earlier' },
+]} />
 
-A company that previously had no detection layer ran a working SOC, a documented incident response process, and a measurable security posture:
+- **400+ assets onboarded** to centralized telemetry within the first year of the program.
+- **Lateral movement contained in under 10 minutes** — from the alert to the laptop isolated through the EDR, in a real incident.
+- **~80% visibility on critical assets**, with the long tail planned as phase two instead of ignored.
+- **16 critical findings closed**, each with a SIEM rule update derived from it.
+- **Zero Trust, WAF and hardening** reduced what the SOC had to detect, instead of asking it to compensate for sprawl.
+- **The SOC became the steady-state operation**, not a project — it kept running after I left.
 
-- **400+ assets onboarded** to centralized telemetry within the first year of the program
-- **~80% visibility on critical assets** — the high-value half of the environment fully covered, with the long tail flagged for phase-two work rather than ignored
-- **16 critical findings closed** with SIEM rule updates derived from each one
-- **Zero Trust + WAF + hardening** reduced what the SOC needed to detect, instead of asking the SOC to compensate for sprawl
-- The SOC became **the steady-state operation**, not the project — when I left, it ran without me
+## Business value
 
-## Engineering principles
+<Callout kind="value" lang="en">
+A retailer with no detection layer ended up with a working SOC, a documented incident response process and a measurable security posture. Incidents started from telemetry with context instead of a cashier's complaint, the 16 critical gaps an attacker could have used were closed, and each one left a rule behind so the same class of attack would be caught next time. The operation outlived the project and ran without me.
+</Callout>
 
-- **Tune for the actual threat model, not the generic one.** Out-of-the-box correlation rules are noise on a retail network. Rules earn their place when they reflect what would *actually* hurt this specific business.
-- **Pentest your own SOC.** Standing up detection without testing what it misses is faith-based security. The 16 findings were valuable; the silent rules they exposed were more valuable.
-- **Visibility without prioritization is just more noise.** The win wasn't the SIEM — it was the prioritized roadmap that made the SIEM's output actionable.
-- **Reduce surface and detect surface together.** Zero Trust and WAF aren't separate from the SOC — they're how the SOC's job stays bounded as the business grows.
-- **Alerts must come with stories.** "Anomaly detected" is useless. "This account, this host, this time, never before" is an incident.
+## Lessons
+
+- **Tune for the actual threat model.** The six rule families came from how this retail network could actually be attacked — POS egress, AD groups, lateral SMB — not from vendor defaults.
+- **Test detection with an attack.** The pre-launch pentest showed which rules stayed silent, and half of the tuning that mattered came from it.
+- **Close the finding and the blind spot together.** Every one of the 16 fixes shipped with a SIEM rule update.
+- **Reduce the surface while you detect it.** Zero Trust, WAF and hardening kept the SOC's job bounded as the business grew.
+- **Alerts must come with a story.** "This account, this host, these destinations, never before" is an incident; "anomaly detected" is not.

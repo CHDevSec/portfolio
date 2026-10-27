@@ -1,0 +1,100 @@
+---
+import '@/styles/chdevsec.css';
+import '@/styles/portfolio-theme.css';
+import ChdHeader from '@/components/chd/ChdHeader.astro';
+import ChdSeo from '@/components/chd/ChdSeo.astro';
+import { localizedUrl, type Lang } from '@/data/i18n';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props { post: CollectionEntry<'posts'>; lang: Lang }
+const { post, lang } = Astro.props;
+const { Content } = await post.render();
+const listHref = localizedUrl('/blog/', lang);
+const homeHref = localizedUrl('/', lang);
+const locale = lang === 'pt' ? 'pt-BR' : 'en-US';
+const slug = post.id.replace(/^(en|pt)\//, '').replace(/\.mdx$/, '');
+const path = `/blog/${slug}/`;
+const seoTitle = `${post.data.title} | Caio Henrique`;
+const cover = post.data.cover ?? '/portfolio/images/og/og-default.png';
+const articleJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished: post.data.pubDate.toISOString(),
+  inLanguage: lang === 'pt' ? 'pt-BR' : 'en',
+  keywords: post.data.tags,
+  author: { '@type': 'Person', name: 'Caio Henrique', jobTitle: 'Staff Security Engineer' },
+  image: new URL(cover, Astro.site).toString(),
+};
+const copy = lang === 'pt'
+  ? { back: 'TODAS AS NOTAS', read: 'NOTA TÉCNICA', contact: 'VAMOS CONVERSAR', more: 'MAIS NOTAS' }
+  : { back: 'ALL NOTES', read: 'ENGINEERING NOTE', contact: "LET'S TALK", more: 'MORE NOTES' };
+---
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{seoTitle}</title>
+    <ChdSeo title={seoTitle} description={post.data.description} lang={lang} path={path} image={cover} type="article" jsonLd={articleJsonLd} />
+  </head>
+  <body class="chd-note-body">
+    <a class="skip-link" href="#note-content">{lang === 'pt' ? 'Pular para o conteúdo' : 'Skip to content'}</a>
+    <ChdHeader lang={lang} home={homeHref} />
+    <main class="chd-note-page">
+      <a class="chd-project__back" href={listHref}>← {copy.back}</a>
+      <header class="chd-note-hero">
+        <p class="section-kicker">{copy.read} · {post.data.tags.join(' / ').toUpperCase()}</p>
+        <time datetime={post.data.pubDate.toISOString()}>
+          {post.data.pubDate.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })}
+        </time>
+        <h1>{post.data.title}</h1>
+        <p>{post.data.description}</p>
+        {post.data.cover && <img src={post.data.cover} alt="" fetchpriority="high" decoding="async" />}
+      </header>
+      <article id="note-content" class="chd-note-content">
+        <Content />
+      </article>
+      <footer class="chd-note-footer">
+        <p>{lang === 'pt' ? 'Quer aplicar essas ideias no seu ambiente?' : 'Want to apply these ideas in your environment?'}</p>
+        <div>
+          <a class="button button--primary" href={`${homeHref}#contact`}>{copy.contact}<span>↓</span></a>
+          <a class="button button--secondary" href={listHref}>{copy.more}<span>↗</span></a>
+        </div>
+      </footer>
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  html:has(.chd-note-body) { scroll-snap-type: none; }
+  .chd-note-body { background: var(--chd-ink); color: var(--chd-paper); overflow: visible; }
+  .chd-note-page { max-width: 84rem; margin-inline: auto; padding: clamp(1.5rem, 5vw, 4rem) var(--page-pad) 7rem; }
+  .chd-note-page > .chd-project__back { margin-bottom: clamp(2rem, 5vw, 4rem); }
+  .chd-note-hero { max-width: 68rem; margin-bottom: clamp(3rem, 8vw, 7rem); }
+  .chd-note-hero .section-kicker { margin: 0 0 1rem; }
+  .chd-note-hero time { color: var(--chd-text-muted); font-size: var(--chd-type-meta); }
+  .chd-note-hero h1 { color: var(--chd-paper); font-size: clamp(2.5rem, 7vw, 6.5rem); letter-spacing: -0.055em; line-height: 0.92; margin: 1rem 0; text-wrap: balance; }
+  .chd-note-hero > p:not(.section-kicker) { max-width: 48rem; color: var(--chd-paper-muted); font-family: var(--chd-font-copy); font-size: clamp(1.1rem, 2.2vw, 1.65rem); line-height: 1.4; margin: 0; }
+  .chd-note-hero img { display: block; width: 100%; max-height: 32rem; object-fit: cover; margin-top: 2rem; border: 1px solid var(--chd-rule); }
+  .chd-note-content { max-width: 50rem; margin-inline: auto; color: var(--chd-paper-muted); font-family: var(--chd-font-copy); font-size: clamp(1.02rem, 1.35vw, 1.2rem); line-height: 1.72; }
+  .chd-note-content h2 { color: var(--chd-paper); font-family: var(--chd-font-display); font-size: clamp(1.5rem, 3vw, 2.4rem); letter-spacing: -0.035em; line-height: 1.05; margin: 3rem 0 1rem; scroll-margin-top: 6rem; }
+  .chd-note-content h3 { color: var(--chd-paper); font-size: 1.25rem; line-height: 1.2; margin: 2rem 0 0.75rem; }
+  .chd-note-content p { margin: 0 0 1.25rem; }
+  .chd-note-content ul, .chd-note-content ol { margin: 0 0 1.5rem; padding-left: 1.4rem; }
+  .chd-note-content li { padding-left: 0.25rem; margin: 0.4rem 0; }
+  .chd-note-content li::marker { color: var(--chd-signal-text); }
+  .chd-note-content a { color: var(--chd-signal-text); text-decoration: underline; text-underline-offset: 0.2em; }
+  .chd-note-content a:hover { color: var(--chd-paper); }
+  .chd-note-content strong { color: var(--chd-paper); font-weight: 600; }
+  /* Inline code keeps the pixel copy face (already monospaced) so it sits at
+     the size of the sentence; the system mono towered over it, as on cases. */
+  .chd-note-content :not(pre) > code { border: 1px solid var(--chd-rule); background: var(--chd-surface); padding: 0 0.3em; font-family: inherit; font-size: 1em; }
+  .chd-note-content pre { max-width: 100%; overflow-x: auto; border: 1px solid var(--chd-rule); background: var(--chd-surface); padding: 1rem; font-size: 0.8em; }
+  .chd-note-content pre code { border: 0; background: none; padding: 0; }
+  .chd-note-content hr { border: 0; border-top: 1px solid var(--chd-rule); margin: 2.5rem 0; }
+  .chd-note-footer { max-width: 50rem; border-top: 1px solid var(--chd-rule); margin: 5rem auto 0; padding-top: 2rem; }
+  .chd-note-footer > p { color: var(--chd-paper); font-size: clamp(1.5rem, 3vw, 2.5rem); margin: 0 0 1.5rem; }
+  .chd-note-footer > div { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+</style>

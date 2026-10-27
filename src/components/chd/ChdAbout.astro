@@ -1,0 +1,382 @@
+---
+import '@/styles/chdevsec.css';
+import '@/styles/portfolio-theme.css';
+import ChdHeader from './ChdHeader.astro';
+import ChdSeo from './ChdSeo.astro';
+import { getCollection } from 'astro:content';
+import ChdScanField from './ChdScanField.astro';
+import { localizedUrl, type Lang } from '@/data/i18n';
+import { categoryLabel } from '@/data/categories';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+/* Results board: every number comes from a case study's own metrics, so
+   the board cannot drift from the cases. */
+const projects = (await getCollection('projects'))
+  .filter((entry) => entry.id.startsWith(`${lang}/`) && !entry.data.draft)
+  .sort((a, b) => a.data.order - b.data.order);
+const caseHref = (id: string) =>
+  localizedUrl(`/projects/${id.replace(/^(en|pt)\//, '').replace(/\.mdx$/, '')}/`, lang);
+// Grouped by front of work, not by employer: the board shows results, and
+// the cases themselves carry the context of where each one happened.
+const CATEGORY_NOTE: Record<string, { en: string; pt: string }> = {
+  devsecops: { en: 'Security inside the delivery pipeline', pt: 'Segurança dentro do pipeline de entrega' },
+  automation: { en: 'Tooling that removes manual risk work', pt: 'Ferramentas que eliminam trabalho manual de risco' },
+  pentest: { en: 'Offensive validation and reverse engineering', pt: 'Validação ofensiva e engenharia reversa' },
+  soc: { en: 'Detection, response and visibility', pt: 'Detecção, resposta e visibilidade' },
+  consulting: { en: 'Identity, networks and risk advisory', pt: 'Identidade, redes e consultoria de risco' },
+};
+const frontGroups = Object.values(
+  projects.reduce<Record<string, { category: string; cases: typeof projects }>>((acc, project) => {
+    const category = project.data.category;
+    (acc[category] ??= { category, cases: [] }).cases.push(project);
+    return acc;
+  }, {}),
+).sort((a, b) => b.cases.length - a.cases.length);
+const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+const board = {
+  cases: projects.length,
+  fronts: frontGroups.length,
+  metrics: projects.reduce((sum, p) => sum + p.data.metrics.length, 0),
+  repos: projects.filter((p) => p.data.repo).length,
+};
+const copy = lang === 'pt'
+  ? {
+      title: 'CHDEVSEC — Segurança aplicada ao risco real | Caio Henrique',
+      description: 'Conheça a CHDEVSEC, prática independente de segurança criada por Caio Henrique para validar riscos, orientar correções e fortalecer sistemas sem travar engenharia.',
+      eyebrow: 'SECURITY ENGINEERING · CONSULTORIA',
+      heading: 'Segurança que encontra o risco e acompanha a correção.',
+      intro: 'A CHDEVSEC é uma prática independente de segurança fundada por Caio Henrique. Ajudamos empresas a testar aplicações e infraestrutura, corrigir os riscos encontrados e organizar controles junto dos times responsáveis.',
+      facts: [['BASE', 'Joinville · SC'], ['DESDE', '2018'], ['FOCO', 'Pentest · AppSec · Cloud']],
+      logoAlt: 'Logo da CHDEVSEC: pinguim em pixel art com um notebook e a palavra CHDEVSEC CYBERSECURITY',
+      originLabel: 'POR QUE A CHDEVSEC EXISTE',
+      originTitle: 'Encontrar a falha é o começo do trabalho.',
+      origin: 'Um relatório não reduz risco por conta própria. É preciso confirmar o impacto, explicar a prioridade e combinar uma correção que funcione no ambiente real. A CHDEVSEC existe para acompanhar esse processo com quem desenvolve e opera os sistemas.',
+      workLabel: 'O QUE FAZEMOS',
+      workTitle: 'Do teste à operação.',
+      work: [
+        ['Validar exposição', 'Pentest de aplicações, APIs e infraestrutura, com escopo claro e divulgação responsável.'],
+        ['Integrar segurança ao desenvolvimento', 'AppSec e DevSecOps: SAST, DAST, SCA, IaC e secrets com políticas que dão sinal útil aos times.'],
+        ['Reduzir risco operacional', 'Gestão de vulnerabilidades, hardening Linux, arquitetura cloud e priorização orientada pelo impacto.'],
+        ['Melhorar detecção e resposta', 'SIEM, regras de alerta, triagem e playbooks conectados a uma resposta que tenha dono.'],
+      ],
+      methodLabel: 'COMO TRABALHAMOS',
+      methodTitle: 'Evidência antes de opinião.',
+      method: 'Eu começo pelo contexto e pelo comportamento do sistema. Confirmo o que é explorável, separo impacto comprovado de impacto potencial e apresento próximos passos compatíveis com a realidade técnica do cliente. Scanner é uma fonte de evidência, não o diagnóstico completo.',
+      historyLabel: 'DE ONDE VEM',
+      history: [
+        ['2018—2019', 'Primeira fase independente: pentest de redes, infraestrutura Linux e projetos de sistemas embarcados.'],
+        ['2021—2026', 'Experiência em times de segurança e engenharia, com trabalho em identidade, hardening, SOC, AppSec e segurança em escala.'],
+        ['2026—', 'A CHDEVSEC volta como prática consultiva independente, agora apoiada por experiência de Staff Security Engineering e entregas em ambientes corporativos.'],
+      ],
+      futureLabel: 'PARA ONDE VAMOS',
+      futureTitle: 'A próxima etapa é conectar melhor teste e engenharia.',
+      future: 'Quero ampliar o trabalho que une pentest, AppSec e segurança cloud à correção e à operação. Também quero continuar publicando ferramentas úteis e transformar métodos repetíveis em automação. A CHDEVSEC deve crescer pela qualidade dos resultados e pela confiança dos times, sem se afastar dos sistemas que protege.',
+      belief: 'Acreditamos na CHDEVSEC porque segurança precisa aparecer no código corrigido, no acesso limitado e no alerta que chega a alguém responsável.',
+      home: 'VOLTAR AO PORTFÓLIO',
+      boardLabel: 'PAINEL / RESULTADOS POR FRENTE',
+      boardTitle: 'O que a CHDEVSEC já entregou.',
+      boardIntro: 'Cada número abaixo vem de um estudo de caso publicado. Clique para ver o caso completo.',
+      kpis: ['ESTUDOS DE CASO', 'FRENTES DE ATUAÇÃO', 'MÉTRICAS DOCUMENTADAS', 'REPOSITÓRIOS PÚBLICOS'],
+      casesWord: (n: number) => (n === 1 ? '1 CASO' : `${n} CASOS`),
+      cta: 'Falar com a CHDEVSEC',
+      ctaCases: 'Ver todos os cases',
+    }
+  : {
+      title: 'CHDEVSEC — Security for real-world risk | Caio Henrique',
+      description: 'Meet CHDEVSEC, Caio Henrique’s independent security practice for validating risk, guiding remediation, and strengthening systems without slowing engineering.',
+      eyebrow: 'SECURITY ENGINEERING · CONSULTING',
+      heading: 'Security that finds the risk and stays for the fix.',
+      intro: 'CHDEVSEC is an independent security practice founded by Caio Henrique. We help companies test applications and infrastructure, fix the risks found, and organize controls with the teams responsible for them.',
+      facts: [['BASE', 'Joinville · SC · Brazil'], ['SINCE', '2018'], ['FOCUS', 'Pentest · AppSec · Cloud']],
+      logoAlt: 'CHDEVSEC logo: a pixel-art penguin at a laptop above the words CHDEVSEC CYBERSECURITY',
+      originLabel: 'WHY CHDEVSEC EXISTS',
+      originTitle: 'Finding the issue is the start of the work.',
+      origin: 'A report does not reduce risk by itself. The impact has to be confirmed, priority explained, and a workable fix agreed with the people who own the system. CHDEVSEC exists to support that process alongside the teams that build and operate it.',
+      workLabel: 'WHAT WE DO',
+      workTitle: 'From testing to operations.',
+      work: [
+        ['Validate exposure', 'Application, API, and infrastructure penetration testing with clear scope and responsible disclosure.'],
+        ['Build security into delivery', 'AppSec and DevSecOps across SAST, DAST, SCA, IaC, and secrets, with policies that give engineering useful signal.'],
+        ['Reduce operational risk', 'Vulnerability management, Linux hardening, cloud architecture, and impact-led prioritization.'],
+        ['Improve detection and response', 'SIEM, alerting, triage, and playbooks connected to an owned response.'],
+      ],
+      methodLabel: 'HOW WE WORK',
+      methodTitle: 'Evidence before opinion.',
+      method: 'I start with context and system behavior. I confirm what is exploitable, separate proven impact from potential impact, and recommend steps that fit the client’s technical environment. A scanner is one source of evidence, not the full diagnosis.',
+      historyLabel: 'WHERE IT STARTED',
+      history: [
+        ['2018—2019', 'The first independent chapter: network penetration testing, Linux infrastructure, and embedded-systems projects.'],
+        ['2021—2026', 'Security and engineering roles spanning identity, hardening, SOC, AppSec, and security at scale.'],
+        ['2026—', 'CHDEVSEC returns as an independent consulting practice, now informed by Staff Security Engineering and work in enterprise environments.'],
+      ],
+      futureLabel: 'WHERE WE ARE GOING',
+      futureTitle: 'The next step is connecting testing and engineering.',
+      future: 'I want to expand the work that connects penetration testing, AppSec, and cloud security with remediation and operations. I also plan to keep publishing useful tools and turn repeatable methods into automation. CHDEVSEC should grow through the quality of its results and the trust of engineering teams, while staying close to the systems it protects.',
+      belief: 'We believe in CHDEVSEC because security should show up in fixed code, limited access, and an alert that reaches someone accountable.',
+      home: 'BACK TO PORTFOLIO',
+      boardLabel: 'BOARD / RESULTS BY FRONT',
+      boardTitle: 'What CHDEVSEC has delivered.',
+      boardIntro: 'Every number below comes from a published case study. Click through for the full case.',
+      kpis: ['CASE STUDIES', 'FRONTS OF WORK', 'DOCUMENTED METRICS', 'PUBLIC REPOSITORIES'],
+      casesWord: (n: number) => (n === 1 ? '1 CASE' : `${n} CASES`),
+      cta: 'Talk to CHDEVSEC',
+      ctaCases: 'See all case studies',
+    };
+const seoPath = '/about/';
+const aboutJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: copy.title,
+  description: copy.description,
+  inLanguage: lang === 'pt' ? 'pt-BR' : 'en',
+  mainEntity: {
+    '@type': 'Person',
+    name: 'Caio Henrique',
+    jobTitle: 'Staff Security Engineer',
+    url: Astro.site?.toString(),
+    sameAs: ['https://www.linkedin.com/in/caio-henrique-security', 'https://github.com/chdevsec'],
+    knowsAbout: ['Application Security', 'DevSecOps', 'Cloud Security', 'Penetration Testing', 'Vulnerability Management'],
+  },
+};
+---
+<!doctype html>
+<html lang={lang === 'pt' ? 'pt-BR' : 'en'}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{copy.title}</title>
+    <ChdSeo title={copy.title} description={copy.description} lang={lang} path={seoPath} jsonLd={aboutJsonLd} />
+  </head>
+  <body class="chd-about-body">
+    <a class="skip-link" href="#about-main">{lang === 'pt' ? 'Pular para o conteúdo' : 'Skip to content'}</a>
+    <ChdHeader lang={lang} home={localizedUrl('/', lang)} />
+    <main class="chd-about" id="about-main">
+      <header class="chd-about__hero">
+        <div class="chd-about__scan" aria-hidden="true">
+          <ChdScanField />
+          <div class="chd-about__scan-veil"></div>
+        </div>
+        <div class="chd-about__hero-copy">
+          <p class="section-kicker">{copy.eyebrow}</p>
+          <h1>{copy.heading}</h1>
+          <p class="chd-about__intro">{copy.intro}</p>
+          <div class="chd-about__actions">
+            <a class="button button--primary" href={`${localizedUrl('/', lang)}#contact`}>{copy.cta} <span aria-hidden="true">↗</span></a>
+            <a class="button button--secondary" href={`${localizedUrl('/', lang)}#projects`}>{copy.ctaCases} <span aria-hidden="true">→</span></a>
+          </div>
+          <dl class="chd-about__facts">
+            {copy.facts.map(([label, value]) => <div><dt>{label}</dt><dd>{value}</dd></div>)}
+          </dl>
+        </div>
+        <figure class="chd-about__hero-art">
+          <span class="chd-about__corner chd-about__corner--tl" aria-hidden="true"></span>
+          <span class="chd-about__corner chd-about__corner--br" aria-hidden="true"></span>
+          <img src={`${base}/images/brand/chdevsec-show.webp`} alt={copy.logoAlt} width="880" height="880" loading="eager" decoding="async" />
+          <figcaption>
+            <a href="https://chdevsec.com.br/" target="_blank" rel="noreferrer">chdevsec.com.br ↗</a>
+            <span>JOINVILLE · SC · BR</span>
+          </figcaption>
+        </figure>
+      </header>
+
+      <section class="chd-about__board" aria-labelledby="board-title">
+        <p class="section-kicker">{copy.boardLabel}</p>
+        <h2 id="board-title">{copy.boardTitle}</h2>
+        <p class="chd-about__board-intro">{copy.boardIntro}</p>
+        <dl class="chd-about__kpis">
+          {[board.cases, board.fronts, board.metrics, board.repos].map((value, i) => (
+            <div><dt>{copy.kpis[i]}</dt><dd>{value}</dd></div>
+          ))}
+        </dl>
+        <ul class="chd-about__companies">
+          {frontGroups.map((group) => (
+            <li class="chd-about__company">
+              <div class="chd-about__company-head">
+                <img class="chd-about__front-icon" src={`${base}/fonts/icons/${group.cases[0].data.categoryIcon ?? 'fc725'}.png`} alt="" loading="lazy" decoding="async" />
+                <div>
+                  <h3>{categoryLabel(group.category, lang)}</h3>
+                  <p>{CATEGORY_NOTE[group.category]?.[lang]}</p>
+                </div>
+                <span class="chd-about__company-count">{copy.casesWord(group.cases.length)}</span>
+              </div>
+              <ul class="chd-about__results">
+                {group.cases.map((project) => (
+                  <li>
+                    <a href={caseHref(project.id)}>
+                      <strong>{project.data.metrics[0]?.value}</strong>
+                      <span>{project.data.metrics[0]?.label}</span>
+                      <em>{project.data.title.split(' — ')[0]} →</em>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="chd-about__origin">
+        <p class="section-kicker">{copy.originLabel}</p>
+        <h2>{copy.originTitle}</h2>
+        <p>{copy.origin}</p>
+      </section>
+
+      <section class="chd-about__work">
+        <p class="section-kicker">{copy.workLabel}</p>
+        <h2>{copy.workTitle}</h2>
+        <ol>
+          {copy.work.map(([title, description], index) => (
+            <li>
+              <img src={`${base}/images/wallpapers/${['wallpaper_web_app.webp', 'wallpaper_devsecops.png', 'wallpaper_hardening.webp', 'blue-team-soc.png'][index]}`} alt="" loading="lazy" decoding="async" />
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              <div><h3>{title}</h3><p>{description}</p></div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section class="chd-about__method">
+        <p class="section-kicker">{copy.methodLabel}</p>
+        <h2>{copy.methodTitle}</h2>
+        <p>{copy.method}</p>
+      </section>
+
+      <section class="chd-about__history">
+        <p class="section-kicker">{copy.historyLabel}</p>
+        <ol>
+          {copy.history.map(([period, description]) => <li><time>{period}</time><p>{description}</p></li>)}
+        </ol>
+      </section>
+
+      <section class="chd-about__future">
+        <p class="section-kicker">{copy.futureLabel}</p>
+        <h2>{copy.futureTitle}</h2>
+        <p>{copy.future}</p>
+        <blockquote>{copy.belief}</blockquote>
+      </section>
+
+      <a class="chd-project__back" href={localizedUrl('/', lang)}>{copy.home} ↗</a>
+    </main>
+    <script>
+      import { initScanField } from '@/scripts/chdevsec-ui';
+      document.querySelectorAll<HTMLElement>('[data-chd-scan]').forEach(initScanField);
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  html:has(.chd-about-body) { scroll-snap-type: none; }
+  .chd-about-body { background: var(--chd-ink); color: var(--chd-paper); overflow: visible; }
+  .chd-about { max-width: 84rem; margin-inline: auto; padding: clamp(2rem, 5vw, 4.5rem) var(--page-pad) 6rem; }
+  /* Reading sections, not panels: the shared one-screen min-height left short
+     sections with a screenful of empty space on phones. */
+  .chd-about section { border-top: 1px solid var(--chd-rule); padding-block: clamp(2.5rem, 6vw, 5rem); min-height: 0; }
+  .chd-about .section-kicker { color: var(--chd-signal-text); margin: 0 0 1.1rem; }
+  .chd-about h1, .chd-about h2, .chd-about h3, .chd-about p { margin-top: 0; }
+  .chd-about h1 { max-width: 13ch; color: var(--chd-paper); font-size: clamp(3rem, 9vw, 8rem); line-height: 0.88; letter-spacing: -0.065em; text-wrap: balance; margin-bottom: 1.5rem; }
+  .chd-about h2 { max-width: 20ch; color: var(--chd-paper); font-size: clamp(2rem, 5vw, 4.5rem); line-height: 0.95; letter-spacing: -0.05em; margin-bottom: 1.25rem; }
+  .chd-about__hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr); gap: clamp(1.5rem, 5vw, 5rem); align-items: center; padding-bottom: clamp(3rem, 7vw, 5rem); }
+  .chd-about__hero h1 { font-size: clamp(2.6rem, 4.6vw, 4.75rem); line-height: 0.92; max-width: 15ch; }
+  .chd-about__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
+  .chd-about__actions .button { font-size: 1.15rem; }
+  .chd-about__hero-art { display: grid; margin: 0; border: 1px solid var(--chd-rule); background: var(--chd-surface); box-shadow: 0 0 90px rgb(30 107 255 / 0.18); }
+  .chd-about__hero-art img { width: 100%; aspect-ratio: 1; height: auto; object-fit: cover; display: block; }
+  .chd-about__hero-art figcaption { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--chd-rule); color: var(--chd-text-muted); font-size: var(--chd-type-meta); padding: 0.7rem 0.9rem; }
+  .chd-about__hero-art figcaption a { color: var(--chd-paper); text-decoration: none; }
+  .chd-about__hero-art figcaption a:hover, .chd-about__hero-art figcaption a:focus-visible { text-decoration: underline; }
+  .chd-about__facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--chd-rule); margin: 2.25rem 0 0; }
+  .chd-about__facts div { padding: 0.9rem 1rem 0 0; }
+  .chd-about__facts div + div { border-left: 1px solid var(--chd-rule-muted); padding-left: 1rem; }
+  .chd-about__facts dt { color: var(--chd-text-muted); font-size: var(--chd-type-meta); }
+  .chd-about__facts dd { color: var(--chd-paper); font-size: 1.15rem; margin: 0.3rem 0 0; }
+
+  .chd-about__board-intro { max-width: 46rem; color: var(--chd-paper-muted); font-family: var(--chd-font-copy); font-size: var(--chd-type-copy); line-height: 1.4; }
+  .chd-about__kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--chd-rule); margin: 2rem 0 1rem; }
+  .chd-about__kpis div { padding: clamp(0.9rem, 2vw, 1.5rem); }
+  .chd-about__kpis div + div { border-left: 1px solid var(--chd-rule); }
+  .chd-about__kpis dt { color: var(--chd-text-muted); font-size: var(--chd-type-meta); }
+  .chd-about__kpis dd { color: var(--chd-signal-text); font-size: clamp(2.4rem, 5vw, 4.5rem); line-height: 1; margin: 0.5rem 0 0; }
+  .chd-about__companies { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; list-style: none; margin: 0; padding: 0; }
+  .chd-about__company { display: grid; align-content: start; gap: 1rem; border: 1px solid var(--chd-rule); background: var(--chd-surface); padding: clamp(1rem, 2vw, 1.5rem); }
+  .chd-about__company-head { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr) auto; gap: 1rem; align-items: center; }
+  .chd-about__front-icon { width: 3.5rem; height: 3.5rem; border: 1px solid var(--chd-rule-muted); background: var(--chd-ink); padding: 0.45rem; image-rendering: pixelated; }
+  .chd-about__company:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .chd-about__company h3 { color: var(--chd-paper); font-size: clamp(1.25rem, 2vw, 1.6rem); margin: 0; }
+  .chd-about__company-head p { color: var(--chd-text-muted); font-size: var(--chd-type-meta); margin: 0.2rem 0 0; }
+  .chd-about__company-count { border: 1px solid var(--chd-rule); color: var(--chd-paper-muted); font-size: 0.85rem; padding: 0.2rem 0.5rem; white-space: nowrap; }
+  .chd-about__results { display: grid; gap: 0; list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--chd-rule-muted); }
+  .chd-about__results li { border-bottom: 1px solid var(--chd-rule-muted); }
+  .chd-about__results a { display: grid; grid-template-columns: minmax(6.5rem, auto) minmax(0, 1fr); gap: 0.15rem 1rem; color: var(--chd-paper); text-decoration: none; padding: 0.75rem 0.25rem; }
+  .chd-about__results a:hover, .chd-about__results a:focus-visible { background: var(--chd-paper); color: var(--chd-ink); }
+  .chd-about__results strong { grid-row: span 2; color: var(--chd-signal-text); font-size: clamp(1.5rem, 2.4vw, 2rem); line-height: 1; font-weight: inherit; }
+  .chd-about__results a:hover strong, .chd-about__results a:focus-visible strong { color: var(--chd-ink); }
+  .chd-about__results span { font-family: var(--chd-font-copy); font-size: var(--chd-type-meta); line-height: 1.2; }
+  .chd-about__results em { color: var(--chd-text-muted); font-style: normal; font-size: 0.85rem; }
+  .chd-about__intro { max-width: 47rem; color: var(--chd-paper-muted); font-family: var(--chd-font-copy); font-size: clamp(1.15rem, 2.1vw, 1.65rem); line-height: 1.45; margin-bottom: 0; }
+  .chd-about__origin > p:last-child, .chd-about__method > p:last-child, .chd-about__future > p:not(.section-kicker) { max-width: 56rem; color: var(--chd-paper-muted); font-family: var(--chd-font-copy); font-size: clamp(1.05rem, 1.6vw, 1.3rem); line-height: 1.65; margin-bottom: 0; }
+  .chd-about__work ol, .chd-about__history ol { list-style: none; margin: 2rem 0 0; padding: 0; }
+  .chd-about__work ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .chd-about__work li { position: relative; display: grid; grid-template-rows: auto auto; border: 1px solid var(--chd-rule); background: var(--chd-surface); overflow: hidden; }
+  .chd-about__work li > img { width: 100%; aspect-ratio: 16 / 7; object-fit: cover; image-rendering: pixelated; display: block; border-bottom: 1px solid var(--chd-rule); }
+  .chd-about__work li > span { position: absolute; top: 0.75rem; left: 0.75rem; background: var(--chd-ink); border: 1px solid var(--chd-rule); padding: 0.2rem 0.5rem; }
+  .chd-about__work li > div { padding: clamp(1rem, 2vw, 1.5rem); }
+  .chd-about__work li > span { color: var(--chd-signal-text); font-size: var(--chd-type-meta); }
+  .chd-about__work h3 { color: var(--chd-paper); font-size: clamp(1.2rem, 2vw, 1.7rem); margin-bottom: 0.35rem; }
+  .chd-about__work li p { max-width: 54rem; color: var(--chd-paper-muted); font-family: var(--chd-font-copy); line-height: 1.5; margin-bottom: 0; }
+  .chd-about__history li { display: grid; grid-template-columns: minmax(8rem, 0.25fr) minmax(0, 1fr); gap: 1.5rem; border-top: 1px solid var(--chd-rule-muted); padding: 1.2rem 0; }
+  .chd-about__history time { color: var(--chd-signal-text); font-size: var(--chd-type-meta); }
+  .chd-about__history p { max-width: 52rem; color: var(--chd-paper-muted); font-family: var(--chd-font-copy); line-height: 1.5; margin-bottom: 0; }
+  .chd-about__future { border-bottom: 1px solid var(--chd-rule); }
+  .chd-about__future blockquote { max-width: 62rem; border-left: 2px solid var(--chd-signal-text); color: var(--chd-paper); font-size: clamp(1.35rem, 3vw, 2.3rem); line-height: 1.2; margin: 2.5rem 0 0; padding-left: 1.25rem; }
+  .chd-about > .chd-project__back { display: inline-flex; margin-top: 2.5rem; }
+  /* Hero band: the home page's ASCII scan field, bled to the full viewport
+     width behind the copy and pulled up under the main padding. */
+  .chd-about-body { overflow-x: clip; }
+  /* The hero fills the first screen under the header: it cancels the main
+     top padding and centres its content in the remaining viewport height. */
+  .chd-about__hero { position: relative; isolation: isolate; margin-top: calc(-1 * clamp(2rem, 5vw, 4.5rem)); min-height: calc(100svh - var(--chd-header-height)); padding-block: clamp(1.5rem, 5vh, 3.5rem); align-content: center; }
+  .chd-about__hero-art { justify-self: end; width: min(100%, calc(100svh - var(--chd-header-height) - 9rem)); }
+  /* On wide screens the hero breaks out of the 84rem reading column so the
+     first screen uses the whole width; the sections below keep the column. */
+  @media (min-width: 901px) and (max-height: 780px) {
+    .chd-about__hero { padding-block: 1.25rem; }
+    .chd-about__hero h1 { font-size: clamp(2.4rem, 4vw, 3.75rem); }
+    .chd-about__facts { margin-top: 1.5rem; }
+    .chd-about__actions { margin-top: 1.5rem; }
+  }
+  @media (min-width: 901px) {
+    .chd-about__hero { --hero-width: min(calc(100vw - 4.5rem), 116rem); width: var(--hero-width); margin-inline: calc((100% - var(--hero-width)) / 2); }
+  }
+  .chd-about__scan { position: absolute; z-index: -1; top: 0; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%); border-bottom: 1px solid var(--chd-rule); overflow: hidden; }
+  .chd-about__scan-veil { position: absolute; inset: 0; background:
+      linear-gradient(90deg, rgb(10 10 10 / 0.86) 0%, rgb(10 10 10 / 0.55) 42%, rgb(10 10 10 / 0.1) 100%),
+      linear-gradient(180deg, transparent 70%, var(--chd-ink) 100%); }
+  .chd-about__hero-art { position: relative; }
+  .chd-about__corner { position: absolute; z-index: 1; width: 1.6rem; height: 1.6rem; border: 2px solid var(--chd-signal-text); pointer-events: none; }
+  .chd-about__corner--tl { top: -0.55rem; left: -0.55rem; border-right: 0; border-bottom: 0; }
+  .chd-about__corner--br { bottom: -0.55rem; right: -0.55rem; border-left: 0; border-top: 0; }
+  .chd-about__facts { background: rgb(10 10 10 / 0.6); }
+  @media (max-width: 900px) {
+    .chd-about__hero { grid-template-columns: minmax(0, 1fr); }
+    .chd-about__hero { min-height: 0; }
+    .chd-about__hero-art { max-width: 24rem; width: 100%; order: -1; justify-self: start; }
+    .chd-about__companies, .chd-about__work ol { grid-template-columns: minmax(0, 1fr); }
+    .chd-about__kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .chd-about__kpis div:nth-child(3) { border-left: 0; }
+    .chd-about__kpis div:nth-child(n + 3) { border-top: 1px solid var(--chd-rule); }
+  }
+  @media (max-width: 640px) {
+    .chd-about__history li { grid-template-columns: 1fr; gap: 0.5rem; }
+    .chd-about__company-head { grid-template-columns: 3rem minmax(0, 1fr); gap: 0.75rem; }
+    .chd-about__front-icon { width: 3rem; height: 3rem; }
+    .chd-about__company-count { grid-column: 1 / -1; justify-self: start; }
+    .chd-about__actions .button { width: 100%; }
+    .chd-about__hero-art { max-width: 15rem; }
+    .chd-about__hero-art figcaption span { display: none; }
+      .chd-about__scan-veil { background: linear-gradient(180deg, rgb(10 10 10 / 0.35) 0%, rgb(10 10 10 / 0.8) 50%, var(--chd-ink) 100%); }
+    .chd-about__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .chd-about__facts div:last-child { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--chd-rule-muted); padding-left: 0; margin-top: 0.9rem; }
+  }
+</style>

@@ -1,0 +1,180 @@
+---
+import ChdSection from './ChdSection.astro';
+import { localizedUrl, type Lang } from '@/data/i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+/* Two proofs, deliberately different in kind: one is scale and automation,
+   the other is depth and governance. Together they cover the range a
+   Staff/Principal brief asks for — a single metric reads as one trick. */
+const copy = lang === 'pt'
+  ? {
+      kicker: 'IMPACTO / DUAS PROVAS',
+      title: 'O QUE EU MOVO.',
+      a: {
+        tag: 'ESCALA + AUTOMAÇÃO · FRETE.COM',
+        figure: '569k → 318k',
+        headline: '−44% em 9 meses.',
+        body: 'Mesma frota Ubuntu, 251k vulnerabilidades a menos e 151k abaixo da meta corporativa. Atualizações de kernel em etapas com rollback automático de boot e ruído do scanner separado da exposição real — zero incidentes em produção.',
+        chips: ['SecScan · um binário Snyk para 60%+ do stack Go', 'CIS-Auditor · 70% dos controles CIS do Ubuntu 22.04 automatizados'],
+        cta: 'LER O ESTUDO DE CASO',
+      },
+      b: {
+        tag: 'PROFUNDIDADE + GOVERNANÇA · SOFTEXPERT',
+        figure: 'FAIL-OPEN',
+        headline: 'A falha que o gate escondia.',
+        body: 'Auditoria ponta a ponta da governança de SAST no GitLab revelou um gate estruturalmente fail-open: merges passavam sem bloqueio efetivo de vulnerabilidades. Triagem redesenhada por fluxo de dados (source→flow→sink), separando explorável de falso positivo.',
+        chips: ['8 achados estruturais · 3 caminhos fail-open mapeados', 'Gate passou a ser hard fail depois da auditoria'],
+        cta: 'LER O ESTUDO DE CASO',
+      },
+    }
+  : {
+      kicker: 'IMPACT / TWO PROOFS',
+      title: 'WHAT I MOVE.',
+      a: {
+        tag: 'SCALE + AUTOMATION · FRETE.COM',
+        figure: '569k → 318k',
+        headline: '−44% in 9 months.',
+        body: 'Same Ubuntu fleet, 251k fewer vulnerabilities and 151k below the corporate target. Staged kernel updates with automatic boot rollback, and scanner noise separated from real exposure — zero production incidents.',
+        chips: ['SecScan · one Snyk binary for 60%+ of the Go stack', 'CIS-Auditor · 70% of CIS Ubuntu 22.04 controls automated'],
+        cta: 'READ THE CASE STUDY',
+      },
+      b: {
+        tag: 'DEPTH + GOVERNANCE · SOFTEXPERT',
+        figure: 'FAIL-OPEN',
+        headline: 'The flaw the gate was hiding.',
+        body: 'An end-to-end audit of SAST governance in GitLab surfaced a structurally fail-open gate: merges passed without effective blocking of vulnerabilities. Triage redesigned around data-flow analysis (source→flow→sink), separating exploitable from false positive.',
+        chips: ['8 structural findings · 3 fail-open paths mapped', 'Gate switched to a hard fail after the audit'],
+        cta: 'READ THE CASE STUDY',
+      },
+    };
+
+// Each proof opens the case study that owns its number.
+const proofs = [
+  { ...copy.a, href: localizedUrl('/projects/linux-vuln-reduction/', lang) },
+  { ...copy.b, href: localizedUrl('/projects/sast-governance-audit/', lang) },
+];
+---
+<ChdSection id="impact" class="chd-impact-section" labelledBy="impact-title" motionClass="chd-impact-motion">
+  <div class="section-heading section-heading--split">
+    <div>
+      <p class="section-kicker">{copy.kicker}</p>
+      <h2 id="impact-title">{copy.title}</h2>
+    </div>
+  </div>
+
+  <div class="chd-impact">
+    {proofs.map((proof) => (
+      <article class="chd-impact__card">
+        <p class="chd-impact__tag">{proof.tag}</p>
+        <p class="chd-impact__figure">{proof.figure}</p>
+        <h3>{proof.headline}</h3>
+        <p class="chd-impact__body">{proof.body}</p>
+        <ul class="chd-impact__chips">
+          {proof.chips.map((chip) => <li>{chip}</li>)}
+        </ul>
+        <a class="text-link chd-impact__cta" href={proof.href}>
+          {proof.cta}<span> →</span>
+        </a>
+      </article>
+    ))}
+  </div>
+</ChdSection>
+
+<style>
+  /* Light stop in the dark rhythm. Rather than rewriting every descendant
+     rule, the section redefines the semantic tokens — everything inside then
+     inverts on its own. Raw colour tokens are used for the section's own
+     background so the redefinition does not recurse.
+
+     :global because these two classes land on ChdSection's own elements, which
+     Astro does not stamp with this component's scope hash. */
+  :global(.chd-impact-section) {
+    background: var(--chd-color-white);
+    border-bottom: 1px solid var(--chd-color-line);
+    color: var(--chd-color-black);
+    --chd-paper: var(--chd-color-black);
+    --chd-paper-muted: #3b3b38;
+    --chd-text-muted: #6d6d68;
+    --chd-rule: #c6c6bf;
+    --chd-signal-text: #1230a8;
+  }
+  :global(.chd-impact-motion) {
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: clamp(1rem, 3vh, 2.5rem);
+    min-height: 0;
+    display: grid;
+  }
+  /* Cards take their content height and sit centred in the panel; stretched
+     to the full panel they opened a gap between the copy and the chips. */
+  .chd-impact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border: 1px solid var(--chd-rule);
+    align-self: center;
+    min-height: 0;
+    display: grid;
+  }
+  .chd-impact__card {
+    grid-template-rows: auto auto auto 1fr auto auto;
+    gap: 0.8rem;
+    min-height: 0;
+    padding: clamp(1.3rem, 2.5vw, 2.5rem);
+    display: grid;
+  }
+  .chd-impact__card + .chd-impact__card {
+    border-left: 1px solid var(--chd-rule);
+  }
+  .chd-impact__tag {
+    color: var(--chd-text-muted);
+    letter-spacing: 0.04em;
+    font-size: var(--chd-type-meta);
+    margin: 0;
+  }
+  .chd-impact__figure {
+    color: var(--chd-signal-text);
+    font-size: clamp(2.25rem, 4.5vw, 4rem);
+    line-height: 0.9;
+    margin: 0;
+  }
+  .chd-impact__card h3 {
+    font-size: clamp(1.5rem, 2.4vw, 2.25rem);
+    line-height: 0.98;
+    margin: 0;
+  }
+  .chd-impact__body {
+    color: var(--chd-paper-muted);
+    font-family: var(--chd-font-copy);
+    font-size: var(--chd-type-copy);
+    line-height: 1.2;
+    align-self: start;
+    margin: 0;
+  }
+  .chd-impact__chips {
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+  }
+  .chd-impact__chips li {
+    border-left: 2px solid var(--chd-signal);
+    color: var(--chd-paper-muted);
+    font-family: var(--chd-font-copy);
+    font-size: var(--chd-type-meta);
+    line-height: 1.15;
+    padding-left: 0.6rem;
+  }
+  .chd-impact__cta {
+    justify-self: start;
+  }
+  @media (max-width: 900px) {
+    .chd-impact {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .chd-impact__card + .chd-impact__card {
+      border-top: 1px solid var(--chd-rule);
+      border-left: 0;
+    }
+  }
+</style>

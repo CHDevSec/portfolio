@@ -30,7 +30,7 @@
 
   <!-- Title -->
   <g transform="translate(60, 230)">
-    <text x="0" y="50" fill="#00FF9C" font-size="46" font-weight="900" letter-spacing="1">SENIOR SECURITY ENGINEER</text>
+    <text x="0" y="50" fill="#00FF9C" font-size="46" font-weight="900" letter-spacing="1">STAFF SECURITY ENGINEER</text>
     <text x="0" y="85" fill="#9AA2B1" font-size="20">DevSecOps · Cloud Security · Vulnerability Management</text>
     <text x="0" y="115" fill="#FFB000" font-size="18">▸ 7+ years reducing risk at scale</text>
   </g>
@@ -68,5 +68,5 @@
   </g>
 
   <!-- Footer URL -->
-  <text x="60" y="610" fill="#5A6373" font-size="14">caiohenrique.dev · linkedin/caio-henrique-security · github/chdevsec</text>
+  <text x="60" y="610" fill="#5A6373" font-size="14">chdevsec.com.br · linkedin/caio-henrique-security · github/chdevsec</text>
 </svg>

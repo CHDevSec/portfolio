@@ -1,11 +1,11 @@
 ---
 import { getCollection } from 'astro:content';
-import ProjectLayout from '@/layouts/Project.astro';
+import ChdProject from '@/layouts/ChdProject.astro';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects', ({ data }) => !data.draft);
   return projects
-    .filter((p) => p.slug.startsWith('pt/'))
+    .filter((project) => project.slug.startsWith('pt/'))
     .map((project) => ({
       params: { slug: project.slug.replace(/^pt\//, '') },
       props: { project },
@@ -15,6 +15,6 @@ export async function getStaticPaths() {
 const { project } = Astro.props;
 const { Content } = await project.render();
 ---
-<ProjectLayout project={project} lang="pt">
+<ChdProject project={project} lang="pt">
   <Content />
-</ProjectLayout>
+</ChdProject>

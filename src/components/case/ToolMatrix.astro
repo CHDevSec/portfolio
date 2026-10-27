@@ -1,0 +1,41 @@
+---
+// Recovered from the published build of this case study and retinted to the
+// CHDEVSEC palette. Kept as an .astro component because MDX parses raw markup
+// as JSX, which rejects `class`, `stroke-width` and unclosed tags.
+---
+<table>
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Where it shipped</th>
+            <th>Where it stalled</th>
+            <th>Measurable signal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>OpenAI / Codex</td>
+            <td>Rapid iteration, ETL scaffolding</td>
+            <td>Steered to reuse/replace; 549 ceiling</td>
+            <td>Multiple lab iterations before pivot</td>
+          </tr>
+          <tr>
+            <td><strong>Binary INSERT (pivot)</strong></td>
+            <td><strong>Scaled 549 → 33,396</strong></td>
+            <td>Required page-format reverse engineering</td>
+            <td><strong>60× past AI-recommended ceiling</strong></td>
+          </tr>
+          <tr>
+            <td>Claude Code</td>
+            <td>Independent integrity audit</td>
+            <td>—</td>
+            <td>0 orphans / 0 duplicates confirmed</td>
+          </tr>
+          <tr>
+            <td>Claude (web)</td>
+            <td>Architecture / documentation</td>
+            <td>—</td>
+            <td>Decision rules documented for 41 conflicts</td>
+          </tr>
+        </tbody>
+      </table>

@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
+    "dev:local": "CHROMIUM_PATH=/usr/bin/chromium astro dev",
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",

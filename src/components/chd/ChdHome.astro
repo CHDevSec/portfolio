@@ -1,0 +1,61 @@
+---
+import ChdShell from './ChdShell.astro';
+import ChdHero from './ChdHero.astro';
+import ChdCompanies from './ChdCompanies.astro';
+import ChdImpact from './ChdImpact.astro';
+import ChdExperience from './ChdExperience.astro';
+import ChdMethod from './ChdMethod.astro';
+import ChdProjects from './ChdProjects.astro';
+import ChdSkills from './ChdSkills.astro';
+import ChdCerts from './ChdCerts.astro';
+import ChdContact from './ChdContact.astro';
+import ChdSeo from './ChdSeo.astro';
+import { profile } from '@/data/profile';
+import type { Lang } from '@/data/i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const title = lang === 'pt'
+  ? 'Caio Henrique — Staff Security Engineer | AppSec e Cloud'
+  : 'Caio Henrique — Staff Security Engineer | AppSec & Cloud';
+const description = lang === 'pt'
+  ? 'Staff Security Engineer com 7+ anos em AppSec, DevSecOps, segurança cloud e gestão de vulnerabilidades. Conheça projetos e resultados.'
+  : 'Staff Security Engineer with 7+ years in AppSec, DevSecOps, cloud security, and vulnerability management. Explore projects and results.';
+const homeJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  name: title,
+  description,
+  inLanguage: lang === 'pt' ? 'pt-BR' : 'en',
+  mainEntity: {
+    '@type': 'Person',
+    name: profile.name,
+    jobTitle: profile.title,
+    url: Astro.site?.toString(),
+    sameAs: [profile.links.linkedin, profile.links.github],
+    knowsAbout: ['Application Security', 'DevSecOps', 'AWS Security', 'Vulnerability Management', 'Security Engineering'],
+  },
+};
+---
+<!doctype html>
+<html lang={lang === 'pt' ? 'pt-BR' : 'en'}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <ChdSeo title={title} description={description} lang={lang} path="/" jsonLd={homeJsonLd} />
+  </head>
+  <body>
+    <ChdShell lang={lang}>
+      <ChdHero lang={lang} />
+      <ChdCompanies lang={lang} />
+      <ChdImpact lang={lang} />
+      <ChdExperience lang={lang} />
+      <ChdMethod lang={lang} />
+      <ChdProjects lang={lang} />
+      <ChdSkills lang={lang} />
+      <ChdCerts lang={lang} />
+      <ChdContact lang={lang} />
+    </ChdShell>
+  </body>
+</html>

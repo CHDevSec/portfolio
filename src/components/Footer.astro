@@ -7,7 +7,7 @@ interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const year = new Date().getFullYear();
 const home = localizedUrl('/', lang);
-const seniorLabel = lang === 'pt' ? 'Engenheiro de Segurança Sênior' : 'Senior Security Engineer';
+const seniorLabel = lang === 'pt' ? 'Staff Security Engineer' : 'Staff Security Engineer';
 ---
 <footer class="border-t-2 border-line bg-bg-inset mt-20">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid gap-8 md:grid-cols-3">

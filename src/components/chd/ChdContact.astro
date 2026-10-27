@@ -1,0 +1,228 @@
+---
+import ChdSection from './ChdSection.astro';
+import ChdNoise from './ChdNoise.astro';
+import { profile } from '@/data/profile';
+import type { Lang } from '@/data/i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+const copy = lang === 'pt'
+  ? {
+      kicker: 'CONTATO / VAMOS CONVERSAR',
+      l1: 'VAMOS FALAR',
+      l2: 'SOBRE',
+      l3: 'SEGURANÇA',
+      lede: 'Aberto a posições Staff e sênior em segurança, consultoria e pentests com escopo definido.',
+      email: 'E-MAIL',
+      phone: 'TELEFONE',
+      place: 'LOCALIZAÇÃO',
+      send: 'ENVIAR E-MAIL',
+      linkedin: 'LINKEDIN',
+      copy: 'COPIAR',
+      copied: 'COPIADO',
+      trust: 'RESPOSTA EM 24H | BR + REMOTO | EN / PT',
+    }
+  : {
+      kicker: 'CONTACT / REACH OUT',
+      l1: "LET'S TALK",
+      l2: 'ABOUT',
+      l3: 'SECURITY',
+      lede: 'Open to Staff and senior security roles, consulting engagements, and scoped penetration tests.',
+      email: 'EMAIL',
+      phone: 'PHONE',
+      place: 'LOCATION',
+      send: 'SEND EMAIL',
+      linkedin: 'LINKEDIN',
+      copy: 'COPY',
+      copied: 'COPIED',
+      trust: 'REPLY WITHIN 24H | BR + REMOTE | EN / PT',
+    };
+
+const wave = copy.l3.split('');
+
+const rows = [
+  { label: copy.email, value: profile.email, copyable: true },
+  { label: copy.phone, value: profile.phone, copyable: true },
+  { label: copy.place, value: profile.location, copyable: false },
+];
+---
+<ChdSection id="contact" class="chd-contact-section" labelledBy="contact-title" motionClass="chd-contact-motion">
+  <ChdNoise tone="light" />
+
+  <div class="chd-contact">
+    <div class="chd-contact__lead">
+      <p class="section-kicker">{copy.kicker}</p>
+      <h2 id="contact-title">
+        <span class="hero-line">{copy.l1}</span>
+        <span class="hero-line">{copy.l2}</span>
+        <span class="hero-line">
+          <span class="wave-text">
+            {wave.map((letter) => <span>{letter}</span>)}
+            <span>.</span>
+          </span>
+        </span>
+      </h2>
+      <p class="chd-contact__lede">{copy.lede}</p>
+    </div>
+
+    <div class="chd-contact__panel">
+      <dl class="chd-contact__rows">
+        {rows.map((row) => (
+          <div>
+            <dt>{row.label}</dt>
+            <dd>
+              <span>{row.value}</span>
+              {row.copyable && (
+                <button type="button" data-copy={row.value} data-label-copy={copy.copy} data-label-done={copy.copied}>
+                  {copy.copy}
+                </button>
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      <div class="chd-contact__actions">
+        <a class="button button--primary" href={`mailto:${profile.email}`}>
+          {copy.send}<span>↗</span>
+        </a>
+        <a class="button button--secondary" href={profile.links.linkedin} target="_blank" rel="noreferrer">
+          {copy.linkedin}<span>↗</span>
+        </a>
+      </div>
+      <p class="trust-line">{copy.trust}</p>
+    </div>
+  </div>
+</ChdSection>
+
+<script>
+  // Copy buttons confirm in place; a recruiter should not have to select text.
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.copy || '');
+        button.textContent = button.dataset.labelDone || 'COPIED';
+        button.classList.add('is-done');
+        setTimeout(() => {
+          button.textContent = button.dataset.labelCopy || 'COPY';
+          button.classList.remove('is-done');
+        }, 1600);
+      } catch {
+        // Clipboard can be blocked; the address is visible next to the button.
+      }
+    });
+  }
+</script>
+
+<style>
+  /* Second light stop in the rhythm. Tokens are redefined so every descendant
+     inverts on its own, same approach as the impact section. */
+  :global(.chd-contact-section) {
+    background: var(--chd-color-white);
+    color: var(--chd-color-black);
+    --chd-paper: var(--chd-color-black);
+    /* Buttons paint paper-on-ink; without flipping ink too, the primary
+       button came out black text on a black fill. */
+    --chd-ink: var(--chd-color-white);
+    --chd-paper-muted: #3b3b38;
+    --chd-text-muted: #6d6d68;
+    --chd-rule: #c6c6bf;
+    --chd-signal-text: #1230a8;
+  }
+  /* The noise layer paints itself with `--chd-paper`, which this section
+     redefines to black — so it turned into a black panel over everything.
+     It gets the raw colour token instead. */
+  :global(.chd-contact-section .ascii-noise--light) {
+    background: var(--chd-color-white);
+  }
+  :global(.chd-contact-motion) {
+    z-index: 2;
+    align-content: center;
+    display: grid;
+    position: relative;
+  }
+  /* The noise layer is absolutely positioned with z-index 0, which paints it
+     above static siblings. The content needs its own stacking position to sit
+     on top — the hero does the same for its meta and title blocks. */
+  .chd-contact {
+    z-index: 1;
+    position: relative;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: end;
+    gap: clamp(1.5rem, 4vw, 4rem);
+    display: grid;
+  }
+  .chd-contact h2 {
+    font-size: clamp(2.5rem, 7vw, 6.5rem);
+    line-height: 0.92;
+    margin: 0.3rem 0 0;
+  }
+  .chd-contact__lede {
+    color: var(--chd-paper-muted);
+    font-family: var(--chd-font-copy);
+    font-size: var(--chd-type-copy);
+    line-height: 1.2;
+    max-width: 32rem;
+    margin: clamp(0.75rem, 2vh, 1.25rem) 0 0;
+  }
+  .chd-contact__panel {
+    border: 1px solid var(--chd-rule);
+    gap: clamp(0.75rem, 2vh, 1.25rem);
+    padding: clamp(1rem, 2vw, 1.75rem);
+    display: grid;
+  }
+  .chd-contact__rows {
+    gap: 0.75rem;
+    margin: 0;
+    display: grid;
+  }
+  .chd-contact__rows > div + div {
+    border-top: 1px solid var(--chd-rule);
+    padding-top: 0.75rem;
+  }
+  .chd-contact__rows dt {
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    line-height: 1;
+  }
+  .chd-contact__rows dd {
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin: 0.3rem 0 0;
+    font-size: var(--chd-type-control);
+    line-height: 1.1;
+    display: flex;
+  }
+  .chd-contact__rows button {
+    border: 1px solid var(--chd-rule);
+    background: none;
+    color: var(--chd-text-muted);
+    cursor: pointer;
+    flex: none;
+    padding: 0.2rem 0.5rem;
+    font: inherit;
+    font-size: var(--chd-type-meta);
+    line-height: 1;
+  }
+  .chd-contact__rows button:hover,
+  .chd-contact__rows button:focus-visible {
+    background: var(--chd-color-black);
+    color: var(--chd-color-white);
+  }
+  .chd-contact__rows button.is-done {
+    border-color: var(--chd-signal-text);
+    color: var(--chd-signal-text);
+  }
+  .chd-contact__actions {
+    gap: 0.6rem;
+    display: grid;
+  }
+  @media (max-width: 900px) {
+    .chd-contact {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+</style>

@@ -4,6 +4,7 @@ export type ExperienceI18n = {
   company: string;
   initials: string;
   logo?: string;
+  url?: string;
   sector: { en: string; pt: string };
   role: { en: string; pt: string };
   period: { en: string; pt: string };
@@ -19,6 +20,7 @@ export const experience: ExperienceI18n[] = [
     company: 'CHDevSec',
     initials: 'CH',
     logo: '/portfolio/company/chdevsec.png',
+    url: 'https://chdevsec.com.br/',
     sector: { en: 'Independent · Consulting', pt: 'Independente · Consultoria' },
     role: { en: 'Cybersecurity Consultant · Pentest & Cloud Security', pt: 'Consultor de Cibersegurança · Pentest & Cloud Security' },
     period: { en: 'Mar 2026 — Present', pt: 'Mar 2026 — Presente' },
@@ -46,9 +48,43 @@ export const experience: ExperienceI18n[] = [
     stack: ['Python', 'Go', 'Bash', 'Wazuh', 'DefectDojo', 'Cloudflare WAF', 'OWASP', 'ISO 27001', 'CIS Benchmarks', 'Linux'],
   },
   {
+    company: 'SoftExpert',
+    initials: 'SE',
+    logo: '/portfolio/company/softexpert.svg',
+    url: 'https://www.softexpert.com',
+    sector: { en: 'Enterprise Software · ECM/BPM', pt: 'Software Corporativo · ECM/BPM' },
+    role: {
+      en: 'Staff Security Engineer · Principal Security Architect',
+      pt: 'Staff Security Engineer · Principal Security Architect',
+    },
+    period: { en: 'Jul 2026 — Aug 2026 · 2m', pt: 'Jul 2026 — Ago 2026 · 2m' },
+    location: 'Joinville, SC · Hybrid',
+    tone: 'phosphor',
+    bullets: {
+      en: [
+        'Principal security technical reference for the technology division (**120+ professionals**), bridging CloudOps, Architecture and Corporate IT with Governance through influence and enablement — reporting directly to the **CTO**.',
+        'Ran a security risk assessment across three fronts — **AppSec, Cloud (AWS) and Corporate IT** — surveying processes, architecture, vulnerabilities and risks for business-impact-based prioritization.',
+        "Designed the company's **AppSec architecture and workflow**, from code to vulnerability management, covering triage, prioritization and severity-based remediation SLAs.",
+        'Led an end-to-end audit of **SAST governance (GitLab)**, identifying a structural **fail-open gate flaw** that allowed merges without effective blocking of vulnerabilities.',
+        'Built a triage methodology based on **data-flow analysis (source→flow→sink)**, separating exploitable vulnerabilities from false positives and cutting SAST noise.',
+        'Translated SAST findings and residual risk into actionable plans for each team\'s own pipelines, mapped against **NIST CSF 2.0 and ISO 27001**.',
+      ],
+      pt: [
+        'Referência técnica principal de segurança da diretoria de tecnologia (**120+ profissionais**), fazendo a ponte entre CloudOps, Arquitetura e TI Corporativa e a Governança por influência e capacitação — reportando direto ao **CTO**.',
+        'Conduzi avaliação de risco de segurança em três frentes — **AppSec, Cloud (AWS) e TI Corporativa** — levantando processos, arquitetura, vulnerabilidades e riscos para priorização por impacto no negócio.',
+        'Desenhei a **arquitetura e o fluxo de AppSec** da empresa, do código à gestão de vulnerabilidades, cobrindo triagem, priorização e SLAs de correção por severidade.',
+        'Liderei auditoria ponta a ponta da **governança de SAST (GitLab)**, identificando uma falha estrutural de **gate fail-open** que permitia merges sem bloqueio efetivo de vulnerabilidades.',
+        'Criei metodologia de triagem baseada em **análise de fluxo de dados (source→flow→sink)**, separando vulnerabilidades exploráveis de falsos positivos e reduzindo o ruído do SAST.',
+        'Traduzi achados de SAST e risco residual em planos acionáveis para os pipelines de cada time, mapeados contra **NIST CSF 2.0 e ISO 27001**.',
+      ],
+    },
+    stack: ['SAST', 'GitLab CI', 'AWS', 'AppSec', 'NIST CSF 2.0', 'ISO 27001', 'Threat Modeling', 'Vulnerability Management'],
+  },
+  {
     company: 'frete.com',
     initials: 'FC',
     logo: '/portfolio/company/frete.png',
+    url: 'https://frete.com',
     sector: { en: 'Logistics SaaS · Series C', pt: 'SaaS de Logística · Series C' },
     role: { en: 'Security Engineer · Cloud & DevSecOps', pt: 'Engenheiro de Segurança · Cloud & DevSecOps' },
     period: { en: 'Sep 2024 — Mar 2026 · 1y 7m', pt: 'Set 2024 — Mar 2026 · 1a 7m' },
@@ -78,6 +114,7 @@ export const experience: ExperienceI18n[] = [
     company: 'Volt Sport',
     initials: 'VS',
     logo: '/portfolio/company/logo-volt.svg',
+    url: 'https://www.voltsport.com.br/',
     sector: { en: 'Sports Retail · Multi-branch', pt: 'Varejo Esportivo · Multi-filial' },
     role: { en: 'Security Engineer · Cloud & DevSecOps', pt: 'Engenheiro de Segurança · Cloud & DevSecOps' },
     period: { en: 'Jun 2023 — Aug 2024 · 1y 3m', pt: 'Jun 2023 — Ago 2024 · 1a 3m' },
@@ -105,6 +142,7 @@ export const experience: ExperienceI18n[] = [
     company: 'Evolution Soluções Empresariais',
     initials: 'EV',
     logo: '/portfolio/company/evolutionsul.avif',
+    url: 'https://www.evolutionsul.com.br/',
     sector: { en: 'IT Services · Consulting', pt: 'Serviços de TI · Consultoria' },
     role: { en: 'Network & Infrastructure Analyst', pt: 'Analista de Rede & Infraestrutura' },
     period: { en: 'Jan 2023 — May 2023 · 5m', pt: 'Jan 2023 — Mai 2023 · 5m' },
@@ -130,6 +168,7 @@ export const experience: ExperienceI18n[] = [
     company: 'Global Estratégias Financeiras',
     initials: 'GE',
     logo: '/portfolio/company/global.png',
+    url: 'https://somosglobal.com.br/',
     sector: { en: 'Fintech · Regulated', pt: 'Fintech · Regulada' },
     role: { en: 'Junior Cybersecurity Analyst', pt: 'Analista Jr. de Cibersegurança' },
     period: { en: 'Feb 2021 — Jan 2023 · 2y', pt: 'Fev 2021 — Jan 2023 · 2a' },
@@ -155,6 +194,7 @@ export const experience: ExperienceI18n[] = [
     company: 'CHDevSec',
     initials: 'CH',
     logo: '/portfolio/company/chdevsec.png',
+    url: 'https://chdevsec.com.br/',
     sector: { en: 'Independent · Early Career', pt: 'Independente · Carreira Inicial' },
     role: {
       en: 'Independent Security Consultant · Pentest & Infra',
@@ -188,6 +228,7 @@ export const experienceFor = (lang: Lang) =>
     company: e.company,
     initials: e.initials,
     logo: e.logo,
+    url: e.url,
     sector: e.sector[lang],
     role: e.role[lang],
     period: e.period[lang],

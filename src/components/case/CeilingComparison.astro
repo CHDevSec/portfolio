@@ -1,0 +1,31 @@
+---
+interface Props { lang?: 'en' | 'pt' }
+const { lang = 'en' } = Astro.props;
+const labels = lang === 'pt'
+  ? { aria: 'Capacidade: reutilização de espaços existentes comparada à inserção binária', first: 'reutilização', second: 'inserção binária', ratio: 'capacidade', caption: 'A reutilização dos espaços disponíveis comportava cerca de 549 veículos. A inserção binária, validada em cópias e seguida de verificação de integridade, permitiu incluir 33.396 registros.' }
+  : { aria: 'Capacity: available-slot reuse compared with binary insertion', first: 'slot reuse', second: 'binary insertion', ratio: 'capacity', caption: 'Reusing available slots could fit about 549 vehicles. Binary insertion, validated on database copies and followed by integrity checks, allowed 33,396 records to be added.' };
+---
+<figure aria-label={labels.aria}>
+        <svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label={labels.aria} style="width:100%;max-width:560px;display:block;margin:0 auto">
+          <!-- Axes -->
+          <line x1="80" y1="10" x2="80" y2="170" stroke="#5a5a56" stroke-width="2"/>
+          <line x1="80" y1="170" x2="530" y2="170" stroke="#5a5a56" stroke-width="2"/>
+          <!-- Available-slot reuse, shown with a minimum height for legibility. -->
+          <rect x="120" y="157" width="100" height="13" fill="#6d6d68" opacity="0.85"/>
+          <!-- Binary insertion capacity. -->
+          <rect x="300" y="34" width="180" height="136" fill="#6fa3ff" opacity="0.18"/>
+          <rect x="300" y="34" width="180" height="136" fill="none" stroke="#6fa3ff" stroke-width="2"/>
+          <!-- Slot reuse label. -->
+          <text x="170" y="166" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="8" fill="#6d6d68">549</text>
+          <text x="170" y="190" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#d8d8d2">{labels.first}</text>
+          <!-- Binary insertion label. -->
+          <text x="390" y="52" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="9" fill="#6fa3ff">33,396</text>
+          <text x="390" y="190" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#f2f2ec">{labels.second}</text>
+          <!-- Capacity ratio. -->
+          <text x="500" y="100" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="11" fill="#1e6bff">60×</text>
+          <text x="500" y="116" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#1e6bff">{labels.ratio}</text>
+          <!-- Arrow -->
+          <line x1="222" y1="168" x2="298" y2="105" stroke="#1e6bff" stroke-width="1.5" stroke-dasharray="4,3"/>
+        </svg>
+        <figcaption>{labels.caption}</figcaption>
+      </figure>

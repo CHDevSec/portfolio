@@ -1,0 +1,154 @@
+---
+import ChdSection from './ChdSection.astro';
+import ChdLava from './ChdLava.astro';
+import { t } from '@/data/i18n';
+import type { Lang } from '@/data/i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+/* Each principle carries the evidence that proves it. P1's old figure (−87%
+   false positives) was dropped: it lived hardcoded in one component with no
+   case study, blog post or data entry behind it, unlike the others. It is
+   replaced by the SoftExpert triage methodology, which is the mechanism this
+   principle describes and is sourced from that role. */
+const principles = [
+  {
+    n: '01',
+    title: t.methodP1Title[lang],
+    body: t.methodP1Body[lang],
+    stat: 'SOURCE→SINK',
+    statLabel: lang === 'pt'
+      ? 'Triagem por fluxo de dados · SoftExpert'
+      : 'Data-flow triage · SoftExpert',
+  },
+  {
+    n: '02',
+    title: t.methodP2Title[lang],
+    body: t.methodP2Body[lang],
+    stat: '−44%',
+    statLabel: t.methodP2Stat[lang],
+  },
+  {
+    n: '03',
+    title: t.methodP3Title[lang],
+    body: t.methodP3Body[lang],
+    stat: '60%+',
+    statLabel: t.methodP3Stat[lang],
+  },
+];
+---
+<ChdSection id="how" class="workflow-section" labelledBy="method-title" motionClass="chd-method">
+  <ChdLava tone="dark" />
+  <div class="section-heading section-heading--split">
+    <div>
+      <p class="section-kicker">{t.methodEyebrow[lang].replace('// ', '')}</p>
+      <h2 id="method-title">{t.methodTitle[lang]}</h2>
+    </div>
+    <p>{t.methodSubtitle[lang]}</p>
+  </div>
+
+  <ol class="chd-method__grid">
+    {principles.map((p) => (
+      <li class="chd-method__card">
+        <span class="chd-method__index">{p.n}</span>
+        <h3>{p.title}</h3>
+        <p class="chd-method__body">{p.body}</p>
+        {p.stat ? (
+          <div class="chd-method__proof">
+            <span class="chd-method__stat">{p.stat}</span>
+            <span class="chd-method__stat-label">{p.statLabel}</span>
+          </div>
+        ) : (
+          /* No sourced figure yet — a bare label would promise a number that
+             is not there, which is the opposite of what this section argues. */
+          <div class="chd-method__proof chd-method__proof--empty"></div>
+        )}
+      </li>
+    ))}
+  </ol>
+</ChdSection>
+
+<style>
+  /* The section is a full-viewport snap stop, but these cards only hold a few
+     lines. Letting the grid stretch left a 200px void mid-card, so the block
+     is content-sized and centred in the section instead. */
+  :global(.chd-method) {
+    z-index: 2;
+    grid-template-rows: auto auto;
+    align-content: center;
+    gap: clamp(1.25rem, 3vh, 2.5rem);
+    display: grid;
+    position: relative;
+  }
+  .chd-method__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid var(--chd-rule);
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+  }
+  /* `1fr` on the body row still equalises the cards against their tallest
+     sibling, which keeps the three proof rules on one line — it just no
+     longer inherits the section's full height. */
+  .chd-method__card {
+    grid-template-rows: auto auto 1fr auto;
+    gap: 0.9rem;
+    min-height: 0;
+    padding: clamp(1.4rem, 2.5vw, 2.25rem);
+    display: grid;
+  }
+  .chd-method__card + .chd-method__card {
+    border-left: 1px solid var(--chd-rule);
+  }
+  .chd-method__index {
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+  }
+  .chd-method__card h3 {
+    font-size: clamp(1.75rem, 3vw, 2.75rem);
+    line-height: 0.95;
+    margin: 0;
+  }
+  .chd-method__body {
+    color: var(--chd-paper-muted);
+    font-family: var(--chd-font-copy);
+    font-size: clamp(1.25rem, 1.35vw, 1.5rem);
+    line-height: 1.22;
+    align-self: start;
+    margin: 0;
+  }
+  .chd-method__proof {
+    border-top: 1px solid var(--chd-rule);
+    align-items: baseline;
+    gap: 0.6rem;
+    min-height: 3.4rem;
+    padding-top: 0.9rem;
+    display: flex;
+  }
+  /* Matches a populated row's height so the three rules land on one line. */
+  .chd-method__proof--empty {
+    border-top-color: var(--chd-rule-muted);
+  }
+  .chd-method__stat {
+    color: var(--chd-signal-text);
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    line-height: 0.9;
+  }
+  .chd-method__stat-label {
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    line-height: 1.1;
+  }
+  @media (max-width: 900px) {
+    .chd-method__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .chd-method__card + .chd-method__card {
+      border-top: 1px solid var(--chd-rule);
+      border-left: 0;
+    }
+  }
+</style>

@@ -1,0 +1,185 @@
+---
+import '@/styles/chdevsec.css';
+import '@/styles/portfolio-theme.css';
+import { getCollection } from 'astro:content';
+import { localizedUrl, type Lang } from '@/data/i18n';
+import ChdHeader from './ChdHeader.astro';
+import ChdSeo from './ChdSeo.astro';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const posts = (await getCollection('posts', ({ data }) => !data.draft))
+  .filter((post) => post.slug.startsWith(`${lang}/`))
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+// ~200 words per minute, counted on the MDX body without code fences.
+const minutes = (body: string) =>
+  Math.max(1, Math.round(body.replace(/```[\s\S]*?```/g, '').split(/\s+/).filter(Boolean).length / 200));
+const notes = posts.map((post) => ({
+  post,
+  slug: post.slug.replace(/^(en|pt)\//, ''),
+  minutes: minutes(post.body),
+}));
+const tags = [...new Set(posts.flatMap((post) => post.data.tags))].sort();
+const totalMinutes = notes.reduce((sum, note) => sum + note.minutes, 0);
+
+const copy = lang === 'pt'
+  ? {
+      title: 'NOTAS DE ENGENHARIA.',
+      intro: 'Decisões práticas e aprendizados de segurança aplicados em produção.',
+      stats: [[posts.length, 'PUBLICAÇÕES'], [tags.length, 'TÓPICOS'], [totalMinutes, 'MIN DE LEITURA']],
+      latest: 'MAIS RECENTE',
+      read: 'LER NOTA',
+      min: 'MIN',
+      all: 'TODAS',
+      filter: 'Filtrar por tópico',
+      empty: 'Nenhuma nota neste tópico.',
+      back: 'VOLTAR AO INÍCIO',
+    }
+  : {
+      title: 'ENGINEERING NOTES.',
+      intro: 'Practical security decisions and lessons from production systems.',
+      stats: [[posts.length, 'POSTS'], [tags.length, 'TOPICS'], [totalMinutes, 'MIN OF READING']],
+      latest: 'LATEST',
+      read: 'READ NOTE',
+      min: 'MIN',
+      all: 'ALL',
+      filter: 'Filter by topic',
+      empty: 'No notes on this topic.',
+      back: 'BACK TO HOME',
+    };
+const locale = lang === 'pt' ? 'pt-BR' : 'en-US';
+const date = (d: Date) => d.toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' });
+---
+<!doctype html>
+<html lang={lang === 'pt' ? 'pt-BR' : 'en'}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{copy.title} | Caio Henrique</title>
+    <ChdSeo title={`${copy.title} | Caio Henrique`} description={copy.intro} lang={lang} path="/blog/" />
+  </head>
+  <body class="chd-notes-body">
+    <a class="skip-link" href="#notes">{lang === 'pt' ? 'Pular para as notas' : 'Skip to notes'}</a>
+    <ChdHeader lang={lang} home={localizedUrl('/', lang)} />
+    <main class="chd-notes-index" id="notes">
+      <header class="chd-notes-heading">
+        <a class="chd-project__back" href={localizedUrl('/', lang)}>← {copy.back}</a>
+        <p class="section-kicker">CHDEVSEC / NOTES</p>
+        <h1>{copy.title}</h1>
+        <p class="chd-notes-heading__intro">{copy.intro}</p>
+        <dl class="chd-notes-stats">
+          {copy.stats.map(([value, label]) => <div><dt>{label}</dt><dd>{value}</dd></div>)}
+        </dl>
+      </header>
+
+      <div class="chd-notes-filter" role="group" aria-label={copy.filter} hidden data-notes-filter>
+        <button type="button" aria-pressed="true" data-tag="">{copy.all}</button>
+        {tags.map((tag) => <button type="button" aria-pressed="false" data-tag={tag}>{tag.toUpperCase()}</button>)}
+      </div>
+
+      <ol class="chd-notes-list">
+        {notes.map(({ post, slug, minutes: min }, index) => (
+          <li data-tags={post.data.tags.join(' ')} class={index === 0 ? 'is-latest' : undefined}>
+            <a class="chd-note-card" href={localizedUrl(`/blog/${slug}/`, lang)}>
+              <span class="chd-note-card__cover" aria-hidden="true">
+                {post.data.cover && <img src={post.data.cover} alt="" loading={index === 0 ? 'eager' : 'lazy'} decoding="async" />}
+                <span class="chd-note-card__number">{String(index + 1).padStart(2, '0')}</span>
+                {index === 0 && <span class="chd-note-card__badge">{copy.latest}</span>}
+              </span>
+              <span class="chd-note-card__body">
+                <span class="chd-note-card__meta">
+                  <time datetime={post.data.pubDate.toISOString()}>{date(post.data.pubDate)}</time>
+                  <span>{min} {copy.min}</span>
+                </span>
+                <strong>{post.data.title}</strong>
+                <span class="chd-note-card__description">{post.data.description}</span>
+                <span class="chd-note-card__tags">
+                  {post.data.tags.map((tag) => <span>{tag.toUpperCase()}</span>)}
+                </span>
+                <span class="chd-note-card__read">{copy.read} →</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ol>
+      <p class="chd-notes-empty" hidden data-notes-empty>{copy.empty}</p>
+    </main>
+    <script>
+      // Progressive enhancement: without JS every note stays listed.
+      const bar = document.querySelector<HTMLElement>('[data-notes-filter]');
+      const items = [...document.querySelectorAll<HTMLElement>('.chd-notes-list > li')];
+      const empty = document.querySelector<HTMLElement>('[data-notes-empty]');
+      if (bar) {
+        bar.hidden = false;
+        bar.addEventListener('click', (event) => {
+          const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-tag]');
+          if (!button) return;
+          const tag = button.dataset.tag ?? '';
+          bar.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
+          let shown = 0;
+          items.forEach((item) => {
+            const match = !tag || (item.dataset.tags ?? '').split(' ').includes(tag);
+            item.hidden = !match;
+            if (match) shown += 1;
+          });
+          if (empty) empty.hidden = shown > 0;
+        });
+      }
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  html:has(.chd-notes-body) { scroll-snap-type: none; }
+  .chd-notes-body { background: var(--chd-ink); color: var(--chd-paper); overflow: visible; }
+  .chd-notes-index { max-width: 80rem; margin-inline: auto; padding: clamp(2rem, 6vw, 6rem) var(--page-pad) 7rem; }
+  .chd-notes-heading { margin-bottom: clamp(2rem, 5vw, 4rem); }
+  .chd-notes-heading .chd-project__back { margin-bottom: clamp(2rem, 4vw, 3.5rem); }
+  .chd-notes-heading .section-kicker { color: var(--chd-signal-text); margin: 0 0 1rem; }
+  .chd-notes-heading h1 { color: var(--chd-paper); font-size: clamp(2.6rem, 8vw, 7rem); line-height: 0.86; letter-spacing: -0.06em; margin: 0; }
+  .chd-notes-heading__intro { max-width: 38rem; color: var(--chd-paper-muted); font-family: var(--chd-font-copy); font-size: clamp(1.1rem, 2vw, 1.5rem); line-height: 1.35; margin: 1.5rem 0 0; }
+  .chd-notes-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 40rem; border: 1px solid var(--chd-rule); margin: 2.5rem 0 0; }
+  .chd-notes-stats div { padding: 0.9rem 1rem; }
+  .chd-notes-stats div + div { border-left: 1px solid var(--chd-rule); }
+  .chd-notes-stats dt { color: var(--chd-text-muted); font-size: var(--chd-type-meta); }
+  .chd-notes-stats dd { color: var(--chd-paper); font-size: clamp(2rem, 4vw, 3rem); line-height: 1; margin: 0.4rem 0 0; }
+
+  .chd-notes-filter { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .chd-notes-filter[hidden] { display: none; }
+  .chd-notes-filter button { min-height: 2.75rem; border: 1px solid var(--chd-rule); background: transparent; color: var(--chd-paper-muted); font: inherit; font-size: var(--chd-type-meta); padding: 0.3rem 0.85rem; cursor: pointer; }
+  .chd-notes-filter button:hover, .chd-notes-filter button:focus-visible { border-color: var(--chd-paper); color: var(--chd-paper); }
+  .chd-notes-filter button[aria-pressed='true'] { background: var(--chd-paper); border-color: var(--chd-paper); color: var(--chd-ink); }
+
+  .chd-notes-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; list-style: none; margin: 0; padding: 0; }
+  .chd-notes-list > li[hidden] { display: none; }
+  .chd-notes-list > li.is-latest { grid-column: 1 / -1; }
+  .chd-note-card { height: 100%; display: grid; grid-template-rows: auto 1fr; border: 1px solid var(--chd-rule); background: var(--chd-surface); color: var(--chd-paper); text-decoration: none; transition: border-color var(--chd-duration-state); }
+  .is-latest .chd-note-card { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-rows: none; }
+  .chd-note-card:hover, .chd-note-card:focus-visible { border-color: var(--chd-paper); }
+  .chd-note-card__cover { position: relative; aspect-ratio: 16 / 7; overflow: hidden; border-bottom: 1px solid var(--chd-rule); background: var(--chd-surface-raised); }
+  .is-latest .chd-note-card__cover { aspect-ratio: auto; min-height: 20rem; border-bottom: 0; border-right: 1px solid var(--chd-rule); }
+  .chd-note-card__cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; filter: saturate(0.85); transition: transform 0.4s var(--chd-ease-out); }
+  .chd-note-card:hover .chd-note-card__cover img { transform: scale(1.04); }
+  .chd-note-card__number, .chd-note-card__badge { position: absolute; top: 0.75rem; background: var(--chd-ink); border: 1px solid var(--chd-rule); font-size: var(--chd-type-meta); padding: 0.2rem 0.5rem; }
+  .chd-note-card__number { left: 0.75rem; color: var(--chd-signal-text); }
+  .chd-note-card__badge { right: 0.75rem; background: var(--chd-paper); border-color: var(--chd-paper); color: var(--chd-ink); }
+  .chd-note-card__body { display: grid; align-content: start; gap: 0.75rem; padding: clamp(1.1rem, 2.5vw, 2rem); }
+  .chd-note-card__meta { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; color: var(--chd-text-muted); font-size: var(--chd-type-meta); }
+  .chd-note-card__body strong { font-size: clamp(1.35rem, 2.6vw, 2rem); line-height: 1.02; }
+  .is-latest .chd-note-card__body strong { font-size: clamp(1.6rem, 3.4vw, 2.8rem); }
+  .chd-note-card__description { color: var(--chd-paper-muted); font-family: var(--chd-font-copy); font-size: var(--chd-type-copy); line-height: 1.35; }
+  .chd-note-card__tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .chd-note-card__tags span { border: 1px solid var(--chd-rule-muted); color: var(--chd-text-muted); font-size: 0.85rem; padding: 0.1rem 0.45rem; }
+  .chd-note-card__read { color: var(--chd-signal-text); font-size: var(--chd-type-meta); letter-spacing: 0.06em; margin-top: 0.25rem; }
+  .chd-notes-empty { color: var(--chd-text-muted); margin-top: 1rem; }
+
+  @media (max-width: 860px) {
+    .chd-notes-list { grid-template-columns: minmax(0, 1fr); }
+    .is-latest .chd-note-card { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
+    .is-latest .chd-note-card__cover { min-height: 0; aspect-ratio: 16 / 8; border-right: 0; border-bottom: 1px solid var(--chd-rule); }
+  }
+  @media (max-width: 420px) {
+    .chd-notes-stats div { padding: 0.7rem; }
+  }
+</style>

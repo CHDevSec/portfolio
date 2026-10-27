@@ -1,6 +1,6 @@
 ---
-title: "Gates DevSecOps em CI/CD"
-tagline: "SAST · SCA · IaC · secrets · policy — gates que bloqueiam findings exploráveis, não ruído."
+title: "Gates DevSecOps em CI/CD — cinco gates de segurança em cada pull request"
+tagline: "Coloquei gates de SAST, SCA, IaC, secrets e policy as code em cada pull request, bloqueando só risco crítico e mostrando cada finding na linha de código em que o responsável podia corrigi-lo."
 company: "frete.com"
 period: "2024 — 2026"
 category: "devsecops"
@@ -8,92 +8,106 @@ cover: "/portfolio/images/wallpapers/wallpaper_devsecops.png"
 categoryIcon: "fc126"
 categoryIconAlt: "Ferramentas de pipeline CI/CD"
 featured: false
-order: 4
+order: 8
 metrics:
-  - { value: "5", label: "Tipos de gate", tone: "phosphor" }
-  - { value: "PR-level", label: "Anotações por linha", tone: "amber" }
-  - { value: "Multi-cloud", label: "AWS · GCP", tone: "phosphor" }
+  - { value: "5", label: "Tipos de gate por pull request", tone: "phosphor" }
+  - { value: "3", label: "Decisões de política por finding", tone: "amber" }
+  - { value: "2", label: "Nuvens, uma política", tone: "phosphor" }
 stack: ["Snyk", "Checkmarx", "Kics", "Polaris", "GitHub Actions", "AWS", "GCP", "Go", "Python"]
-summary: "Embutindo SAST, SCA, IaC scanning, secrets detection e policy-as-code nos pipelines CI/CD — bloqueando apenas em findings reais e exploráveis. Construído pra sobreviver ao teste de adoção da engenharia, não só à auditoria de segurança."
+summary: "Cinco gates de segurança no CI/CD — SAST, SCA, IaC, secrets e policy as code — em cada pull request, com regras versionadas que decidem se um finding bloqueia, gera alerta ou vai para a triagem, e a mesma política para AWS e GCP."
 ---
+import StatGrid from '@/components/case/StatGrid.astro';
+import Callout from '@/components/case/Callout.astro';
 
-## O problema
+## Contexto
 
-Gates de segurança são fáceis de instalar e triviais de perder. A primeira versão de qualquer programa DevSecOps parece uma parede de checks vermelhos em cada PR — e dentro de uma sprint, engenheiros aprendem a pular, sobrescrever ou mergear apesar deles. Quando a security volta a olhar, os gates viraram decoração.
+O pipeline já executava verificações de segurança, mas era difícil agir sobre os resultados. A engenharia via a segurança como um gargalo trimestral, e não como algo de sua responsabilidade, e as verificações davam poucos motivos para pensar diferente.
 
-O brief era específico:
+- **Mais ruído que sinal** — notas CVSS genéricas, sem contexto de alcançabilidade ou de explorabilidade, além de falsos positivos.
+- **Findings que ninguém abria** — os resultados ficavam em um dashboard separado, longe da mudança de código.
+- **Regras de bloqueio sem noção de risco** — uma CVE transitiva de baixa severidade era tratada igual a uma RCE explorada ativamente.
+- **Sem próximo passo claro** — um finding não dizia quem deveria corrigi-lo nem como.
 
-- A maioria dos scanners produz **mais ruído que sinal** — CVSS genérico sem contexto de reachability ou exploitability
-- Findings vivem num dashboard separado que ninguém abre
-- Regras de bloqueio cobrem toda a superfície, tratando uma CVE transitiva low-severity igual a uma RCE ativamente explorada
-- Engenharia trata segurança como bottleneck trimestral, não como propriedade que eles donam
+## O que eu fiz
 
-Eu tinha que construir gates que a engenharia *confiasse* — não só gates que rodassem.
+Concentrei os gates em findings com caminho de impacto validado e coloquei os resultados no pull request, onde o responsável pelo código podia agir.
 
-## A abordagem
+### Cinco gates em cada pull request
 
-Cinco gates rodam em cada pull request, integrados ao GitHub Actions e alimentando anotações por linha no próprio PR:
+Os cinco rodam no GitHub Actions e geram anotações por linha no próprio pull request.
 
-- **SAST** — Snyk Code pra cobertura primária no stack Go e Python; Checkmarx pra passes mais profundos de lógica de aplicação nos serviços web-facing
-- **SCA** — Snyk Open Source contra dependências transitivas e diretas com filtro de reachability
-- **IaC** — Kics pra Terraform / Helm / manifests Kubernetes, mais Polaris pra postura cluster-specific de Kubernetes (overlap é intencional — as duas tools surgem categorias diferentes)
-- **Secrets** — pre-commit hooks pra feedback rápido do lado do dev, mais um safety net no CI que pega o que o hook tiver pulado
-- **Policy as code** — regras codificadas pro que bloqueia vs alerta vs comenta, versionadas junto com o pipeline pra que mudanças passem por PR review como qualquer outro código
+- **SAST** — Snyk Code para a cobertura principal do stack Go e Python; Checkmarx para uma análise mais profunda da lógica de aplicação nos serviços expostos à web.
+- **SCA** — Snyk Open Source nas dependências diretas e transitivas, com filtro de alcançabilidade (reachability): a função vulnerável é de fato chamada pelo nosso código?
+- **IaC** — Kics para Terraform, Helm e manifests do Kubernetes, mais Polaris para a postura do cluster Kubernetes.
+- **Secrets** — hooks de pre-commit para um retorno rápido na máquina do desenvolvedor, mais uma verificação no CI que pega o que o hook deixou passar.
+- **Policy as code** — regras versionadas para o que bloqueia, o que gera alerta e o que só comenta, revisadas por pull request como qualquer outro código.
 
-## Arquitetura
+### Escolha das ferramentas e trade-offs
+
+- **Snyk para SAST e SCA juntos** — o Snyk Code cobria o código-fonte, e a análise de alcançabilidade do Snyk Open Source nas dependências Go foi o diferencial: ela separa um módulo vulnerável que nosso código chama de um que só é importado. O SonarQube é forte em qualidade de código, mas na época o modo de segurança dele ficava atrás na análise de dependências Go.
+- **Checkmarx por cima, em um subconjunto** — no pequeno grupo de serviços expostos à web, a análise de fluxo de dados do Checkmarx, mais lenta e mais profunda, pegava categorias que o Snyk Code não pegava. O custo está em minutos de CI, não em horas de engenharia, então ele ficou.
+- **Kics e Polaris juntos** — o Kics cobre Terraform, Helm e configurações incorretas de IaC em geral; o Polaris é especializado na postura do Kubernetes (limites de recursos, security contexts, network policies). Cada um revela categorias que o outro não vê, rodar os dois custa pouco tempo de CI e a sobreposição de falsos positivos é pequena.
+- **Pre-commit e CI para secrets** — o hook dá retorno imediato antes do push; a verificação no CI comprova que o hook de fato rodou. Sem ela, um hook desativado expõe o repositório inteiro sem que ninguém perceba.
+
+### Desenho pensado para a adoção
+
+- **Bloqueio só para crítico** — um finding Critical impedia o merge. High gerava aviso e alerta para triagem, e Medium e Low iam para a triagem com um SLA mais longo. A alcançabilidade ordenava essa fila de triagem, então uma função vulnerável que o nosso código chama era tratada antes de uma que ele só importa. A engenharia aceitou a regra porque ela fazia sentido.
+- **Anotações no pull request, não em um dashboard separado** — cada finding aparece na linha exata, com a correção recomendada ao lado.
+- **Pull requests automáticos de atualização** — atualizações de dependência relevantes para a segurança, que têm correção, abrem como pull requests separados e testados, que a engenharia revisa e aprova como qualquer outra atualização.
+- **Métricas semanais para os tech leads** — o que está vermelho, o que está verde e o que está piorando, por serviço, para que cada lead faça a triagem da própria postura antes da próxima sprint.
+
+## Como funciona
 
 ```mermaid
 flowchart TB
-    A[Pull Request] --> B[GitHub Actions]
+    A[Pull request] --> B[GitHub Actions]
     B --> C[SAST · Snyk Code + Checkmarx]
     B --> D[SCA · Snyk Open Source]
     B --> E[IaC · Kics + Polaris]
-    B --> F[Secrets · pre-commit + CI net]
+    B --> F[Secrets · pre-commit + verificação no CI]
 
-    C --> G[Policy Engine]
+    C --> G[Motor de políticas]
     D --> G
     E --> G
     F --> G
 
-    G --> H{Severity + Reachability}
-    H -->|Critical · Reachable| I[Block PR]
-    H -->|High · Non-reachable| J[Warn · annotate line]
-    H -->|Medium / Low| K[Comment on PR]
+    G --> H{Severidade}
+    H -->|Crítico| I[Bloquear pull request]
+    H -->|Alto| J[Aviso + alerta · triagem]
+    H -->|Médio / Baixo| K[Alerta · triagem com SLA mais longo]
 
-    I --> L[Line-level PR annotation]
+    I --> L[Anotação na linha]
     J --> L
     K --> L
 
-    G --> M[Weekly metrics to leads]
+    G --> M[Métricas semanais para os leads]
 ```
 
-## Por que essas tools e não as alternativas óbvias
+Todos os scanners alimentam um único motor de políticas. Só um finding crítico bloqueia o merge. High gera aviso e alerta, Medium e Low vão para a triagem com um SLA mais longo, e todo finding aparece na linha exata — rígido onde importa, sem travar a engenharia no restante.
 
-- **Snyk em vez de SonarQube pra SAST** — análise de reachability do Snyk em Go foi o diferencial. SonarQube produz findings excelentes de qualidade de código mas o modo security ficava atrás em SCA Go na época.
-- **Checkmarx camada acima** — pro subset pequeno de serviços web-facing, análise data-flow mais lenta porém mais profunda do Checkmarx pegava categorias que o Snyk Code não pegava. Custo é pago em CI minutes, não horas de engenharia, então ficou.
-- **Kics + Polaris juntos, não um ou outro** — Kics é excelente em Terraform / Helm / IaC genérico; Polaris se especializa em postura cluster-level de Kubernetes (resource limits, security contexts, network policies). Rodar os dois custa CI time desprezível e o overlap de falsos positivos é pequeno.
-- **Pre-commit + CI pra secrets** — o pre-commit hook dá feedback imediato pro dev (pega antes do push); o CI net é a asserção de que o hook *efetivamente rodou*. Sem o safety net, um hook desabilitado silenciosamente regride o repo inteiro.
+## Resultados
 
-## Como sobreviveu adoption
+<StatGrid title="Cobertura dos gates" stats={[
+  { value: '5', label: 'Tipos de gate', detail: 'SAST, SCA, IaC, secrets, política' },
+  { value: '3', label: 'Decisões de política', detail: 'Bloquear, alertar, triar' },
+  { value: '2', label: 'Nuvens', detail: 'AWS e GCP, um modelo de severidade' },
+]} />
 
-Os gates estão vivos e a engenharia não conseguiu argumentar contra. Esse outcome veio de quatro decisões de design:
+- **5 tipos de gate em cada pull request** em mais de 100 repositórios, integrados de ponta a ponta ao GitHub Actions.
+- **Infraestrutura como código de AWS e GCP** sob o mesmo motor de políticas e o mesmo modelo de severidade, então um bucket S3 ou um workload GKE mal configurado era detectado antes do deploy que o exporia.
+- **A segurança deixou de ser um gargalo trimestral** — o backlog de atualização de dependências andou continuamente, em vez de se acumular antes dos ciclos de auditoria.
+- **A engenharia passou a confiar nos gates** — os pull requests deixaram de ser enviados com `--no-verify`, os leads passaram a citar os números semanais no planejamento e os serviços novos adotaram o mesmo template por padrão.
+- **Os gates continuaram ligados** — a engenharia não conseguiu derrubá-los ao longo do projeto.
 
-- **Bloqueio só em critical + reachable** — uma CVE transitiva no `lodash` sem call path real não merece bloquear deploy. Uma RCE alcançável num request handler, sim. Engenharia aceitou a regra porque a regra fazia sentido.
-- **Anotações no PR, não em dashboard separado** — findings aparecem na linha exata do código, com o fix recomendado inline. Custo de ação é um clique; custo de ignorar é olhar checks vermelhos.
-- **PRs auto-bump pra CVEs com fix** — upgrades de dependência security-relevant são abertos como PRs separados, testados. Engenharia revisa e mergeia como qualquer dep bump, sem ter que escrever o upgrade.
-- **Métricas semanais compartilhadas com tech leads** — o que tá vermelho, o que tá verde, o que tá trending. Números, não vibe. Leads veem a postura do próprio serviço e triagiam antes da próxima sprint.
+## Valor para o negócio
 
-## O impacto
+<Callout kind="value" lang="pt">
+As verificações de segurança saíram da correria trimestral de auditoria e entraram no fluxo diário de revisão de código. Um merge bloqueado passou a significar um risco crítico, então a engenharia corrigia os findings em vez de contornar o gate. Os leads passaram a ver e a planejar a postura do próprio serviço toda semana, e configurações incorretas de nuvem eram detectadas antes de chegar à produção, tanto na AWS quanto no GCP.
+</Callout>
 
-- **Cinco tipos de gate** rodando em cada pull request em 100+ repositórios, integrados end-to-end no GitHub Actions {/* contagem de repo é estimativa; verifica com número real */}
-- **Cobertura multi-cloud** pra IaC AWS e GCP, com mesmo policy engine e modelo de severidade
-- **Segurança parou de ser bottleneck trimestral** — o backlog de upgrade de dependência rodou continuamente em vez de acumular antes dos ciclos de auditoria
-- **Confiança da engenharia nos gates** — os tells eram qualitativos mas reais: PRs pararam de receber `--no-verify`, leads começaram a citar os números semanais no planning, e novos serviços adotaram o mesmo template por default
-- **Mesma postura entre cloud accounts** — checks de IaC significavam que um S3 bucket ou workload GKE misconfigurado era pego antes do deploy que iria expor
+## Aprendizados
 
-## Princípios de engenharia
-
-- **Bloqueia em sinal, não em superfície.** Um gate que dispara em toda CVE transitiva ensina a engenharia a ignorar gates. Um gate que dispara em findings críticos alcançáveis ensina a corrigir.
-- **Anotações ganham de dashboards.** Findings na linha do PR têm taxa de ação 10× maior que findings em dashboard separado. Dashboard é pra tendência; anotação é pra fix.
-- **Dois scanners com escopo sobreposto é feature, não desperdício.** Kics e Polaris ambos olham Kubernetes; o overlap surge categorias que nenhum dos dois pega sozinho.
-- **Policy as code é inegociável.** Regras de bloqueio versionadas junto com pipeline são revisadas como código. Regras de bloqueio enterradas numa UI apodrecem no momento que quem dona muda de role.
+- **Bloqueie por sinal, não por superfície.** Um gate que dispara em toda CVE transitiva ensina a engenharia a ignorar gates; bloquear só findings críticos, e mandar o resto para a triagem com SLA, foi o que manteve estes gates ligados.
+- **Coloque o finding onde a correção acontece.** O dashboard serve para tendências; a anotação na linha do pull request serve para corrigir.
+- **Scanners sobrepostos podem ser uma vantagem.** Kics e Polaris olham para o Kubernetes, e cada um revela categorias que o outro não vê.
+- **Policy as code é inegociável.** Regras de bloqueio versionadas com o pipeline são revisadas como código; regras escondidas em uma interface se perdem assim que o responsável muda de função.

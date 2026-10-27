@@ -1,0 +1,116 @@
+---
+// Ordered timeline for incident and delivery cases: when it happened, what
+// happened, and optionally why it mattered.
+interface Step {
+  when: string;
+  title: string;
+  detail?: string;
+  /** Marks the decisive step, e.g. containment. */
+  key?: boolean;
+}
+interface Props {
+  steps: Step[];
+  title?: string;
+  caption?: string;
+}
+const { steps, title, caption } = Astro.props;
+---
+<figure class="case-tl">
+  {title && <p class="case-tl__title">{title}</p>}
+  <ol class="case-tl__list">
+    {steps.map((step) => (
+      <li class:list={['case-tl__step', { 'is-key': step.key }]}>
+        <span class="case-tl__when">{step.when}</span>
+        <span class="case-tl__body">
+          <span class="case-tl__what">{step.title}</span>
+          {step.detail && <span class="case-tl__detail">{step.detail}</span>}
+        </span>
+      </li>
+    ))}
+  </ol>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .case-tl {
+    border: 1px solid var(--chd-rule);
+    background: var(--chd-surface);
+    margin-inline: 0;
+  }
+  .case-tl__title {
+    border-bottom: 1px solid var(--chd-rule);
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    text-transform: uppercase;
+    margin: 0;
+    padding: 0.75rem 1rem;
+  }
+  /* Reset the prose list styling the case layout applies to every <ol>. */
+  .case-tl__list {
+    counter-reset: none;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: block;
+  }
+  .case-tl__step {
+    grid-template-columns: minmax(6rem, 9rem) 1fr;
+    gap: 1rem;
+    margin: 0;
+    padding: 0.85rem 1rem 0.85rem 1.25rem;
+    display: grid;
+    position: relative;
+  }
+  .case-tl__step:before {
+    content: none !important;
+  }
+  .case-tl__step:after {
+    background: var(--chd-rule);
+    content: '';
+    width: 1px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0.5rem;
+  }
+  .case-tl__step + .case-tl__step {
+    border-top: 1px solid var(--chd-rule-muted);
+  }
+  .case-tl__step.is-key:after {
+    background: var(--chd-signal-text);
+    width: 3px;
+    left: calc(0.5rem - 1px);
+  }
+  .case-tl__when {
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    text-transform: uppercase;
+  }
+  .case-tl__step.is-key .case-tl__when {
+    color: var(--chd-signal-text);
+  }
+  .case-tl__body {
+    gap: 0.25rem;
+    display: grid;
+  }
+  .case-tl__what {
+    color: var(--chd-paper);
+  }
+  .case-tl__detail {
+    color: var(--chd-paper-muted);
+    font-size: var(--chd-type-meta);
+    line-height: 1.25;
+  }
+  .case-tl figcaption {
+    border-top: 1px solid var(--chd-rule);
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    padding: 0.75rem 1rem;
+  }
+  @media (max-width: 760px) {
+    .case-tl__step {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+  }
+</style>

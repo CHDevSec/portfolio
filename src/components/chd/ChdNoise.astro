@@ -1,0 +1,13 @@
+---
+interface Props { tone?: 'dark' | 'light' }
+const { tone = 'dark' } = Astro.props;
+---
+<div
+  class={`textmode-noise ascii-noise ascii-noise--${tone}`}
+  data-tone={tone}
+  data-rendered="false"
+  data-chd-noise
+  aria-hidden="true"
+>
+  <canvas class="ascii-noise__canvas"></canvas>
+</div>

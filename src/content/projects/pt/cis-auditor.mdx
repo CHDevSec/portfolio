@@ -1,6 +1,6 @@
 ---
-title: "CIS-Auditor — automação de Linux hardening"
-tagline: "Framework Go + Bash + Python que transformou CIS Benchmark de checklist anual em sinal diário — auditoria, remediação, detecção de drift e relatório audit-ready automatizados."
+title: "CIS-Auditor — 70% dos controles CIS do Ubuntu 22.04 automatizados"
+tagline: "Automatizei 70% dos controles do CIS Benchmark para Ubuntu 22.04 em um auditor que verifica continuamente a configuração Linux e mantém a auditoria estritamente separada da remediação."
 company: "frete.com"
 period: "2024 — 2026"
 category: "automation"
@@ -8,105 +8,126 @@ cover: "/portfolio/images/wallpapers/cis-auditor-linux.png"
 categoryIcon: "fc855"
 categoryIconAlt: "Escudo de auditoria de compliance"
 featured: true
-order: 2
+order: 5
 metrics:
-  - { value: "70%", label: "Cobertura CIS Benchmark", tone: "phosphor" }
-  - { value: "Auto", label: "Detecção de drift", tone: "amber" }
-  - { value: "−44%", label: "Impacto de vulns (frota Ubuntu)", tone: "alert" }
+  - { value: "70%", label: "Controles CIS automatizados", tone: "phosphor" }
+  - { value: "5", label: "Perfis de controle YAML", tone: "amber" }
+  - { value: "0", label: "Alterações no modo auditoria", tone: "phosphor" }
 stack: ["Go", "Bash", "Python", "YAML", "Ubuntu 22.04", "CIS Benchmarks", "Make"]
-summary: "Auditor automatizado de CIS Benchmark pra frotas Ubuntu 22.04. Engine de orquestração Go, scripts de auditoria e remediação em Bash, gerador de relatório HTML em Python, profiles de controle em YAML — provendo scoring contínuo de compliance, detecção de drift e runbooks de remediação. Auditoria e remediação estritamente separadas; modo audit não-destrutivo; execução idempotente."
+summary: "Auditor open source do CIS Benchmark para Ubuntu 22.04 em Go, Bash e Python: 70% dos controles automatizados para detecção e remediação, um modo de auditoria somente leitura e relatórios em JSON e HTML que tornam visível o desvio de configuração entre execuções."
 repo: "https://github.com/CHDevSec/cis-auditor"
 proofs:
-  - { src: "/portfolio/fonts/projects/cis1.png", alt: "Saída do CIS-Auditor 1" }
-  - { src: "/portfolio/fonts/projects/cis3.png", alt: "Saída do CIS-Auditor 2" }
-  - { src: "/portfolio/fonts/projects/cis4.png", alt: "Saída do CIS-Auditor 3" }
-  - { src: "/portfolio/fonts/projects/cis5.png", alt: "Saída do CIS-Auditor 4" }
-  - { src: "/portfolio/fonts/projects/cis6.png", alt: "Saída do CIS-Auditor 5" }
+  - { src: "/portfolio/fonts/projects/cis1.png", alt: "Relatório HTML de auditoria CIS de um servidor Ubuntu, nível 1: resumo com 2 aprovados, 6 reprovados e 0 erros, e uma tabela de 8 controles com categoria, ID CIS, status, descrição e script de correção", caption: "Relatório HTML — cada controle mostra o status, o motivo da falha e o script exato de remediação." }
+  - { src: "/portfolio/fonts/projects/cis3.png", alt: "Neovim com a árvore do repositório (cmd, configs, internal/auditor, results, scripts, Makefile) e o pacote Go do auditor que carrega um perfil e executa os controles", caption: "A engine em Go — carrega o perfil YAML do tipo de máquina e do nível, executa os controles e soma os resultados PASS no relatório." }
+  - { src: "/portfolio/fonts/projects/cis4.png", alt: "Neovim com cinco perfis YAML do Ubuntu 22.04 e scripts pareados de auditoria e remediação da Fase-01, com o script de auditoria do ASLR aberto", caption: "Os perfis são dados e cada controle é uma verificação curta em Bash — aqui, o ASLR via /proc/sys/kernel/randomize_va_space — com um script de correção correspondente." }
+  - { src: "/portfolio/fonts/projects/cis5.png", alt: "Terminal executando make audit com o perfil ubuntu_22.04_fase01: 8 controles verificados, 4 aprovados, 4 reprovados, 0 erros, resultados em JSON e relatório HTML gerados", caption: "Uma execução de `make audit` em uma VM Ubuntu de teste — 8 controles verificados, resultados salvos em JSON com data e hora e renderizados em HTML." }
 ---
+import StatGrid from '@/components/case/StatGrid.astro';
+import Callout from '@/components/case/Callout.astro';
 
-## O problema
+## Contexto
 
-Hardening parece ótimo numa auditoria pontual e decai no momento em que as pessoas começam a trabalhar. O estado que herdamos era familiar:
+Hardening parece ótimo em uma auditoria pontual e se degrada assim que as pessoas começam a trabalhar. O cenário que herdamos era conhecido: revisões manuais do CIS Benchmark duas vezes por ano, feitas por um prestador externo com uma checklist.
 
-- **Reviews manuais de CIS Benchmark** duas vezes por ano, por contractor com checklist
-- **Drift acumulando silenciosamente** entre auditorias — pacotes adicionados, configs alteradas, sysctls modificados, opções de mount mudadas
-- **Sem diff entre auditorias** — você via o estado atual, nunca como tinha erodido
-- Sem como diferenciar *"nunca configuramos isso"* de *"isso já foi hardenizado e alguém quebrou"*
-- Contagens de vulnerabilidade subindo porque a postura do SO estava erodindo mais rápido que patches chegavam
+- **Desvios se acumulavam em silêncio** entre auditorias — pacotes adicionados, configurações alteradas, sysctls trocados, opções de montagem modificadas.
+- **Sem comparação entre auditorias** — via-se o estado atual, nunca como ele tinha se degradado.
+- **Sem como distinguir** *"nunca configuramos isso"* de *"isso já esteve protegido e alguém quebrou"*.
+- **Contagens de vulnerabilidades subindo** porque a postura do sistema operacional se degradava mais rápido do que os patches chegavam.
 
-Hardening tinha que parar de ser projeto. Tinha que virar sinal diário.
+O hardening precisava deixar de ser um projeto e virar um sinal recorrente.
 
-## A abordagem
+## O que eu fiz
 
-Construí o **CIS-Auditor** como framework híbrido Go + Bash + Python mirando Ubuntu 22.04 LTS. A arquitetura é deliberada — cada linguagem na camada que ela é mais forte, com separação estrita entre auditoria e remediação.
+### Uma engine híbrida, uma linguagem por camada
 
-- **Engine de orquestração Go** (`internal/auditor`) — dispatch de controle, execução paralela, agregação JSON, carregamento de profile YAML. Tipagem estática mantém o engine chato; concorrência mantém auditorias fleet-wide rápidas.
-- **Scripts de auditoria + remediação Bash** — os controles CIS *são* checks shell-level (mount flags, sysctl values, file permissions, GRUB config, AppArmor profiles). Fingir o contrário significa re-implementar `findmnt` e `sysctl` em Go sem motivo.
-- **Gerador de relatório Python** (`scripts/generate_report.py`) — renderização HTML com summary executivo, breakdown por controle, severity rating e disponibilidade de remediação. Templating do Python ganha do Go pra reporting one-shot.
-- **Profiles YAML de controle** (`configs/profiles/`) — Phase 01 (Initial Setup: filesystem, boot loader, MAC, process hardening) e Phase 02 (Services: SSH, PAM, network). Profiles são versionados pra que adicionar STIG ou pack de hardening interno não toque código do engine.
-- **UX dirigida por Make** — `make audit`, `make audit_id ID=1.1.3`, `make fix_all`, `make report`. Operadores não precisam saber Go ou Python pra rodar o framework.
+Construí o **CIS-Auditor** como um framework em Go + Bash + Python para Ubuntu 22.04 LTS, com cada linguagem na camada em que ela é mais forte e separação estrita entre auditoria e remediação.
 
-## Arquitetura
+- **Engine de orquestração em Go** (`internal/auditor`) — execução dos controles, rodadas em paralelo, agregação em JSON e carregamento dos perfis YAML. A tipagem estática mantém a engine previsível; a concorrência mantém rápidas as auditorias em muitos hosts.
+- **Scripts de auditoria e remediação em Bash** — os controles CIS *são* verificações de shell (opções de montagem, valores de sysctl, permissões de arquivo, configuração do GRUB, perfis do AppArmor). Reimplementar `findmnt` e `sysctl` em Go só acrescentaria código.
+- **Gerador de relatório em Python** (`scripts/generate_report.py`) — HTML com resumo executivo, visão por controle, severidade e disponibilidade de remediação.
+- **Perfis de controle em YAML** (`configs/profiles/`) — Fase 01 (configuração inicial: sistema de arquivos, boot loader, MAC, proteção de processos) e Fase 02 (serviços: SSH, PAM, rede). Os perfis são dados versionados, então pacotes STIG ou de hardening interno poderiam ser adicionados sem tocar no código da engine.
+- **Uso pelo Make** — `make audit`, `make audit_id ID=1.1.3`, `make fix_all`, `make report`. Quem opera não precisa saber Go nem Python.
+
+### Por que não Go puro
+
+Go puro teria sido mais limpo no papel. Três motivos para o projeto continuar híbrido:
+
+- **Bash corresponde ao que os controles CIS de fato são.** Um controle como *"Ensure nodev option set on /tmp partition"* é `findmnt -k -n -o OPTIONS /tmp | grep -q nodev`. Reimplementar isso em Go custa mais código, mais bugs e nenhum ganho de clareza.
+- **Go é para orquestração, não para inspecionar o sistema.** Uma goroutine por controle executa as verificações em paralelo em vez de em série, e um binário único chega do mesmo jeito a centenas de hosts.
+- **Python para relatórios porque se encaixa.** Templates, gráficos e bibliotecas HTML maduras. O `html/template` do Go serve bem para servidores web; para um relatório de compliance com severidade e visão de aprovados e reprovados, Python foi mais rápido de construir e é mais fácil de evoluir.
+
+O custo de três linguagens é real (complexidade de build, entrada de novos contribuidores), mas cada camada pode ser trocada de forma independente. Um controle novo é um script Bash em `scripts/Fase-XX/auditoria/`; um novo formato de relatório é um alvo em Python; um perfil novo é YAML, sem mudança na engine.
+
+### Decisões que fizeram diferença
+
+- **Auditoria e remediação estritamente separadas.** O caminho de auditoria não consegue alterar o estado do sistema. `make audit` é seguro para rodar em produção às 3h; `make fix_*` exige chamada explícita. O limite está na arquitetura, não em convenção — diretórios de scripts separados, alvos do Make separados, caminhos de código separados.
+- **Idempotente por design.** Todo script de auditoria e de remediação pode rodar repetidas vezes: uma correção reaplicada não acumula efeitos colaterais, e uma auditoria repetida dá o mesmo resultado em um sistema sem mudanças.
+- **Modo de auditoria não destrutivo é inegociável.** Quem opera roda `make audit` em produção toda semana. Se a auditoria pudesse causar um incidente, ninguém a rodaria.
+- **Pacotes de regras plugáveis.** A mesma engine roda perfis CIS e pode rodar perfis STIG ou padrões internos de hardening. Perfil é dado; engine é código.
+- **Formato intermediário em JSON.** Os resultados viram JSON estruturado antes da renderização em HTML, então os pipelines de CI leem o mesmo artefato que gera o relatório — sem um caminho "legível por máquina" separado que se afaste do que aparece na tela.
+
+## Como funciona
 
 ```mermaid
 flowchart TB
-    A[Operator / CI Pipeline] --> B[Make CLI]
-    B --> C[Go Auditor Engine]
-    C --> D[YAML Profile Loader]
+    A[Operador / pipeline de CI] --> B[CLI via Make]
+    B --> C[Engine de auditoria em Go]
+    C --> D[Carregador de perfis YAML]
 
-    D --> E{Phase}
-    E -->|Fase-01| F[Filesystem · Boot · MAC · Process]
-    E -->|Fase-02| G[Services · SSH · PAM · Network]
+    D --> E{Fase}
+    E -->|Fase-01| F[Sistema de arquivos · Boot · MAC · Processos]
+    E -->|Fase-02| G[Serviços · SSH · PAM · Rede]
 
-    F --> H[Parallel Bash Audit Scripts]
+    F --> H[Scripts de auditoria Bash em paralelo]
     G --> H
 
-    H --> I[JSON Results · per-control PASS/FAIL/MANUAL]
+    H --> I[Resultados JSON · PASS/FAIL/MANUAL por controle]
 
-    I --> J[Python Report Generator]
-    J --> K[HTML Compliance Report]
+    I --> J[Gerador de relatório Python]
+    J --> K[Relatório HTML de compliance]
 
-    I --> L{Remediation flow}
-    L -->|make fix_id ID=X| M[Targeted Bash Remediation]
-    L -->|make fix_all| N[Full Phase Remediation]
-    M --> O[Re-audit · Verify]
+    I --> L{Fluxo de remediação}
+    L -->|make fix_id ID=X| M[Remediação Bash pontual]
+    L -->|make fix_all| N[Remediação da fase inteira]
+    M --> O[Nova auditoria · verificação]
     N --> O
 ```
 
-## Por que esse mix de stack e não Go puro
+A engine carrega um perfil, executa as verificações Bash em paralelo e grava um resultado JSON por controle. O relatório HTML e o CI leem esse JSON; a remediação é um ramo separado que só roda com um `make fix_*` explícito e sempre termina em uma nova auditoria.
 
-Essa foi a decisão de design mais debatida. Go puro teria sido mais limpo no papel. Três motivos pra ficar híbrido:
+## Resultados
 
-- **Bash combina com o que controles CIS efetivamente são.** Um controle como *"Ensure nodev option set on /tmp partition"* é `findmnt -k -n -o OPTIONS /tmp | grep -q nodev`. Re-implementar isso em Go custa mais código, mais bugs e zero ganho de clareza.
-- **Go é pra orquestração, não pra system probing.** Goroutine-por-controle significa que auditorias fleet-wide escalam linear com cores em vez de rodar serial. Deploy de single binary importa quando o auditor tem que ser puxado pra centenas de hosts.
-- **Python pra relatórios porque é a tool certa.** Templating Jinja-style, geração fácil de chart, libs HTML maduras. `html/template` do Go é fino pra web servers; pra relatório one-shot de compliance com severity rating e dashboard pass/fail, Python é mais rápido de construir e mais fácil de evoluir.
+<StatGrid title="O que a ferramenta cobre" stats={[
+  { value: '70%', label: 'Controles CIS Ubuntu 22.04', detail: 'Detecção e remediação automatizadas' },
+  { value: '5', label: 'Perfis YAML', detail: 'Fase 01 e quatro pacotes da Fase 02' },
+  { value: '8 + 8', label: 'Scripts da Fase 01', detail: 'Uma auditoria e uma correção por controle' },
+  { value: '0', label: 'Alterações feitas pela auditoria', detail: 'A remediação é outro comando' },
+]} />
 
-O custo de três linguagens é real (complexidade de build, onboarding de contributor) — mas cada camada é independentemente trocável. Novo controle? Drop um script Bash em `scripts/Fase-XX/auditoria/`. Novo formato de relatório? Adiciona target Python. Novo profile? YAML, sem mudança de engine.
+<StatGrid title="Uma execução de auditoria · VM de teste, 15/10/2025" stats={[
+  { value: '8', label: 'Controles verificados', detail: 'Perfil ubuntu_22.04_fase01' },
+  { value: '4', label: 'Aprovados' },
+  { value: '4', label: 'Reprovados', detail: 'Cada um com seu script de correção' },
+  { value: '0', label: 'Erros' },
+]} caption="Da saída do make audit mostrada nas evidências abaixo." />
 
-## Trade-offs que importaram
+- **70% dos controles CIS do Ubuntu 22.04 automatizados** — detecção e remediação, com os controles que só podem ser verificados manualmente marcados explicitamente nos relatórios.
+- **O desvio ficou visível** — um controle que estava conforme e regride aparece na próxima execução da auditoria, não na próxima revisão externa daqui a seis meses.
+- **O hardening virou uma disciplina contínua** — um número que a engenharia e a liderança acompanham semana a semana, em vez de um fichário aberto só na época da auditoria.
+- **Pronto para CI/CD** — o mesmo binário roda localmente para a triagem do engenheiro e nos pipelines como gate de postura.
+- **Trilha pronta para auditoria** — cada execução salva em JSON com data e hora (`audit-results-ubuntu-20251015-111122.json`), cada remediação registrada.
+- **Contribuiu para a redução no Linux** — junto com o SecScan, o CIS-Auditor contribuiu para a frota Ubuntu sair de 569 mil para 318 mil vulnerabilidades, resultado do programa de [redução de vulnerabilidades Linux](/portfolio/pt/projects/linux-vuln-reduction/).
 
-- **Auditoria e remediação estritamente separadas.** O binário de audit não pode modificar estado do sistema. Ponto. `make audit` é seguro de rodar em produção às 3am; `make fix_*` exige invocação explícita. Esse limite é enforced arquiteturalmente, não por convenção — diretórios de script separados, Make targets separados, code paths separados.
-- **Idempotente por design.** Todo script de auditoria e remediação é seguro de rodar repetidamente. Remediação re-aplicada não acumula side effects; audit re-rodado produz mesmo resultado em sistemas inalterados.
-- **Modo de audit não-destrutivo é inegociável.** Operadores rodam `make audit` contra produção todo dia. Se o audit pudesse causar incidente, ele nunca seria rodado.
-- **Pluggable rule packs.** Mesmo engine roda profiles CIS, STIG e padrões internos de hardening. Profile é dado; engine é código.
-- **Formato JSON intermediário.** Resultados aterrissam como JSON estruturado antes do render HTML. Isso significa que pipelines CI parseiam o mesmo artefato que o relatório renderiza — sem track "machine-readable" separado que diverge do output visível.
+## Valor para o negócio
 
-## O impacto
+<Callout kind="value" lang="pt">
+O compliance deixou de depender de uma revisão manual duas vezes por ano. O desvio agora aparece entre uma execução e outra, então o time corrige uma regressão enquanto ela ainda é uma configuração em um host, e não a descobre na próxima auditoria externa. Como o modo de auditoria não altera nada, ele é seguro para rodar em produção, e cada execução deixa um registro JSON com data e hora que Compliance pode entregar a um auditor como está.
+</Callout>
 
-Combinado com a iniciativa `linux-vuln-reduction` e o SecScan, o CIS-Auditor contribuiu pra trazer a **contagem de vulnerabilidades da empresa de 569k → 318k (−44%)**.
+## Aprendizados
 
-Mais importante que o número de manchete:
-
-- **Hardening deslocou de projeto pra disciplina contínua** — número que engenharia e liderança trackeiam semana a semana, em vez de fichário puxado em momento de auditoria
-- **Drift virou visível** — controle previamente compliant regredindo aparece na próxima rodada de audit, não na próxima review externa daqui seis meses
-- **70% dos controles CIS Ubuntu 22.04 automatizados** — tanto detecção quanto remediação, com controles manual-only flagados explicitamente em relatório
-- **CI/CD-native** — mesmo binário roda local pra triagem de engenheiro e em pipeline pra gate de postura
-- **Audit trail pronto** — cada audit run timestampado, cada remediação logada, JSON estruturado pra consumo de tooling de compliance
-
-## Princípios de engenharia
-
-- **Separa auditoria de remediação. Arquiteturalmente, não por disciplina.** Modo read-only que operadores confiam pra rodar diariamente em produção é mais valioso que modo unificado que ninguém roda.
-- **Combina linguagem com camada.** Bash pra checks de sistema porque o sistema fala Bash. Go pra orquestração porque é onde paralelismo e tipos pagam aluguel. Python pra relatórios porque sai do seu caminho.
-- **Compliance é efeito colateral, não objetivo.** Entrega a métrica, entrega o diff, entrega o fix. O número de compliance se cuida.
-- **JSON antes de HTML, sempre.** Dado estruturado é o contrato; renderização é apresentação. Conflagrar os dois e você perde integração de CI no momento que alguém quer cores bonitas.
-- **Idempotência é a única interface honesta.** Script que "funciona quase sempre na segunda vez" é script que você não pode botar em pipeline de CI. Idempotente ou não está pronto.
+- **Separe auditoria de remediação na arquitetura, não pela disciplina.** Diretórios, alvos do Make e caminhos de código separados é o que torna o `make audit` seguro em produção.
+- **Escolha a linguagem pela camada.** As verificações CIS são comandos de shell de uma linha, como `findmnt ... | grep -q nodev`; o Go orquestra e o Python gera o relatório.
+- **Compliance é efeito colateral, não objetivo.** O relatório entrega o status de cada controle, o motivo da falha e o script exato de correção; o número de compliance vem de corrigir os controles.
+- **JSON antes de HTML, sempre.** O CI e o relatório HTML leem o mesmo JSON, então a apresentação nunca se afasta dos dados.
+- **Idempotência é a única interface honesta.** Todo script de auditoria e de correção pode rodar de novo com segurança, e é isso que permite colocá-lo em um pipeline.

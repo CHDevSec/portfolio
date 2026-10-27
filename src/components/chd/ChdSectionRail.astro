@@ -1,0 +1,35 @@
+---
+import { SECTIONS } from '@/data/sections';
+import type { Lang } from '@/data/i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const label = (i: number) => SECTIONS[i].label[lang];
+const total = SECTIONS.length;
+---
+<nav class="section-rail section-rail--dark" aria-label={lang === 'pt' ? 'Navegação por seção' : 'Section navigation'}>
+  <a class="section-rail__cycle" href={`#${SECTIONS[total - 1].id}`} aria-label={`Previous section: ${label(total - 1)}`}></a>
+  <ol>
+    {SECTIONS.map((section, index) => (
+      <li>
+        <a href={`#${section.id}`} data-rail-id={section.id} aria-label={`${String(index + 1).padStart(2, '0')} ${label(index)}`}>
+          <span class="section-rail__indicator"></span>
+          <span class="section-rail__number">{String(index + 1).padStart(2, '0')}</span>
+          <span class="section-rail__label">{label(index)}</span>
+          <span class="sr-only">{index + 1} of {total}</span>
+        </a>
+      </li>
+    ))}
+  </ol>
+  <a class="section-rail__cycle" href={`#${SECTIONS[1].id}`} aria-label={`Next section: ${label(1)}`}></a>
+</nav>
+
+<nav class="mobile-pager mobile-pager--dark" aria-label={lang === 'pt' ? 'Paginação de seções' : 'Section pager'}>
+  <a data-pager-prev href={`#${SECTIONS[0].id}`}>↑</a>
+  <span class="mobile-pager__status" data-pager-status>01 {label(0)}</span>
+  <a data-pager-next href={`#${SECTIONS[1].id}`}>{label(1)} ↓</a>
+</nav>
+
+<script is:inline define:vars={{ RAIL_LABELS: SECTIONS.map((s, i) => ({ id: s.id, label: s.label[lang], n: String(i + 1).padStart(2, '0') })) }}>
+  window.__chdRailLabels = RAIL_LABELS;
+</script>

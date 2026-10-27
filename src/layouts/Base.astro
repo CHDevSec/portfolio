@@ -5,7 +5,7 @@ import Footer from '@/components/Footer.astro';
 import Loader from '@/components/Loader.astro';
 import { profile } from '@/data/profile';
 import type { Lang } from '@/data/i18n';
-import { detectLang } from '@/data/i18n';
+import { detectLang, localizedUrl, stripLang } from '@/data/i18n';
 
 interface Props {
   title?: string;
@@ -26,10 +26,15 @@ const {
 
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
 const ogImage = new URL(image, Astro.site).toString();
+const sitemapHref = `${(import.meta.env.BASE_URL || '/').replace(/\/$/, '')}/sitemap-index.xml`;
 
-// hreflang alternates
-const altPath = lang === 'en' ? `/pt${Astro.url.pathname === '/' ? '' : Astro.url.pathname}` : Astro.url.pathname.replace(/^\/pt/, '') || '/';
-const altCanonical = new URL(altPath, Astro.site).toString();
+// Build language alternates from the base- and language-free route. This keeps
+// `/portfolio/pt/...` correct when Astro is deployed under the `/portfolio`
+// base path.
+const logicalPath = stripLang(Astro.url.pathname);
+const alternateLang = lang === 'en' ? 'pt' : 'en';
+const altCanonical = new URL(localizedUrl(logicalPath, alternateLang), Astro.site).toString();
+const defaultCanonical = new URL(localizedUrl(logicalPath, 'en'), Astro.site).toString();
 
 const personJsonLd = {
   '@context': 'https://schema.org',
@@ -61,8 +66,10 @@ const personJsonLd = {
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/png" href="/portfolio/fonts/icons/fc854.png" />
     <link rel="canonical" href={canonical} />
-    <link rel="alternate" hreflang={lang === 'en' ? 'pt-BR' : 'en'} href={altCanonical} />
-    <link rel="alternate" hreflang="x-default" href={new URL('/', Astro.site).toString()} />
+    <link rel="sitemap" href={sitemapHref} />
+    <link rel="alternate" hreflang="en" href={lang === 'en' ? canonical : altCanonical} />
+    <link rel="alternate" hreflang="pt-BR" href={lang === 'pt' ? canonical : altCanonical} />
+    <link rel="alternate" hreflang="x-default" href={defaultCanonical} />
     {noindex && <meta name="robots" content="noindex,nofollow" />}
 
     <title>{title}</title>

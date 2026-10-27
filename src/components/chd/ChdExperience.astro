@@ -1,0 +1,261 @@
+---
+import ChdSection from './ChdSection.astro';
+import ChdLava from './ChdLava.astro';
+import { experience } from '@/data/experience';
+import type { Lang } from '@/data/i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+
+// Distinct employers, not entries — CHDevSec appears twice in the timeline.
+const employerCount = new Set(experience.map((e) => e.company)).size;
+const spell: Record<number, { en: string; pt: string }> = {
+  4: { en: 'FOUR', pt: 'QUATRO' },
+  5: { en: 'FIVE', pt: 'CINCO' },
+  6: { en: 'SIX', pt: 'SEIS' },
+  7: { en: 'SEVEN', pt: 'SETE' },
+};
+const n = spell[employerCount] ?? { en: String(employerCount), pt: String(employerCount) };
+
+const copy = lang === 'pt'
+  ? {
+      kicker: `CARREIRA / ${n.pt} EMPRESAS, UM FOCO`,
+      title: 'ONDE EU ENTREGUEI.',
+      lede: `${n.pt[0]}${n.pt.slice(1).toLowerCase()} empresas, um foco: cortar risco em escala sem travar engenharia. Cada passagem com entrega medida, não atribuição genérica.`,
+      current: 'ATUAL',
+      stack: 'STACK',
+      tablist: 'Empresas por onde passei',
+    }
+  : {
+      kicker: `CAREER / ${n.en} COMPANIES, ONE FOCUS`,
+      title: 'WHERE I SHIPPED.',
+      lede: `${n.en[0]}${n.en.slice(1).toLowerCase()} companies, one focus: cut risk at scale without blocking engineering. Every stop with measured delivery, not a generic job description.`,
+      current: 'CURRENT',
+      stack: 'STACK',
+      tablist: 'Companies I worked at',
+    };
+
+/** Strips the **bold** markers the source data carries into real elements. */
+function segments(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).filter(Boolean).map((part) =>
+    part.startsWith('**') && part.endsWith('**')
+      ? { strong: true, text: part.slice(2, -2) }
+      : { strong: false, text: part }
+  );
+}
+
+const entries = experience.map((item, index) => ({
+  ...item,
+  id: `role-${index}`,
+  n: String(index + 1).padStart(2, '0'),
+}));
+---
+<ChdSection id="experience" class="ecosystem-section" labelledBy="experience-title">
+  <div class="section-heading section-heading--split ecosystem-heading">
+    <div>
+      <p class="section-kicker">{copy.kicker}</p>
+      <h2 id="experience-title">{copy.title}</h2>
+    </div>
+    <p>{copy.lede}</p>
+  </div>
+
+  <div class="indexed-tabs indexed-tabs--faq chd-career" data-chd-tabs>
+    <div class="indexed-tabs__list" role="tablist" aria-label={copy.tablist}>
+      {entries.map((item, index) => (
+        <button
+          type="button"
+          role="tab"
+          id={`career-${item.id}-tab`}
+          aria-controls={`career-${item.id}-panel`}
+          aria-selected={index === 0 ? 'true' : 'false'}
+          tabindex={index === 0 ? 0 : -1}
+        >
+          <span class="indexed-tabs__index">{item.n}</span>
+          <span class="indexed-tabs__title">{item.company}</span>
+          <span class="indexed-tabs__meta">{item.period[lang]}</span>
+        </button>
+      ))}
+    </div>
+
+    <div class="indexed-tabs__panels">
+      <ChdLava tone="dark" />
+      {entries.map((item, index) => (
+        <div
+          role="tabpanel"
+          id={`career-${item.id}-panel`}
+          aria-labelledby={`career-${item.id}-tab`}
+          class="indexed-tabs__panel chd-career__panel"
+          hidden={index !== 0}
+        >
+          <div class="indexed-tabs__panel-meta">
+            <span>{item.n} · {item.sector[lang]}</span>
+            <span>
+              {item.current && <b class="chd-career__live">{copy.current}</b>}
+              {item.location}
+            </span>
+          </div>
+
+          <div class="chd-career__head">
+            {item.logo && (
+              <img class="chd-career__logo" src={item.logo.replace('/portfolio', base)} alt="" loading="lazy" decoding="async" />
+            )}
+            <h3>
+              {item.url ? (
+                <a class="chd-career__site" href={item.url} target="_blank" rel="noreferrer">
+                  {item.company}<span aria-hidden="true">↗</span>
+                </a>
+              ) : item.company}
+            </h3>
+          </div>
+          <p class="chd-career__role">{item.role[lang]}</p>
+
+          <ul class="chd-career__bullets">
+            {item.bullets[lang].map((bullet) => (
+              <li>
+                {segments(bullet).map((seg) => (seg.strong ? <b>{seg.text}</b> : <>{seg.text}</>))}
+              </li>
+            ))}
+          </ul>
+
+          <div class="chd-career__stack" aria-label={copy.stack}>
+            {item.stack.map((tech) => <span>{tech}</span>)}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</ChdSection>
+
+<style>
+  /* The shared `--faq` variant hides the meta line; on a career timeline the
+     dates are the point, so bring them back for this instance only. */
+  .chd-career .indexed-tabs__meta {
+    text-align: left;
+    grid-column: 2;
+    display: block;
+    margin-top: 0.3rem;
+  }
+  /* Fixed index column so every company name starts on the same line; the
+     shared `auto` column took the width of the dates instead. One row per
+     entry, however many there are, in a single column at every width. */
+  .chd-career.indexed-tabs--faq .indexed-tabs__list {
+    grid-template-rows: none;
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: minmax(4.5rem, 1fr);
+  }
+  .chd-career.indexed-tabs--faq .indexed-tabs__list button {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    align-content: center;
+    row-gap: 0;
+  }
+  @media (max-width: 760px) {
+    .chd-career.indexed-tabs--faq {
+      grid-template-rows: auto auto;
+    }
+    .chd-career.indexed-tabs--faq .indexed-tabs__list {
+      grid-auto-rows: auto;
+    }
+    .chd-career.indexed-tabs--faq .indexed-tabs__list button {
+      padding: 0.75rem;
+    }
+  }
+
+  /* The shared tab shell only carries a heading and a paragraph; a career entry
+     also needs a logo, a bullet list and stack chips, so the panel gets its own
+     rows on top of the inherited layout. */
+  /* The section grows with its content, so the open entry sets the height
+     instead of hiding its last bullets and stack behind an inner scroll. */
+  .chd-career .indexed-tabs__panels {
+    min-height: auto;
+    overflow: clip;
+  }
+  .chd-career__panel {
+    align-content: start;
+    gap: 0.75rem;
+    min-height: auto;
+  }
+  .chd-career__head {
+    align-items: center;
+    gap: 0.75rem;
+    display: flex;
+  }
+  .chd-career__logo {
+    object-fit: contain;
+    flex: none;
+    width: auto;
+    max-width: 5rem;
+    height: 1.6rem;
+    filter: grayscale(1) brightness(1.9);
+  }
+  .chd-career__live {
+    color: var(--chd-signal-text);
+    margin-right: 0.6rem;
+    font-weight: 400;
+  }
+  .chd-career__site {
+    color: inherit;
+    text-decoration: none;
+    align-items: baseline;
+    gap: 0.25em;
+    display: inline-flex;
+  }
+  .chd-career__site span {
+    color: var(--chd-signal-text);
+    font-size: 0.45em;
+  }
+  .chd-career__site:hover,
+  .chd-career__site:focus-visible {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.12em;
+  }
+  .chd-career__role {
+    color: var(--chd-paper);
+    font-size: var(--chd-type-control);
+    line-height: 1.1;
+  }
+  .chd-career__bullets {
+    gap: 0.5rem;
+    margin: 0.25rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+  }
+  .chd-career__bullets li {
+    color: var(--chd-paper-muted);
+    font-family: var(--chd-font-copy);
+    font-size: var(--chd-type-meta);
+    line-height: 1.25;
+    padding-left: 1.1rem;
+    position: relative;
+  }
+  .chd-career__bullets li:before {
+    content: '→';
+    color: var(--chd-signal-text);
+    position: absolute;
+    left: 0;
+  }
+  .chd-career__bullets b {
+    color: var(--chd-paper);
+    font-weight: 400;
+  }
+  .chd-career__stack {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+    display: flex;
+  }
+  .chd-career__stack span {
+    border: 1px solid var(--chd-rule);
+    color: var(--chd-text-muted);
+    padding: 0.2rem 0.5rem;
+    font-size: var(--chd-type-meta);
+    line-height: 1;
+  }
+  @media (max-width: 760px) {
+    .chd-career__panel {
+      overflow-y: visible;
+    }
+  }
+</style>

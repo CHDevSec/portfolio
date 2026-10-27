@@ -1,0 +1,656 @@
+---
+import '@/styles/chdevsec.css';
+import '@/styles/portfolio-theme.css';
+import ChdHeader from '@/components/chd/ChdHeader.astro';
+import ChdSeo from '@/components/chd/ChdSeo.astro';
+import { profile } from '@/data/profile';
+import { localizedUrl, type Lang } from '@/data/i18n';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  lang: Lang;
+}
+const { project, lang } = Astro.props;
+const d = project.data;
+
+const copy = lang === 'pt'
+  ? {
+      back: '← VOLTAR AOS PROJETOS',
+      stack: 'STACK',
+      toc: 'NESTA PÁGINA',
+      cta: 'Quer um resultado assim no seu ambiente?',
+      ctaBody: 'Disponível para posições Staff e sênior em Security Engineering · consultoria DevSecOps · engenharia reversa.',
+      talk: 'VAMOS CONVERSAR',
+      more: 'VER MAIS TRABALHOS',
+      evidence: 'EVIDÊNCIAS',
+      evidenceLede: 'Capturas reais da entrega. Clique para ver em tamanho original.',
+    }
+  : {
+      back: '← BACK TO PROJECTS',
+      stack: 'STACK',
+      toc: 'ON THIS PAGE',
+      cta: 'Want results like this in your environment?',
+      ctaBody: 'Available for Staff and senior Security Engineering roles · DevSecOps consulting · reverse engineering engagements.',
+      talk: "LET'S TALK",
+      more: 'SEE MORE WORK',
+      evidence: 'EVIDENCE',
+      evidenceLede: 'Real captures from the delivery. Click to view full size.',
+    };
+
+const projectsHref = `${localizedUrl('/', lang)}#projects`;
+const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+const coverHref = d.cover.startsWith('/portfolio') ? d.cover.replace('/portfolio', base) : d.cover;
+const slug = project.id.replace(/^(en|pt)\//, '').replace(/\.mdx$/, '');
+const path = `/projects/${slug}/`;
+const seoTitle = `${d.title} | Caio Henrique`;
+const projectJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: d.title,
+  description: d.summary,
+  url: new URL(localizedUrl(path, lang), Astro.site).toString(),
+  inLanguage: lang === 'pt' ? 'pt-BR' : 'en',
+  temporalCoverage: d.period,
+  creator: { '@type': 'Person', name: profile.name, jobTitle: profile.title, url: Astro.site?.toString() },
+  keywords: [...d.stack, d.category, lang === 'pt' ? 'estudo de caso de cibersegurança' : 'cybersecurity case study'],
+};
+---
+<!doctype html>
+<html lang={lang === 'pt' ? 'pt-BR' : 'en'}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{seoTitle}</title>
+    <ChdSeo title={seoTitle} description={d.summary} lang={lang} path={path} image={coverHref} imageAlt={d.title} type="article" jsonLd={projectJsonLd} />
+  </head>
+  <body class="chd-project-body">
+    <a class="skip-link" href="#case">{lang === 'pt' ? 'Pular para o conteúdo' : 'Skip to content'}</a>
+    <ChdHeader lang={lang} home={localizedUrl('/', lang)} />
+
+    <main class="chd-project">
+      <header class="chd-project__hero">
+        <img class="chd-project__art" src={coverHref} alt="" fetchpriority="high" decoding="async" />
+        <div class="chd-project__scrim"></div>
+        <div class="chd-project__hero-inner">
+          <a class="chd-project__back" href={projectsHref}>{copy.back}</a>
+          <p class="section-kicker">{d.company} · {d.period}</p>
+          <h1>{d.title}</h1>
+          <p class="chd-project__tagline">{d.tagline}</p>
+        </div>
+      </header>
+
+      {d.metrics.length > 0 && (
+        <section class="chd-project__metrics" aria-label={lang === 'pt' ? 'Resultados' : 'Outcomes'}>
+          {d.metrics.map((metric) => (
+            <div>
+              <p class="chd-project__metric-value">{metric.value}</p>
+              <p class="chd-project__metric-label">{metric.label}</p>
+            </div>
+          ))}
+        </section>
+      )}
+
+      <div class="chd-project__doc">
+        <article class="chd-project__case" id="case">
+          <slot />
+        </article>
+        <aside class="chd-project__aside" aria-label={copy.toc}>
+          <div class="chd-project__aside-inner">
+          <nav class="chd-project__toc" data-chd-toc>
+            <p class="section-kicker">{copy.toc}</p>
+            <ol></ol>
+          </nav>
+          {d.stack.length > 0 && (
+            <div class="chd-project__aside-stack">
+              <p class="section-kicker">{copy.stack}</p>
+              <ul>
+                {d.stack.map((tech) => <li>{tech}</li>)}
+              </ul>
+            </div>
+          )}
+          </div>
+        </aside>
+      </div>
+
+      {d.proofs.length > 0 && (
+        <section class="chd-project__evidence" aria-labelledby="evidence">
+          <p class="section-kicker" id="evidence">{copy.evidence}</p>
+          <p class="chd-project__evidence-lede">{copy.evidenceLede}</p>
+          <div class="chd-project__evidence-grid">
+            {d.proofs.map((proof) => {
+              const href = proof.src.startsWith('/portfolio') ? proof.src.replace('/portfolio', base) : proof.src;
+              return (
+                <figure>
+                  <a href={href} target="_blank" rel="noopener">
+                    <img src={href} alt={proof.alt ?? ''} loading="lazy" decoding="async" />
+                  </a>
+                  {(proof.caption || proof.alt) && <figcaption>{proof.caption ?? proof.alt}</figcaption>}
+                </figure>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      <section class="chd-project__cta">
+        <h2>{copy.cta}</h2>
+        <p>{copy.ctaBody}</p>
+        <div class="chd-project__cta-actions">
+          <a class="button button--primary" href={`${localizedUrl('/', lang)}#contact`}>
+            {copy.talk}<span>↓</span>
+          </a>
+          <a class="button button--secondary" href={projectsHref}>
+            {copy.more}<span>↗</span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      import { initCover } from '@/scripts/chdevsec-ui';
+      document.querySelectorAll<HTMLElement>('[data-chd-cover]').forEach(initCover);
+
+      // The table of contents is built from the rendered MDX, so a case study
+      // never has to maintain its own outline.
+      const slug = (text: string) =>
+        text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+      const list = document.querySelector('[data-chd-toc] ol');
+      const heads = Array.from(
+        document.querySelectorAll<HTMLHeadingElement>('.chd-project__case h2, .chd-project__case h3')
+      );
+      if (list && heads.length) {
+        for (const head of heads) {
+          if (!head.id) head.id = slug(head.textContent || '');
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = `#${head.id}`;
+          a.textContent = head.textContent;
+          a.dataset.depth = head.tagName === 'H3' ? '3' : '2';
+          li.appendChild(a);
+          list.appendChild(li);
+        }
+
+        // Mark the heading currently closest to the top of the viewport.
+        const links = new Map(heads.map((h) => [h.id, list.querySelector<HTMLAnchorElement>(`a[href="#${CSS.escape(h.id)}"]`)]));
+        const mark = () => {
+          let current = heads[0];
+          for (const head of heads) {
+            if (head.getBoundingClientRect().top <= 120) current = head;
+          }
+          for (const [id, link] of links) {
+            if (!link) continue;
+            if (id === current.id) link.setAttribute('aria-current', 'true');
+            else link.removeAttribute('aria-current');
+          }
+        };
+        mark();
+        window.addEventListener('scroll', () => requestAnimationFrame(mark), { passive: true });
+      }
+
+      // Mermaid emits a bare SVG scaled to the column. A wide flowchart on a
+      // phone shrank to a quarter of its size, so each diagram gets a scroll
+      // frame and a floor of ~60% of its drawn width.
+      document.querySelectorAll<SVGSVGElement>('.chd-project__case svg[id^="mermaid"]').forEach((svg) => {
+        const frame = document.createElement('div');
+        frame.className = 'chd-project__diagram';
+        svg.replaceWith(frame);
+        frame.appendChild(svg);
+        const drawn = svg.viewBox.baseVal?.width || 0;
+        if (drawn) svg.style.minWidth = `${Math.round(Math.min(drawn * 0.6, 760))}px`;
+      });
+
+      // Wide tables (six columns of severity counts) pushed the whole page
+      // sideways on a phone; they scroll inside their own frame instead.
+      document.querySelectorAll<HTMLTableElement>('.chd-project__case table').forEach((table) => {
+        const frame = document.createElement('div');
+        frame.className = 'chd-project__table';
+        table.replaceWith(frame);
+        frame.appendChild(table);
+      });
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  /* A case study is a reading surface, not a snap panel: it scrolls normally
+     and sets a comfortable measure, while keeping the system's ink, paper,
+     rules and accent. */
+  /* The design system puts `scroll-snap-type: y mandatory` on <html> so the
+     one-page site clicks from panel to panel. On a long-form case study that
+     fights the reader — scrolling gets pinned to the nearest stop. Snapping is
+     turned off for this document type. */
+  html:has(.chd-project-body) {
+    scroll-snap-type: none;
+  }
+  .chd-project-body {
+    background: var(--chd-ink);
+    color: var(--chd-paper);
+    scroll-snap-type: none;
+    /* The system sets `overflow-y: auto` on body, which makes it a scroll
+       container that never actually scrolls — sticky children then anchor to
+       it and never engage. The document scrolls on <html> instead. */
+    overflow: visible;
+  }
+  /* The whole document shares one centred container, so the hero, the metric
+     band and the two-column body all sit on the same axis instead of hugging
+     the left edge of a wide screen. */
+  .chd-project {
+    --case-measure: 52rem;
+    max-width: 96rem;
+    margin-inline: auto;
+    padding-bottom: clamp(3rem, 8vh, 6rem);
+  }
+  /* The design system makes every `main > section` a full-height snap stop.
+     A case study is a document, not a deck — its sections size to content and
+     do not snap. */
+  .chd-project > section {
+    min-height: 0;
+    scroll-snap-align: none;
+    scroll-snap-stop: normal;
+  }
+  /* The wallpaper sits behind the headline, full-bleed and cropped to the
+     band, under a gradient that deepens toward the bottom so the type stays
+     readable over busy pixel art. Matches how the published site does it. */
+  .chd-project__hero {
+    border-bottom: 1px solid var(--chd-rule);
+    isolation: isolate;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    /* Content is anchored to the top, as on the published page. Bottom-
+       aligning it left a dead band of wallpaper above the back link, and a
+       min-height left one below it — the band is sized by its content plus a
+       deliberate breath at the bottom. */
+    padding: 1.25rem 0 clamp(3rem, 6vh, 5rem);
+    display: grid;
+    align-items: start;
+    position: relative;
+    overflow: hidden;
+  }
+  .chd-project__art {
+    z-index: 0;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    /* Nearest-neighbour keeps the pixel grid crisp instead of smearing it. */
+    image-rendering: pixelated;
+    position: absolute;
+    inset: 0;
+  }
+  .chd-project__scrim {
+    z-index: 1;
+    background: linear-gradient(
+      to bottom,
+      rgb(10 10 10 / 0.42),
+      rgb(10 10 10 / 0.68),
+      rgb(10 10 10 / 0.92)
+    );
+    position: absolute;
+    inset: 0;
+  }
+  .chd-project__hero-inner {
+    z-index: 2;
+    width: 100%;
+    max-width: 96rem;
+    margin-inline: auto;
+    padding-inline: var(--page-pad);
+    position: relative;
+  }
+  /* These two sit over the busiest part of the art, so they carry their own
+     backing instead of relying on the gradient. */
+  .chd-project__hero .section-kicker {
+    background: rgb(10 10 10 / 0.82);
+    box-shadow: 0 0 0 0.4rem rgb(10 10 10 / 0.82);
+    color: var(--chd-signal-text);
+    width: fit-content;
+  }
+  .chd-project__hero h1,
+  .chd-project__tagline {
+    text-shadow: 0 0.12em 0.5em rgb(10 10 10 / 0.75);
+  }
+  .chd-project__hero h1 {
+    font-size: clamp(2.25rem, 5vw, 4.5rem);
+    line-height: 0.95;
+    margin: 0.5rem 0 0;
+  }
+  .chd-project__tagline {
+    color: var(--chd-paper-muted);
+    font-family: var(--chd-font-copy);
+    font-size: var(--chd-type-copy-large, 1.5rem);
+    line-height: 1.18;
+    max-width: 34rem;
+    margin: clamp(0.75rem, 2vh, 1.25rem) 0 0;
+  }
+  .chd-project__metrics {
+    border-bottom: 1px solid var(--chd-rule);
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    display: grid;
+  }
+  .chd-project__metrics > div {
+    padding: clamp(1rem, 2.5vh, 1.75rem) var(--page-pad);
+  }
+  .chd-project__metrics > div + div {
+    border-left: 1px solid var(--chd-rule);
+  }
+  .chd-project__metric-value {
+    color: var(--chd-signal-text);
+    font-size: clamp(2rem, 3.5vw, 3.25rem);
+    line-height: 0.9;
+    margin: 0;
+  }
+  /* Labels are written in sentence case in the content and set in caps here,
+     so every case study reads the same whatever its source casing. */
+  .chd-project__metric-label {
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    line-height: 1.15;
+    text-transform: uppercase;
+    margin: 0.4rem 0 0;
+  }
+  .chd-project__stack {
+    border-bottom: 1px solid var(--chd-rule);
+    padding: clamp(0.9rem, 2vh, 1.5rem) var(--page-pad);
+  }
+  .chd-project__stack ul {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0.6rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+  }
+  .chd-project__stack li {
+    border: 1px solid var(--chd-rule);
+    color: var(--chd-paper-muted);
+    padding: 0.2rem 0.55rem;
+    font-size: var(--chd-type-meta);
+    line-height: 1;
+  }
+
+  /* Content column plus a sticky rail. The reading measure stays narrow, but
+     the page no longer leaves a thousand dead pixels on the right. */
+  .chd-project__doc {
+    grid-template-columns: minmax(0, var(--case-measure)) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 4rem);
+    display: grid;
+  }
+  /* The rail stretches to the full row so the sticky box has somewhere to
+     travel; `align-items: start` on the grid would collapse it to its own
+     height and sticky would never engage. */
+  .chd-project__aside {
+    border-left: 1px solid var(--chd-rule);
+    align-self: stretch;
+  }
+  .chd-project__aside > * {
+    margin-bottom: clamp(1.25rem, 3vh, 2rem);
+  }
+  .chd-project__aside-inner {
+    padding: clamp(2rem, 6vh, 4rem) var(--page-pad) 2rem 0;
+    position: sticky;
+    top: calc(var(--chd-header-height) + 1.5rem);
+  }
+  .chd-project__aside .section-kicker {
+    padding-left: clamp(1rem, 2vw, 1.75rem);
+  }
+  .chd-project__toc ol {
+    counter-reset: toc;
+    gap: 0.3rem;
+    margin: 0.6rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+  }
+  .chd-project__toc a {
+    border-left: 2px solid transparent;
+    color: var(--chd-paper-muted);
+    font-family: var(--chd-font-copy);
+    font-size: var(--chd-type-meta);
+    line-height: 1.15;
+    padding: 0.2rem 0 0.2rem clamp(1rem, 2vw, 1.75rem);
+    text-decoration: none;
+    display: block;
+  }
+  .chd-project__toc a:hover,
+  .chd-project__toc a:focus-visible,
+  .chd-project__toc a[aria-current='true'] {
+    border-left-color: var(--chd-signal);
+    color: var(--chd-paper);
+  }
+  .chd-project__toc a[data-depth='3'] {
+    padding-left: clamp(2rem, 3vw, 2.75rem);
+    color: var(--chd-text-muted);
+  }
+  .chd-project__aside-stack ul {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin: 0.6rem 0 0;
+    padding: 0 0 0 clamp(1rem, 2vw, 1.75rem);
+    list-style: none;
+    display: flex;
+  }
+  .chd-project__aside-stack li {
+    border: 1px solid var(--chd-rule);
+    color: var(--chd-text-muted);
+    padding: 0.15rem 0.45rem;
+    font-size: var(--chd-type-meta);
+    line-height: 1;
+  }
+  @media (max-width: 1100px) {
+    .chd-project__doc {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .chd-project__aside {
+      display: none;
+    }
+  }
+
+  /* ---- Case study prose ---- */
+  .chd-project__case {
+    max-width: var(--case-measure);
+    padding: clamp(2rem, 6vh, 4rem) var(--page-pad);
+    font-family: var(--chd-font-copy);
+    font-size: var(--chd-type-copy);
+    line-height: 1.32;
+    color: var(--chd-paper-muted);
+  }
+  .chd-project__case > * + * {
+    margin-top: 1.1em;
+  }
+  .chd-project__case h2 {
+    border-top: 1px solid var(--chd-rule);
+    color: var(--chd-paper);
+    font-family: var(--chd-font-display);
+    font-size: clamp(1.75rem, 3vw, 2.75rem);
+    line-height: 1;
+    margin-top: 2.2em;
+    padding-top: 1rem;
+  }
+  /* The rule-and-space before an h2 separates it from the section above; the
+     first one has nothing above it to separate from. */
+  .chd-project__case > h2:first-child {
+    border-top: 0;
+    margin-top: 0;
+    padding-top: 0;
+  }
+  .chd-project__case h3 {
+    color: var(--chd-paper);
+    font-family: var(--chd-font-display);
+    font-size: clamp(1.25rem, 2vw, 1.75rem);
+    line-height: 1.05;
+    margin-top: 1.8em;
+  }
+  .chd-project__case strong {
+    color: var(--chd-paper);
+    font-weight: 400;
+  }
+  .chd-project__case a {
+    color: var(--chd-signal-text);
+    text-underline-offset: 0.2em;
+  }
+  .chd-project__case ul,
+  .chd-project__case ol {
+    padding-left: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .chd-project__case li {
+    padding-left: 1.2rem;
+    position: relative;
+  }
+  .chd-project__case ul > li:before {
+    content: '→';
+    color: var(--chd-signal-text);
+    position: absolute;
+    left: 0;
+  }
+  .chd-project__case ol {
+    counter-reset: step;
+  }
+  .chd-project__case ol > li {
+    counter-increment: step;
+  }
+  .chd-project__case ol > li:before {
+    content: counter(step, decimal-leading-zero);
+    color: var(--chd-signal-text);
+    font-size: var(--chd-type-meta);
+    position: absolute;
+    left: 0;
+  }
+  .chd-project__case blockquote {
+    border-left: 2px solid var(--chd-signal);
+    color: var(--chd-paper);
+    margin-left: 0;
+    padding-left: 1rem;
+  }
+  /* The pixel copy face is already monospaced and has a small x-height, so a
+     system mono at the same size towered over the sentence around it. Inline
+     code keeps the copy face and reads as code through its chip instead. */
+  .chd-project__case :not(pre) > code {
+    border: 1px solid var(--chd-rule);
+    background: var(--chd-surface);
+    color: var(--chd-paper);
+    font-family: inherit;
+    font-size: 1em;
+    padding: 0 0.3em;
+  }
+  .chd-project__case pre {
+    font-family: var(--chd-font-code);
+    font-size: 0.8em;
+  }
+  .chd-project__case pre {
+    border: 1px solid var(--chd-rule);
+    background: var(--chd-surface);
+    padding: 1rem;
+    overflow-x: auto;
+  }
+  .chd-project__case table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: var(--chd-type-meta);
+  }
+  .chd-project__case :is(th, td) {
+    border: 1px solid var(--chd-rule);
+    text-align: left;
+    padding: 0.5rem 0.65rem;
+    vertical-align: top;
+  }
+  .chd-project__case th {
+    color: var(--chd-paper);
+    font-weight: 400;
+  }
+  .chd-project__case img,
+  .chd-project__case svg {
+    border: 1px solid var(--chd-rule);
+    max-width: 100%;
+    height: auto;
+  }
+  .chd-project__diagram {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+  .chd-project__diagram svg {
+    display: block;
+  }
+  .chd-project__table {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+  .chd-project__table table {
+    min-width: 32rem;
+  }
+
+  /* Evidence sits outside the reading column: screenshots need the width. */
+  .chd-project__evidence {
+    border-top: 1px solid var(--chd-rule);
+    padding: clamp(2rem, 5vh, 3.5rem) var(--page-pad);
+  }
+  .chd-project__evidence-lede {
+    color: var(--chd-paper-muted);
+    font-family: var(--chd-font-copy);
+    margin: 0.5rem 0 1.25rem;
+  }
+  .chd-project__evidence-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+    gap: 1rem;
+    display: grid;
+  }
+  .chd-project__evidence figure {
+    border: 1px solid var(--chd-rule);
+    background: var(--chd-surface);
+    margin: 0;
+  }
+  .chd-project__evidence a {
+    display: block;
+  }
+  .chd-project__evidence img {
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top left;
+    width: 100%;
+    transition: opacity 0.12s;
+  }
+  .chd-project__evidence a:hover img,
+  .chd-project__evidence a:focus-visible img {
+    opacity: 0.85;
+  }
+  .chd-project__evidence figcaption {
+    border-top: 1px solid var(--chd-rule);
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    padding: 0.6rem 0.75rem;
+  }
+
+  /* The rule spans the page like every other section break; only the copy
+     keeps the reading measure. */
+  .chd-project__cta {
+    border-top: 1px solid var(--chd-rule);
+    padding: clamp(2rem, 5vh, 3.5rem) var(--page-pad) 0;
+  }
+  .chd-project__cta > * {
+    max-width: var(--case-measure);
+  }
+  .chd-project__cta h2 {
+    font-size: clamp(1.75rem, 3.5vw, 3rem);
+    line-height: 1;
+    margin: 0;
+  }
+  .chd-project__cta p {
+    color: var(--chd-paper-muted);
+    font-family: var(--chd-font-copy);
+    margin: 0.75rem 0 1.5rem;
+  }
+  .chd-project__cta-actions {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    display: flex;
+  }
+  @media (max-width: 760px) {
+    .chd-project__metrics > div + div {
+      border-top: 1px solid var(--chd-rule);
+      border-left: 0;
+    }
+  }
+</style>

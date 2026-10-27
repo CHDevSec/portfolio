@@ -1,0 +1,435 @@
+---
+import ChdSection from './ChdSection.astro';
+import ChdCover from './ChdCover.astro';
+import { getCollection } from 'astro:content';
+import { localizedUrl, type Lang } from '@/data/i18n';
+import { categoryLabel } from '@/data/categories';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+const all = (await getCollection('projects'))
+  .filter((entry) => entry.id.startsWith(`${lang}/`) && !entry.data.draft)
+  .sort((a, b) => a.data.order - b.data.order);
+
+/** The latest incident case gets its own editorial feature above the grid. */
+const spotlight = all.find((project) => project.id.includes('manual-pentest-rce-cloud'));
+const regularProjects = spotlight ? all.filter((project) => project !== spotlight) : all;
+
+/* The grid is three columns wide, so the highlight row count has to be a
+   multiple of three — a seventh card would sit alone beside two empty cells.
+   Anything beyond the first six drops into the list below, which is how the
+   previous site grouped them too. */
+const FEATURED_SLOTS = 6;
+const highlighted = regularProjects.filter((p) => p.data.featured);
+const featured = highlighted.slice(0, FEATURED_SLOTS);
+const rest = [...highlighted.slice(FEATURED_SLOTS), ...regularProjects.filter((p) => !p.data.featured)]
+  .sort((a, b) => a.data.order - b.data.order);
+
+/** `en/secscan` -> `secscan` */
+const slugOf = (id: string) => id.replace(/^[a-z]{2}\//, '').replace(/\.mdx$/, '');
+
+const copy = lang === 'pt'
+  ? {
+      kicker: 'PROJETOS / ESTUDOS DE CASO',
+      title: 'O QUE EU ENTREGUEI.',
+      lede: 'Estudos de caso em AppSec, cloud, testes ofensivos e engenharia de segurança — com contexto, decisões e resultados.',
+      featured: 'EM DESTAQUE',
+      spotlight: 'DESTAQUE · PENTEST MANUAL',
+      spotlightCta: 'VER ESTUDO DE CASO',
+      spotlightIndex: '01 / RESPOSTA A INCIDENTES',
+      more: 'OUTROS TRABALHOS',
+      read: 'LER',
+      count: (n: number) => `${n} PROJETOS`,
+    }
+  : {
+      kicker: 'PROJECTS / CASE STUDIES',
+      title: "THINGS I'VE SHIPPED.",
+      lede: 'Case studies in AppSec, cloud security, offensive testing, and security engineering, with the decisions and results behind the work.',
+      featured: 'FEATURED',
+      spotlight: 'LATEST CASE · MANUAL PENTEST',
+      spotlightCta: 'VIEW CASE STUDY',
+      spotlightIndex: '01 / INCIDENT RESPONSE',
+      more: 'MORE WORK',
+      read: 'READ',
+      count: (n: number) => `${n} PROJECTS`,
+    };
+---
+<ChdSection id="projects" class="chd-projects-section chd-section--grows" labelledBy="projects-title" motionClass="chd-projects-motion">
+  <div class="section-heading section-heading--split">
+    <div>
+      <p class="section-kicker">{copy.kicker} · {copy.count(all.length)}</p>
+      <h2 id="projects-title">{copy.title}</h2>
+    </div>
+    <p>{copy.lede}</p>
+  </div>
+
+  <div class="chd-projects">
+    {spotlight && (
+      <a class="chd-projects__spotlight" href={localizedUrl(`/projects/${slugOf(spotlight.id)}/`, lang)}>
+        <ChdCover src={spotlight.data.cover} scrim={0.72} blur={1} opacity={0.48} />
+        <div class="chd-projects__spotlight-copy">
+          <p class="chd-projects__spotlight-label"><span class="chd-projects__spotlight-mark" aria-hidden="true"></span>{copy.spotlight}</p>
+          <p class="chd-projects__spotlight-meta">{spotlight.data.company} · {spotlight.data.period}</p>
+          <h3>{spotlight.data.title}</h3>
+          <p class="chd-projects__spotlight-summary">{spotlight.data.tagline}</p>
+          <ul class="chd-projects__metrics chd-projects__spotlight-metrics">
+            {spotlight.data.metrics.slice(0, 3).map((metric) => (
+              <li><b>{metric.value}</b><span>{metric.label}</span></li>
+            ))}
+          </ul>
+          <span class="chd-projects__spotlight-cta">{copy.spotlightCta} <span aria-hidden="true">↗</span></span>
+        </div>
+        <span class="chd-projects__spotlight-index" aria-hidden="true">{copy.spotlightIndex}</span>
+      </a>
+    )}
+
+    <ol class="chd-projects__grid">
+      {featured.map((project, index) => (
+        <li class="chd-projects__cell">
+          <a class="chd-projects__card" href={localizedUrl(`/projects/${slugOf(project.id)}/`, lang)}>
+            <ChdCover src={project.data.cover} scrim={0.76} />
+            <p class="chd-projects__meta">
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              <span>{categoryLabel(project.data.category, lang).toUpperCase()} · {project.data.period}</span>
+            </p>
+            <h3>{project.data.title}</h3>
+            <p class="chd-projects__summary">{project.data.tagline}</p>
+            <ul class="chd-projects__metrics">
+              {project.data.metrics.slice(0, 3).map((metric) => (
+                <li>
+                  <b>{metric.value}</b>
+                  <span>{metric.label}</span>
+                </li>
+              ))}
+            </ul>
+            <p class="chd-projects__stack">
+              {project.data.stack.slice(0, 3).join(' · ')}
+              {project.data.stack.length > 3 && <span> +{project.data.stack.length - 3}</span>}
+            </p>
+            <span class="chd-projects__read">{copy.read} →</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+
+    {rest.length > 0 && (
+      <div class="chd-projects__more">
+        <p class="section-kicker">{copy.more} · {rest.length}</p>
+        <ul class="chd-projects__list">
+          {rest.map((project) => (
+            <li>
+              <a class="chd-projects__row" href={localizedUrl(`/projects/${slugOf(project.id)}/`, lang)}>
+                <span class="chd-projects__row-name">{project.data.title}</span>
+                <span class="chd-projects__row-meta">{categoryLabel(project.data.category, lang).toUpperCase()} · {project.data.period}</span>
+                <span class="chd-projects__row-arrow">→</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </div>
+</ChdSection>
+
+<style>
+  /* :global — these two land on ChdSection's own elements, outside this
+     component's scope hash. */
+  /* Seven featured cards in three columns need three rows — more than one
+     viewport. `main > section` sets a MIN height, so the section is free to
+     grow; it was my own 1fr + overflow:hidden that was clipping two rows. */
+  :global(.chd-projects-motion) {
+    grid-template-rows: auto auto;
+    gap: clamp(1rem, 2.5vh, 2rem);
+    display: grid;
+  }
+  .chd-projects {
+    grid-template-rows: auto auto;
+    gap: clamp(1rem, 2vh, 1.5rem);
+    display: grid;
+  }
+  .chd-projects__spotlight {
+    isolation: isolate;
+    position: relative;
+    overflow: hidden;
+    min-height: clamp(17rem, 30vh, 23rem);
+    padding: clamp(1rem, 2.2vw, 2rem);
+    border: 1px solid var(--chd-rule);
+    color: var(--chd-paper-muted);
+    text-decoration: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    transition: border-color 0.15s;
+  }
+  .chd-projects__spotlight::after {
+    content: "";
+    z-index: 0;
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgb(8 10 12 / 94%) 0%, rgb(8 10 12 / 80%) 56%, rgb(8 10 12 / 28%) 100%);
+  }
+  .chd-projects__spotlight:hover,
+  .chd-projects__spotlight:focus-visible { border-color: var(--chd-signal-text); }
+  .chd-projects__spotlight > :not(.chd-cover) { z-index: 1; position: relative; }
+  .chd-projects__spotlight-copy { max-width: 51rem; display: grid; gap: 0.55rem; }
+  .chd-projects__spotlight-label,
+  .chd-projects__spotlight-meta,
+  .chd-projects__spotlight-summary { margin: 0; }
+  .chd-projects__spotlight-label {
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--chd-signal-text);
+    font-size: var(--chd-type-meta);
+    letter-spacing: 0.1em;
+    display: flex;
+  }
+  .chd-projects__spotlight-mark { width: 0.48rem; height: 0.48rem; background: var(--chd-signal-text); display: inline-block; }
+  .chd-projects__spotlight-meta { color: var(--chd-text-muted); font-size: var(--chd-type-meta); }
+  .chd-projects__spotlight h3 {
+    max-width: 25ch;
+    color: var(--chd-paper);
+    font-size: clamp(1.8rem, 3.2vw, 3.25rem);
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    margin: 0;
+  }
+  .chd-projects__spotlight-summary {
+    max-width: 61ch;
+    color: var(--chd-paper-muted);
+    font-family: var(--chd-font-copy);
+    font-size: clamp(0.86rem, 1vw, 0.98rem);
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
+  .chd-projects__spotlight-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin-top: 0.15rem; }
+  .chd-projects__spotlight-metrics li { display: grid; gap: 0.2rem; }
+  .chd-projects__spotlight-metrics b { font-size: clamp(1rem, 1.35vw, 1.35rem); }
+  .chd-projects__spotlight-metrics span { max-width: 23ch; font-size: clamp(0.62rem, 0.7vw, var(--chd-type-meta)); }
+  .chd-projects__spotlight-cta { color: var(--chd-paper); font-size: var(--chd-type-meta); letter-spacing: 0.08em; margin-top: 0.35rem; }
+  .chd-projects__spotlight-cta span { color: var(--chd-signal-text); }
+  .chd-projects__spotlight-index { align-self: start; justify-self: end; color: var(--chd-paper-muted); font-size: var(--chd-type-meta); letter-spacing: 0.08em; }
+  .chd-projects__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid var(--chd-rule);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+  }
+  .chd-projects__cell {
+    border-right: 1px solid var(--chd-rule);
+    min-width: 0;
+  }
+  .chd-projects__cell:nth-child(3n) {
+    border-right: 0;
+  }
+  .chd-projects__cell:nth-child(n + 4) {
+    border-top: 1px solid var(--chd-rule);
+  }
+  .chd-projects__card {
+    isolation: isolate;
+    position: relative;
+    grid-template-rows: auto auto auto 1fr auto auto;
+    gap: 0.5rem;
+    height: 100%;
+    padding: clamp(1rem, 1.6vw, 1.6rem);
+    color: var(--chd-paper-muted);
+    text-decoration: none;
+    transition: background-color 0.12s, color 0.12s;
+    display: grid;
+  }
+  .chd-projects__card:hover,
+  .chd-projects__card:focus-visible {
+    background: var(--chd-paper);
+    color: var(--chd-ink);
+  }
+  /* The inverted hover state needs a clean paper field, so the art steps out. */
+  .chd-projects__card:hover :global(.chd-cover),
+  .chd-projects__card:focus-visible :global(.chd-cover) {
+    opacity: 0;
+  }
+  .chd-projects__card :global(.chd-cover) {
+    transition: opacity 0.12s;
+  }
+  .chd-projects__card > :not(.chd-cover) {
+    z-index: 1;
+    position: relative;
+  }
+  .chd-projects__meta {
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    margin: 0;
+    display: flex;
+  }
+  .chd-projects__card:hover .chd-projects__meta,
+  .chd-projects__card:focus-visible .chd-projects__meta {
+    color: var(--chd-ink);
+  }
+  .chd-projects__card h3 {
+    color: var(--chd-paper);
+    font-size: clamp(1.2rem, 1.5vw, 1.6rem);
+    line-height: 1.02;
+    margin: 0;
+  }
+  .chd-projects__card:hover h3,
+  .chd-projects__card:focus-visible h3 {
+    color: var(--chd-ink);
+  }
+  .chd-projects__summary {
+    font-family: var(--chd-font-copy);
+    font-size: var(--chd-type-meta);
+    line-height: 1.2;
+    align-self: start;
+    margin: 0;
+    /* Taglines vary a lot in length; cap them so every card keeps its shape. */
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    display: -webkit-box;
+    overflow: hidden;
+  }
+  .chd-projects__metrics {
+    gap: 0.15rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+  }
+  .chd-projects__metrics li {
+    align-items: baseline;
+    gap: 0.4rem;
+    display: flex;
+  }
+  .chd-projects__metrics b {
+    color: var(--chd-signal-text);
+    font-weight: 400;
+    font-size: var(--chd-type-control);
+    line-height: 1;
+  }
+  .chd-projects__metrics span {
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    line-height: 1.1;
+  }
+  .chd-projects__card:hover .chd-projects__metrics span,
+  .chd-projects__card:focus-visible .chd-projects__metrics span {
+    color: var(--chd-ink);
+  }
+  .chd-projects__stack {
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    line-height: 1.1;
+    margin: 0;
+  }
+  .chd-projects__read {
+    font-size: var(--chd-type-meta);
+    letter-spacing: 0.06em;
+  }
+  .chd-projects__more {
+    border-top: 1px solid var(--chd-rule);
+    gap: 0.5rem;
+    padding-top: clamp(0.75rem, 1.5vh, 1.25rem);
+    display: grid;
+  }
+  .chd-projects__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 clamp(1rem, 3vw, 3rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+  }
+  .chd-projects__row {
+    border-bottom: 1px solid var(--chd-rule-muted);
+    grid-template-columns: minmax(0, 1fr) auto 1.2rem;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    color: var(--chd-paper-muted);
+    text-decoration: none;
+    display: grid;
+  }
+  .chd-projects__row:hover,
+  .chd-projects__row:focus-visible {
+    color: var(--chd-paper);
+  }
+  .chd-projects__row-name {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--chd-type-control);
+    overflow: hidden;
+  }
+  .chd-projects__row-meta {
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    white-space: nowrap;
+  }
+  .chd-projects__row-arrow {
+    color: var(--chd-signal-text);
+    text-align: right;
+  }
+  @media (max-width: 1100px) {
+    .chd-projects__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .chd-projects__cell:nth-child(3n) {
+      border-right: 1px solid var(--chd-rule);
+    }
+    .chd-projects__cell:nth-child(2n) {
+      border-right: 0;
+    }
+    .chd-projects__cell:nth-child(n + 3) {
+      border-top: 1px solid var(--chd-rule);
+    }
+  }
+  @media (max-width: 760px) {
+    .chd-projects__spotlight { min-height: 0; grid-template-columns: 1fr; gap: 0.75rem; padding: 1rem; }
+    .chd-projects__spotlight-copy { gap: 0.5rem; }
+    .chd-projects__spotlight h3 { font-size: clamp(1.75rem, 7vw, 2.5rem); }
+    .chd-projects__spotlight-summary { -webkit-line-clamp: 2; }
+    .chd-projects__spotlight-index { grid-row: 1; justify-self: start; }
+    .chd-projects__spotlight-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; }
+    .chd-projects__grid,
+    .chd-projects__list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .chd-projects__cell {
+      border-right: 0;
+    }
+    .chd-projects__cell + .chd-projects__cell {
+      border-top: 1px solid var(--chd-rule);
+    }
+    /* On a phone the meta goes under the title, so the title gets the full
+       width and two lines instead of being cut after a dozen characters. */
+    .chd-projects__row {
+      grid-template-columns: minmax(0, 1fr) 1.2rem;
+      row-gap: 0.25rem;
+      padding: 0.75rem 0;
+    }
+    .chd-projects__row-name {
+      white-space: normal;
+      line-height: 1.15;
+    }
+    .chd-projects__row-meta {
+      grid-row: 2;
+      grid-column: 1;
+    }
+    .chd-projects__row-arrow {
+      grid-row: 1 / span 2;
+      grid-column: 2;
+    }
+  }
+  /* Three metric columns collide below this width; stack them. */
+  @media (max-width: 560px) {
+    .chd-projects__spotlight-metrics {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.35rem;
+    }
+  }
+</style>

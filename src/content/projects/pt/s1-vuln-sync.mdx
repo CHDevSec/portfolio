@@ -1,6 +1,6 @@
 ---
-title: "S1-Vuln-Sync — automação de vulnerabilidades SentinelOne"
-tagline: "Automação Python processando 394k vulnerabilidades em fleet multi-OS com dashboards Grafana e alertas Slack."
+title: "S1-Vuln-Sync — 394 mil vulnerabilidades em uma visão semanal"
+tagline: "Criei uma integração em Python que normaliza 394 mil registros de vulnerabilidades do SentinelOne toda semana e os coloca diante de Segurança, Infraestrutura e Compliance no Grafana, no Sheets e no Slack."
 company: "frete.com"
 period: "2024 — 2026"
 category: "soc"
@@ -8,62 +8,101 @@ cover: "/portfolio/images/wallpapers/blue-team-soc.png"
 categoryIcon: "fc664"
 categoryIconAlt: "Automação blue team"
 featured: true
-order: 8
+order: 13
 metrics:
-  - { value: "394K", label: "Vulns processadas", tone: "phosphor" }
-  - { value: "Multi · OS", label: "Linux · Win · macOS", tone: "amber" }
-  - { value: "SEMANAL", label: "Sync automatizado", tone: "phosphor" }
-stack: ["Python", "SentinelOne API", "Grafana", "Node-RED", "Google Sheets API", "Slack Webhooks", "MySQL"]
-summary: "Automação Python que puxa 394k+ vulnerabilidades da API do SentinelOne em uma fleet multi-OS, normaliza dados, filtra falsos positivos e sincroniza output estruturado em Sheets, dashboards Grafana e alertas Slack."
+  - { value: "394K", label: "Vulnerabilidades por sync", tone: "phosphor" }
+  - { value: "−75%", label: "Tempo de reporte manual", tone: "amber" }
+  - { value: "3", label: "Sistemas operacionais unificados", tone: "phosphor" }
+stack: ["Python", "SentinelOne API", "Node-RED", "Grafana", "Google Sheets API", "Slack Webhooks", "MySQL"]
+summary: "Automação de vulnerabilidades do SentinelOne em Python: normaliza mais de 394 mil registros de Linux, Windows e macOS toda semana, filtra falsos positivos conhecidos e publica tendências no Grafana, no Sheets e no Slack — reduzindo em 75% o tempo de reporte manual."
 repo: "https://github.com/CHDevSec/SentinelOne-Vulnerability-Automation"
 proofs:
-  - { src: "/portfolio/fonts/projects/sen1.png", alt: "Saída do S1-Vuln-Sync 1" }
-  - { src: "/portfolio/fonts/projects/sen2.png", alt: "Saída do S1-Vuln-Sync 2" }
-  - { src: "/portfolio/fonts/projects/sen3.png", alt: "Saída do S1-Vuln-Sync 3" }
-  - { src: "/portfolio/fonts/projects/sen4.png", alt: "Saída do S1-Vuln-Sync 4" }
-  - { src: "/portfolio/fonts/projects/sen5.png", alt: "Saída do S1-Vuln-Sync 5" }
+  - { src: "/portfolio/fonts/projects/sen1.png", alt: "Dashboard do Grafana com totais semanais e mensais de vulnerabilidades e top 10 por sistema operacional", caption: "Grafana — totais semanais e mensais e top 10 por sistema (macOS, Windows, Linux). Valores desfocados." }
+  - { src: "/portfolio/fonts/projects/sen2.png", alt: "Linha consolidada do Grafana comparando o mês atual com o anterior", caption: "Visão consolidada — mês atual contra o mês passado, por sistema e severidade." }
+  - { src: "/portfolio/fonts/projects/sen3.png", alt: "Código Python carregando credenciais do SentinelOne e do Google Sheets a partir de variáveis de ambiente", caption: "As credenciais vêm do ambiente e a execução falha logo quando alguma está ausente." }
+  - { src: "/portfolio/fonts/projects/sen4.png", alt: "Código Python com a lista de regras de vulnerabilidades ignoradas e a função de correspondência", caption: "Filtro de falsos positivos — regras declarativas por aplicação, fabricante e sistema." }
+  - { src: "/portfolio/fonts/projects/sen5.png", alt: "Código Python chamando a API do SentinelOne com tratamento de novas tentativas", caption: "Cliente da API do SentinelOne com timeout e novas tentativas." }
 ---
+import BeforeAfter from '@/components/case/BeforeAfter.astro';
+import StatGrid from '@/components/case/StatGrid.astro';
+import Callout from '@/components/case/Callout.astro';
 
-## O problema
+## Contexto
 
-A UI do SentinelOne mostra vulnerabilidades um endpoint por vez. Com uma fleet gerando centenas de milhares de findings entre Linux, Windows e macOS, o time de security não tinha visão centralizada, histórico de trending nem forma de detectar spikes proativamente. Reporting manual consumia horas toda semana — e falsos positivos poluíam toda reunião.
+A interface do SentinelOne mostra vulnerabilidades um endpoint por vez. A frota gerava centenas de milhares de findings entre Linux, Windows e macOS, e o time de segurança montava o reporte à mão toda semana. Cada reunião começava de uma exportação nova, e os falsos positivos ocupavam parte de toda discussão.
 
-## A solução
+- **Sem visão central** — cada sistema operacional era lido separadamente, endpoint por endpoint.
+- **Sem histórico** — ninguém sabia dizer se a semana estava melhor ou pior que o mês anterior.
+- **Sem alerta antecipado** — picos eram descobertos na reunião semanal, não quando aconteciam.
+- **Ruído** — CVEs de kernel já corrigidas upstream continuavam aparecendo por dias.
 
-Construí uma automação Python que puxa o inventário completo de vulnerabilidades via API do SentinelOne, normaliza dados entre sistemas operacionais, filtra falsos positivos conhecidos via pattern matching e sincroniza output estruturado em 12 abas Google Sheets (Top 10, Histórico, Comparação Semanal e mais). O pipeline é orquestrado via Node-RED com cron semanal nas sextas mais relatórios mensais consolidados. Dashboards Grafana trackeiam trends em tempo real, e alertas Slack chegam no `#infrasec` quando thresholds estouram.
+## O que eu fiz
 
-O filtro de FP é a metade do pipeline que ganhou mais confiança. O padrão dominante: CVEs de kernel já remediadas upstream que o SentinelOne continuava flagando por dias porque o inventário dele não tinha reconciliado. Regras no filtro removem essas, mais matches reconhecidos como falso pelo vendor, mais duplicatas de instalação multi-agente — e todo finding filtrado vai pra cold storage pra que um "falso positivo" que se revele real depois seja recuperável.
+### Coletar e normalizar
 
-## Arquitetura
+Escrevi um serviço em Python que puxa o inventário completo de vulnerabilidades pela API do SentinelOne, com timeout e novas tentativas, e normaliza os registros em um único esquema para Linux, Windows e macOS. As credenciais vêm do ambiente, e a execução falha logo quando alguma está ausente.
+
+### Filtrar o ruído, manter a trilha de auditoria
+
+O filtro de falsos positivos é a parte que conquistou a confiança do time. Regras declarativas comparam aplicação, fabricante e sistema operacional. Elas removem CVEs de kernel já corrigidas upstream que o SentinelOne continuava apontando até reconciliar o inventário, correspondências que o próprio fabricante reconhece como falsas e duplicatas de instalações com mais de um agente. Todo finding filtrado é gravado em armazenamento frio, para que um "falso positivo" que se revele real possa ser recuperado.
+
+### Entregar onde as pessoas já olham
+
+O Node-RED orquestra uma execução semanal toda sexta-feira e um relatório mensal consolidado. A saída vai para 12 abas do Google Sheets (Top 10, Histórico, Comparação semanal e outras), para dashboards do Grafana com tendências por sistema, severidade e aplicação, e para o canal `#infrasec` no Slack quando um limite é ultrapassado.
+
+## Como funciona
 
 ```mermaid
 flowchart TB
-    A[SentinelOne API] -->|Pull full inventory| B[Python Normalizer]
-    B --> C{OS dispatch}
-    C --> D[Linux 379k]
-    C --> E[Windows 12k]
-    C --> F[macOS 2.7k]
-    D --> G[FP Pattern Filter]
+    A[API do SentinelOne] -->|Inventário completo| B[Normalizador Python]
+    B --> C{Separação por sistema}
+    C --> D[Linux 379 mil]
+    C --> E[Windows 12,8 mil]
+    C --> F[macOS 2,7 mil]
+    D --> G[Filtro de falsos positivos]
     E --> G
     F --> G
-    G --> H[Node-RED Orchestrator]
-    H --> I[Google Sheets · 12 tabs]
-    H --> J[Grafana Dashboards]
+    G --> H[Orquestrador Node-RED]
+    H --> I[Google Sheets · 12 abas]
+    H --> J[Dashboards Grafana]
     H --> K[Slack #infrasec]
 ```
 
-## O impacto
+Uma coleta, um esquema, um filtro e três saídas: Sheets para o reporte, Grafana para as tendências e Slack para os limites.
 
-- **394.706 vulnerabilidades processadas** em sync único — visibilidade fleet completa sem SQL manual ou scrolling em UIs
-- **75% de redução** no tempo de reporting manual semanal
-- **Trending em tempo real** por OS, severity e aplicação — surfacing de spikes críticos em minutos
-- **Adoção cross-team** — security, infra e compliance no mesmo source of truth
-- **Código open-source** liberado pra reuso da comunidade
+## Resultados
 
-### Snapshot de produção
+<BeforeAfter lang="pt" title="Esforço de reporte semanal" items={[
+  { label: 'Tempo de reporte manual, relativo ao anterior', before: 100, after: 25, beforeText: '100%', afterText: '25%' },
+]} />
 
-| OS      | Critical | High   | Medium | Low   | Total   |
-| ------- | -------: | -----: | -----: | ----: | ------: |
-| Linux   |  284.240 | 55.748 | 31.070 | 8.096 | 379.154 |
-| Windows |    4.931 |  7.707 |    116 |    77 |  12.831 |
-| macOS   |    1.444 |    864 |    147 |   266 |   2.721 |
+<StatGrid title="Retrato de produção · uma sincronização" stats={[
+  { value: '394.706', label: 'Vulnerabilidades processadas', detail: 'Frota inteira, uma execução' },
+  { value: '379.154', label: 'Linux', detail: '284.240 críticas' },
+  { value: '12.831', label: 'Windows', detail: '4.931 críticas' },
+  { value: '2.721', label: 'macOS', detail: '1.444 críticas' },
+]} />
+
+- **394.706 vulnerabilidades processadas** em uma única sincronização, sem SQL manual nem rolagem de console.
+- **75% menos tempo** gasto no reporte manual semanal.
+- **Picos identificados em minutos** pelas tendências do Grafana e pelos limites no Slack, e não na reunião seguinte.
+- **Segurança, Infraestrutura e Compliance** trabalhando a partir da mesma fonte de dados.
+- **Código aberto** publicado para reuso.
+
+| Sistema | Crítica | Alta   | Média  | Baixa | Total   |
+| ------- | ------: | -----: | -----: | ----: | ------: |
+| Linux   | 284.240 | 55.748 | 31.070 | 8.096 | 379.154 |
+| Windows |   4.931 |  7.707 |    116 |    77 |  12.831 |
+| macOS   |   1.444 |    864 |    147 |   266 |   2.721 |
+
+## Valor para o negócio
+
+<Callout kind="value" lang="pt">
+Três quartos das horas que iam para montar o reporte semanal voltaram para o time. A liderança passou a ver uma tendência semanal e mensal em vez de um retrato isolado, Compliance ganhou um registro consistente do que estava aberto, do que foi filtrado e por quê, e os picos chegaram a quem podia agir enquanto ainda eram pequenos.
+</Callout>
+
+## Aprendizados
+
+- **A confiança vem do filtro, não do volume.** Os times passaram a agir sobre os números quando os falsos positivos conhecidos saíram e toda exclusão ficou recuperável.
+- **Entregue dentro dos hábitos que já existem.** Sheets para a reunião, Grafana para tendências e Slack para alertas: ninguém precisou aprender uma ferramenta nova.
+- **Normalize primeiro.** Um esquema único para três sistemas operacionais foi o que tornou possível comparar um com o outro.

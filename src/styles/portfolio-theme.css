@@ -1,0 +1,72 @@
+/* Portfolio theme: same structure as the CHDEVSEC design system, different
+   temperature. Keeps the ink/paper base and swaps the crimson signal for an
+   electric blue so the two sites read as siblings, not as the same site.
+
+   Loaded AFTER chdevsec.css, and scoped to the same cascade layer so it wins
+   without needing !important. */
+@layer chd-tokens {
+  :root {
+    --chd-color-crimson: #1e6bff;
+    --chd-color-crimson-readable: #6fa3ff;
+    --chd-color-danger: #7eb0ff;
+
+    /* Canvas scripts read these so JS-drawn glyphs match the CSS palette. */
+    --chd-signal-rgb: 30 107 255;
+  }
+}
+
+/* The gradient blooms behind the panels are crimson-tinted in the source;
+   retint them so nothing warm survives. */
+@layer chd-sections {
+  .lava-field--dark span,
+  .lava-field--light span {
+    filter: hue-rotate(-145deg) saturate(1.1);
+  }
+}
+
+/* `.indexed-tabs__panel` sets `display: grid`, which outranks the user-agent
+   `[hidden] { display: none }` — so the hidden attribute alone left every
+   panel stacked in the same grid cell.
+
+   Deliberately unlayered: the rule it corrects is unlayered too, and
+   unlayered author styles beat every layer regardless of order. */
+.indexed-tabs__panel[hidden] {
+  display: none;
+}
+
+/* `main > section` makes every top-level section a full-height snap stop. The
+   companies strip is connective tissue between the hero and the timeline, not
+   a destination, so it opts out — otherwise it reserved a whole empty viewport.
+
+   Unlayered on purpose: `main > section` is (0,1,1), so this needs to match or
+   beat it, and unlayered author styles sit above every layer. */
+main > .chd-companies {
+  min-height: 0;
+  scroll-snap-align: none;
+  scroll-snap-stop: normal;
+}
+
+/* `.snap-section` pins every section to exactly one viewport with
+   `overflow: hidden` — each stop is a fixed panel. That works for the CHDEVSEC
+   site, where no section carries more than a screenful. The projects grid holds
+   twelve case studies and genuinely does not fit, so this one stop is allowed
+   to grow. Snap still works: `scroll-snap-align: start` anchors its top.
+   Opted into per section with `chd-section--grows`.
+
+   Unlayered to beat the unlayered `.snap-section` rules. */
+main > section.chd-section--grows,
+main > section.chd-section--grows > .snap-section__motion {
+  height: auto;
+  min-height: var(--chd-section-height);
+  overflow: visible;
+}
+
+/* `.section-rail__indicator` is the paper block behind the current item. The
+   React original rendered it only for that item; this port renders it for all
+   of them, so eight stacked blocks covered the rail and every inactive number
+   became paper-on-paper. Only the current one shows.
+
+   Unlayered to match the unlayered rail rules. */
+.section-rail a:not([aria-current='location']) .section-rail__indicator {
+  display: none;
+}

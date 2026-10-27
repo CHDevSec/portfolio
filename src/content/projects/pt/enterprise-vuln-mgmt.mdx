@@ -1,40 +1,77 @@
 ---
-title: "Programa Enterprise de Vulnerability Management"
-tagline: "Construí e liderei programa enterprise de vuln management — scans automatizados, priorização baseada em risco, SLA enforcement e Fóruns mensais de Vulnerabilidade apresentados aos Heads de todos os times de tecnologia."
+title: "Programa corporativo de gestão de vulnerabilidades — 212 tickets de 4 scanners em um único fluxo no Jira"
+tagline: "Coloquei 212 tickets de quatro scanners em um único fluxo no Jira, priorizado por risco e com SLAs de correção, e conduzi o fórum mensal de vulnerabilidades em que a liderança de tecnologia decidia o que corrigir, quando, e que risco aceitar."
 company: "frete.com"
 period: "2024 — 2026"
 category: "devsecops"
 cover: "/portfolio/images/wallpapers/ticket.png"
 categoryIcon: "fc855"
-categoryIconAlt: "Programa de vulnerability management"
+categoryIconAlt: "Programa de gestão de vulnerabilidades"
 featured: true
-order: 9
+order: 14
 metrics:
-  - { value: "212", label: "Tickets gerenciados", tone: "phosphor" }
-  - { value: "4", label: "Nessus · Snyk · S1 · Inspector", tone: "amber" }
-  - { value: "Mensal", label: "Cadência Vuln Forum", tone: "phosphor" }
-stack: ["Jira", "Nessus", "Snyk", "SentinelOne", "AWS Inspector", "DefectDojo"]
-summary: "Programa enterprise de vulnerability management unificando quatro scanners num workflow Jira único, com priorização baseada em risco, SLA enforcement, roteamento formal de risk acceptance e Fóruns mensais de Vulnerabilidade apresentados aos Heads de todos os times de tecnologia. Onei o ritmo completo do programa: playbooks, apresentações, encaminhamento de decisões e follow-through."
+  - { value: "212", label: "Tickets em gestão ativa", tone: "phosphor" }
+  - { value: "4", label: "Scanners em um fluxo", tone: "amber" }
+  - { value: "7d", label: "SLA para findings P0/P1", tone: "phosphor" }
+stack: ["Jira", "DefectDojo", "Nessus", "Snyk", "SentinelOne", "AWS Inspector"]
+summary: "Gestão corporativa de vulnerabilidades na frete.com: quatro scanners agregados no DefectDojo, classificados por risco e encaminhados a um único fluxo no Jira com SLAs (212 tickets em gestão), e um fórum mensal em que os Heads de tecnologia tomavam as decisões de priorização e de aceitação de risco."
 proofs:
-  - { src: "/portfolio/fonts/projects/ges1.png", alt: "Dashboard de vulnerability management com 212 tickets" }
-  - { src: "/portfolio/fonts/projects/ges2.png", alt: "Workflow Kanban no Jira — Backlog · Refinamento · Em Andamento · Reteste" }
+  - { src: "/portfolio/fonts/projects/ges1.png", alt: "Resumo do espaço de gestão de vulnerabilidades no Jira: 212 tickets no total por status (Backlog 192, Refinamento 9, Reteste 6, Em andamento 5, Concluído 0), um gráfico de prioridades e os tipos de trabalho (43% vulnerabilidade de aplicação, 30% vulnerabilidade de infraestrutura, 27% requisito de segurança)", caption: "Resumo do programa — 212 tickets em gestão, divididos por status, prioridade e tipo. Nome do espaço ocultado." }
+  - { src: "/portfolio/fonts/projects/ges2.png", alt: "Board do Jira com as colunas Backlog (192), Refinamento (9), Em andamento (5), Reteste (6) e Concluído (0), títulos de tickets parcialmente ocultados e prazos em vários cards", caption: "O fluxo único pelo qual passa cada finding de scanner e de pentest, com responsáveis e prazos nos cards. Detalhes sensíveis ocultados." }
 ---
+import StatGrid from '@/components/case/StatGrid.astro';
+import Timeline from '@/components/case/Timeline.astro';
+import Callout from '@/components/case/Callout.astro';
 
-## O problema
+## Contexto
 
-Vulnerabilidades chegavam de quatro scanners diferentes — Nessus, Snyk, SentinelOne e AWS Inspector — em inboxes separadas, sem priorização comum, sem SLA e sem accountability compartilhada. Security flagava findings, engenharia não sabia o que importava, e remediação arrastava por meses. Issues críticos misturados com ruído; ninguém tinha source of truth única.
+As vulnerabilidades chegavam de quatro scanners — Nessus, Snyk, SentinelOne e AWS Inspector — em caixas de entrada separadas, sem priorização comum, sem SLA e sem responsabilidade compartilhada. Segurança abria os findings, a engenharia não sabia quais importavam, e a correção ficava parada por meses. A gestão de vulnerabilidades acontecia em tickets do Jira e em conversas avulsas no Slack, invisível para os líderes que precisavam escolher entre corrigir, aceitar o risco ou despriorizar.
 
-Pior: não existia fórum recorrente onde Heads de times de tecnologia *revisassem* findings juntos. Vuln management acontecia em tickets Jira e threads ad-hoc no Slack — invisível pra camada de liderança que precisava fazer trade-offs entre corrigir, aceitar risco ou despriorizar.
+- **Quatro caixas de entrada** — cada scanner reportava por conta própria, e ninguém tinha uma fonte única de verdade.
+- **Sem priorização** — problemas críticos se misturavam ao ruído, ordenados no máximo pela severidade bruta do scanner.
+- **Sem SLA nem responsável** — os findings não tinham prazo nem time definido.
+- **Sem fórum** — os Heads de tecnologia nunca revisavam os findings juntos, então as decisões de risco eram tomadas informalmente ou não eram tomadas.
 
-## A solução
+## O que eu fiz
 
-Construí um programa enterprise de vulnerability management com três pilares:
+### Entrada centralizada
 
-- **Intake centralizado** — os quatro scanners alimentam Jira via API, normalizados em workflow único com colunas de status (Backlog → Refinamento → Em Andamento → Reteste → Concluído). DefectDojo como camada de agregação atrás do Jira.
-- **Priorização baseada em risco** — todo finding é scoreado contra criticidade do asset, exploitability e impacto de negócio antes de chegar na engenharia. Severity não é CVSS bruto; é "o que efetivamente machucaria essa empresa".
-- **Alinhamento cross-team via Fóruns mensais de Vulnerabilidade que eu conduzia** — eu rodava os fóruns, construí o playbook, estruturei a agenda e apresentei o dashboard pros **Heads de todos os times de tecnologia** (Backend, Frontend, Infra/SRE, Data, Mobile, mais leads de Security e DevOps). O fórum é onde priorização, tracking de SLA e decisões de risk acceptance acontecem com as pessoas que efetivamente podem autorizar.
+Os quatro scanners alimentam o DefectDojo, que agrega e normaliza os findings. Cada finding recebe uma classificação de risco e então é encaminhado para um único fluxo no Jira: Backlog → Refinamento → Em andamento → Reteste → Concluído. Os findings de pentests em ativos críticos entram no mesmo fluxo.
 
-## Arquitetura
+### Priorização por risco
+
+Severidade não é uma cópia do CVSS. Antes de qualquer coisa chegar à engenharia, a classificação combina três sinais:
+
+- **Criticidade do ativo** — exposto à internet? guarda dados de clientes? faz parte do fluxo de pagamento? Um único atributo do ativo pode mover um finding dois níveis para cima ou para baixo.
+- **Explorabilidade** — existe PoC público? módulo em framework de exploração? campanhas ativas conhecidas? As fontes são o CISA KEV, os avisos dos fabricantes e feeds de inteligência de ameaças.
+- **Impacto no negócio** — o que quebra se isso for explorado: receita, classe de dados, exposição regulatória, custo de recuperação.
+
+Dois findings ilustrativos:
+
+- **API exposta à internet · SQL injection com PoC público** — criticidade *máxima* × explorabilidade *máxima* × impacto *máximo* = **P0, SLA de 7 dias**. O responsável é identificado automaticamente pela tag de serviço no Jira, e uma regra de automação do Jira escala o SLA estourado.
+- **Ferramenta administrativa interna · CVE em dependência transitiva sem caminho de execução** — criticidade *baixa* × explorabilidade *baixa* (não alcançável) × impacto *baixo* = **P3, backlog**. Revisado a cada trimestre, sem bloquear nada.
+
+O mesmo modelo de classificação colocou os dois a dois níveis de distância: um SLA de 7 dias e o backlog trimestral. Foi o contexto, e não a nota bruta, que definiu a ordem do trabalho.
+
+### O Fórum Mensal de Vulnerabilidades
+
+Esta é a metade do programa que não cabe em um board do Jira, e eu fui responsável por ela de ponta a ponta: escrevi o playbook, defini a pauta e apresentei o dashboard ao CTO, aos Heads e coordenadores dos times de tecnologia e aos responsáveis pelas áreas donas das vulnerabilidades. O fórum é onde a priorização, o acompanhamento de SLA e as decisões de aceitação de risco acontecem com as pessoas que podem autorizá-las.
+
+<Timeline title="Um ciclo do fórum" steps={[
+  { when: '48h antes', title: 'Material prévio enviado', detail: 'Principais findings, cumprimento de SLA, fila de aceitação de risco, bloqueios' },
+  { when: '5 min', title: 'Dashboard de SLA', detail: 'O que está vermelho, o que está verde, o que atrasou' },
+  { when: '20 min', title: 'Análise dos 5 principais findings', detail: 'Contexto, responsável, bloqueio, decisão necessária', key: true },
+  { when: '15 min', title: 'Revisões de aceitação de risco', detail: 'Assinatura formal e controles compensatórios' },
+  { when: '10 min', title: 'Bloqueios e escaladas entre times' },
+  { when: '10 min', title: 'Política e roadmap', detail: 'Tendências, nova cobertura de scanners, ajustes na classificação' },
+  { when: 'Depois', title: 'Cada decisão vira uma ação no Jira', detail: 'Responsável e prazo alinhados ao nível de SLA' },
+]} />
+
+- **Cadência** — mensal, um horário fixo na agenda dos Heads de todos os times de tecnologia.
+- **Material prévio 48 horas antes**, para que a reunião servisse para decidir, e não para atualizar status.
+- **Trilha de aceitação de risco** — quando a correção não era viável (sistema legado em fim de vida, fabricante sem suporte, custo de refatoração maior que o risco), o finding ia para uma trilha estruturada de aceitação. O dono do ativo e o Head do time responsável assinavam juntos, os controles compensatórios eram documentados (regra de WAF, segmentação de rede, monitoramento adicional) e a aceitação tinha uma data de revisão (90, 180 ou 365 dias), quando voltava ao fórum.
+
+## Como funciona
 
 ```mermaid
 flowchart TB
@@ -45,80 +82,74 @@ flowchart TB
     A4[AWS Inspector]
     end
 
-    A1 --> B[API Aggregator · DefectDojo]
+    A1 --> B[DefectDojo · agregação]
     A2 --> B
     A3 --> B
     A4 --> B
 
-    B --> C[Risk Scoring Engine<br/>asset × exploitability × impact]
-    C --> D{Severity}
+    B --> C[Classificação de risco<br/>ativo × explorabilidade × impacto]
+    C --> D{Severidade}
 
-    D -->|P0 / P1| E[Jira · SLA 7d]
-    D -->|P2| F[Jira · SLA 30d]
-    D -->|P3 / P4| G[Backlog · revisado trimestralmente]
+    D -->|P0 / P1| E[Jira · SLA de 7 dias]
+    D -->|P2| F[Jira · SLA de 30 dias]
+    D -->|P3 / P4| G[Backlog · revisão trimestral]
 
-    E --> H[Engineering Owner]
+    E --> H[Responsável na engenharia]
     F --> H
 
-    H --> I{Remediação viável?}
-    I -->|Sim| J[Fix · re-test · close]
-    I -->|Não| K[Risk Acceptance Track<br/>asset owner + Head sign-off<br/>compensating controls]
+    H --> I{Correção viável?}
+    I -->|Sim| J[Corrigir · retestar · fechar]
+    I -->|Não| K[Aceitação de risco<br/>assinatura do dono do ativo + Head<br/>controles compensatórios]
 
-    J --> L[Fórum Mensal de Vulnerabilidade]
+    J --> L[Fórum Mensal de Vulnerabilidades]
     K --> L
     G --> L
 
-    L --> M[Heads de todos os times de tecnologia]
-    L --> N[Dashboard SLA · top findings · blockers]
-    L --> O[Decisões de policy + roadmap]
+    L --> M[Heads dos times de tecnologia]
+    L --> N[Dashboard de SLA · principais findings · bloqueios]
+    L --> O[Decisões de política e roadmap]
 ```
 
-## Como o risk scoring efetivamente funcionava
+Os quatro scanners convergem no DefectDojo, cada finding é classificado pelo contexto e chega ao Jira com um nível de SLA, e tudo — corrigido, aceito ou no backlog — volta ao fórum mensal, onde os Heads decidem.
 
-Severity não é copy-paste de CVSS. O scoring engine combina três sinais antes de qualquer coisa chegar na engenharia:
+## Resultados
 
-- **Criticidade do asset** — internet-facing? carrega dado de cliente? parte do payment path? um único asset pode flipar um finding dois tiers em qualquer direção.
-- **Exploitability** — PoC público disponível? módulo em framework de exploit? campanhas ativas conhecidas? (vindo de CISA KEV, advisories de vendor, feeds de threat intel).
-- **Impacto de negócio** — o que quebra se isso for explorado? Impacto de receita, classe de dado, exposição regulatória, custo de recuperação.
+<StatGrid title="Retrato do board no Jira" stats={[
+  { value: '212', label: 'Tickets em gestão', detail: 'Vulnerabilidades e requisitos de segurança' },
+  { value: '192', label: 'Backlog', detail: 'Classificados e na fila por nível' },
+  { value: '9', label: 'Refinamento', detail: 'Responsável e correção em definição' },
+  { value: '5', label: 'Em andamento', detail: 'Em correção' },
+  { value: '6', label: 'Reteste', detail: 'Correção aguardando validação' },
+]} caption="Contagens por status do resumo do espaço no Jira, no momento da captura. Os tickets fechados são arquivados, por isso Concluído aparece com 0." />
 
-Dois findings ilustrativos pra fazer isso concreto:
+| Tipo de trabalho | Parcela dos tickets |
+| --- | ---: |
+| Vulnerabilidade de aplicação | 43% |
+| Vulnerabilidade de infraestrutura | 30% |
+| Requisito de segurança | 27% |
 
-- **API internet-facing · SQLi com PoC público** — criticidade *max* × exploitability *max* × impacto de negócio *max* = **P0 / SLA 7 dias**. Owner identificado via service-tag no Jira automaticamente. Pageia no miss.
-- **Tool admin interno · CVE de dep transitiva, sem execution path** — criticidade *baixa* × exploitability *baixa* (sem reachability) × impacto *baixo* = **P3 / Backlog**. Revisado trimestralmente, não bloqueando nada.
+| Nível | SLA | Destino |
+| --- | --- | --- |
+| P0 / P1 | 7 dias | Jira, com responsável na engenharia |
+| P2 | 30 dias | Jira, com responsável na engenharia |
+| P3 / P4 | Revisão trimestral | Backlog |
 
-Dois findings, mesmo CVSS bruto, três tiers de SLA de distância. Esse gap é onde o programa morava.
+- **212 tickets em gestão ativa**, cada um com status, nível de SLA e uma trilha formal de aceitação para o que não pode ser corrigido.
+- **4 scanners em um único fluxo** — sem conversas por e-mail, planilhas ou acompanhamento duplicado.
+- **Os Fóruns Mensais de Vulnerabilidades** institucionalizaram a revisão com o CTO, os Heads e os coordenadores de todos os times de tecnologia, todos olhando para o mesmo dashboard.
+- **Pentests direcionados** em ativos críticos validaram correções e revelaram falhas que os scanners não apontavam, e os findings entraram no mesmo fluxo do Jira.
+- **Aceitação de risco com data de revisão** de 90, 180 ou 365 dias, assinada pelo dono do ativo e pelo Head do time.
 
-## Conduzindo os fóruns
+## Valor para o negócio
 
-Essa é a metade do programa que não cabe em board Jira. Onei end-to-end:
+<Callout kind="value" lang="pt">
+A empresa ganhou um único lugar para ver sua exposição a vulnerabilidades e uma reunião em que as pessoas responsáveis por ela tomavam decisões. A engenharia passou a trabalhar primeiro no que tinha mais chance de prejudicar o negócio, em vez de tentar corrigir tudo de uma vez. E quando alguém perguntava "por que isso não foi corrigido?", a resposta deixou de ser "não sabíamos" e passou a ser "sabemos, aqui está a assinatura, aqui estão os controles, aqui está a data de revisão" — uma posição defensável diante de auditorias, clientes e da liderança.
+</Callout>
 
-- **Cadência** — mensal, slot recorrente nos calendários dos Heads de todo time de tech. Slot fixo, nunca movido.
-- **Pre-read · 48h antes** — snapshot do dashboard (top findings, SLA hit rate, fila de risk acceptance, blockers) enviado pros participantes pra que a reunião fosse hora-de-decisão, não hora-de-status.
-- **Agenda padrão que eu escrevi** —
-  1. **Dashboard SLA** (5 min) — o que tá vermelho, o que tá verde, o que escorregou
-  2. **Top 5 findings deep-dive** (20 min) — contexto, owner, blocker, decisão necessária
-  3. **Reviews de risk acceptance** (15 min) — itens onde remediação não é viável, exigindo sign-off formal e aprovação de compensating controls
-  4. **Blockers + escalações cross-team** (10 min) — onde remediação depende de outro time
-  5. **Policy + roadmap** (10 min) — tendências emergentes, nova cobertura de scanner, ajuste de scoring
-- **Encaminhamento de risk acceptance** — quando fix não era viável (sistema legado em EOL, vendor sem suporte, custo de refactor > risco), o finding ia pra track estruturada de risk acceptance. **Asset owner + Head do time relevante co-assinavam**, compensating controls eram documentados (regra WAF, segmentação de rede, monitoramento adicional), e a aceitação tinha data de revisão (90 / 180 / 365 dias) quando voltava pro fórum pra re-avaliação. Acceptance não era "desistir" — era "reconhecemos esse risco e esses são os controles que o tornam bounded".
-- **Follow-through pós-reunião** — toda decisão virava ação Jira com owner e due date, due dates sincronizados com tier de SLA, status visível no dashboard que todo mundo olhava.
+## Aprendizados
 
-Os fóruns transformaram vuln management de inbox em **ritmo**. Heads apareciam porque o dado era honesto e as decisões eram deles pra tomar.
-
-## O impacto
-
-- **212 vulnerabilidades sob gestão ativa** com visibilidade de status, SLA enforcement e track formal de aceitação pro que não dá pra corrigir
-- **4 scanners unificados** em workflow único — sem email threads, planilhas ou duplicate tracking
-- **Fóruns mensais de Vulnerabilidade** institucionalizaram diálogo cross-team entre Heads de todos os times — Security, DevOps, Engenharia, Data, Infra na mesma sala com o mesmo dashboard
-- **Pentests direcionados** em assets críticos validaram remediações e expuseram gaps que tools automatizadas não pegavam (findings alimentavam o mesmo workflow Jira)
-- **Priorização baseada em risco** substituiu o pânico de "corrigir tudo" — engenharia confia que o que chega é real, e o que é aceito vem com controles documentados
-- **Track de risk acceptance** deu à empresa uma resposta defensável pra *"por que isso não foi corrigido?"* — não "não sabíamos" mas sim "sabemos, aqui está o sign-off, aqui estão os controles, aqui está a data de revisão"
-
-## Princípios do programa
-
-- **Programa de vuln management não é software — é ritmo.** Tools normalizam dado; o fórum toma decisão; o playbook faz o fórum útil. Pula o ritmo e as tools viram cemitério.
-- **CVSS não é severity.** Criticidade do asset e exploitability movem severity por tiers, não pontos. Um finding scoreado sem contexto é um finding corrigido na ordem errada.
-- **Risk acceptance é feature, não falha.** Todo programa precisa de path documentado e governado pra "não dá pra corrigir, eis por quê, eis os controles". Fingir que acceptance não acontece é como ela acontece informalmente e invisivelmente.
-- **Heads de times são a audiência.** Engenheiros corrigem; Heads decidem o que é corrigido quando. Constrói o fórum pros que decidem ou assista o programa derivar.
-- **Pre-reads transformam reunião em decisão.** Fórum sem pre-read gasta 30 minutos atualizando contexto; fórum com pre-read gasta 30 minutos decidindo.
-- **Pentest pertence ao mesmo workflow.** Finding de pentest e finding de scanner são a mesma coisa. Rotear pelos mesmos workflow Jira é como a empresa para de re-descobrir os mesmos gaps.
+- **Um programa de vulnerabilidades é um ritmo, não um software.** As ferramentas normalizam os dados; o fórum toma as decisões; o playbook torna o fórum útil. Sem o ritmo, as ferramentas viram cemitério.
+- **CVSS não é severidade.** A criticidade do ativo e a explorabilidade movem um finding por níveis, como mostram a API em P0 e a ferramenta administrativa em P3.
+- **Aceitar risco é um recurso, não uma falha.** Uma trilha governada, com assinatura, controles e data de revisão, substituiu a versão informal e invisível.
+- **Monte o fórum para quem decide.** Engenheiros corrigem; Heads decidem o que é corrigido e quando, então a pauta e o material prévio foram escritos para eles.
+- **Pentests pertencem ao mesmo fluxo.** Encaminhar findings de pentest e de scanner pelo mesmo fluxo no Jira é como a empresa para de redescobrir as mesmas falhas.

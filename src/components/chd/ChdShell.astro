@@ -1,0 +1,31 @@
+---
+import '@/styles/chdevsec.css';
+import '@/styles/portfolio-theme.css';
+import ChdHeader from './ChdHeader.astro';
+import ChdSectionRail from './ChdSectionRail.astro';
+import { SECTIONS } from '@/data/sections';
+import type { Lang } from '@/data/i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const lightIds = SECTIONS.filter((s) => s.light).map((s) => s.id);
+---
+<a class="skip-link" href="#main-content">
+  {lang === 'pt' ? 'Pular para o conteúdo' : 'Skip to content'}
+</a>
+<ChdHeader lang={lang} />
+<ChdSectionRail lang={lang} />
+<main id="main-content">
+  <slot />
+</main>
+
+<script>
+  import { initScanField, initNoise, initPortrait, initSectionScroll, initTabs } from '@/scripts/chdevsec-ui';
+  import { SECTIONS } from '@/data/sections';
+
+  document.querySelectorAll<HTMLElement>('[data-chd-scan]').forEach(initScanField);
+  document.querySelectorAll<HTMLElement>('[data-chd-noise]').forEach(initNoise);
+  document.querySelectorAll<HTMLElement>('[data-chd-portrait]').forEach(initPortrait);
+  document.querySelectorAll<HTMLElement>('[data-chd-tabs]').forEach(initTabs);
+  initSectionScroll(SECTIONS.filter((s) => s.light).map((s) => s.id));
+</script>

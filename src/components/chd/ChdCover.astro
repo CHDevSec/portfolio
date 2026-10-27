@@ -1,0 +1,59 @@
+---
+interface Props {
+  src: string;
+  /** How dark the scrim sits over the art. Higher = more readable type. */
+  scrim?: number;
+  /** Blur radius in px, and art opacity — both tune readability. */
+  blur?: number;
+  opacity?: number;
+  class?: string;
+}
+const { src, scrim = 0.72, blur = 3, opacity = 0.55, class: className = '' } = Astro.props;
+const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+
+/* Cards show a 900px-wide WebP built from the full wallpaper: the originals run
+   ~2.7MB each and six of them would be 14MB on the homepage. The full-size art
+   is still used on the case-study hero, where it earns the bytes. */
+const file = src.replace(/^.*\/wallpapers\//, '').replace(/\.(png|jpe?g|webp|avif)$/i, '');
+const cardSrc = `${base}/images/wallpapers/cards/${file}.webp`;
+---
+<div
+  class={`chd-cover ${className}`}
+  style={`--cover-blur: ${blur}px; --cover-opacity: ${opacity}`}
+  aria-hidden="true"
+>
+  <img src={cardSrc} alt="" loading="lazy" decoding="async" />
+  <span class="chd-cover__scrim" style={`--scrim: ${scrim}`}></span>
+</div>
+
+<style>
+  .chd-cover {
+    z-index: 0;
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  /* The art sits back behind the copy: a light blur plus reduced opacity so the
+     scene still reads as itself, but stops competing with the type. The slight
+     scale hides the soft edge the blur leaves at the card border. */
+  .chd-cover img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    opacity: var(--cover-opacity, 0.55);
+    filter: blur(var(--cover-blur, 3px));
+    transform: scale(1.06);
+    display: block;
+  }
+  .chd-cover__scrim {
+    background: linear-gradient(
+      to bottom,
+      rgb(10 10 10 / calc(var(--scrim) * 0.72)),
+      rgb(10 10 10 / var(--scrim)),
+      rgb(10 10 10 / calc(var(--scrim) * 1.12))
+    );
+    position: absolute;
+    inset: 0;
+  }
+</style>

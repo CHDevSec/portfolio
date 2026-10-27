@@ -1,6 +1,6 @@
 ---
-title: "Cripto Legada RE — esquema de licenciamento automotivo"
-tagline: "Identifiquei, repliquei e automatizei o esquema proprietário de licenciamento Blowfish ECB de um sistema automotivo era 2001 — trabalho que normalmente leva meses, entregue em 2 dias via análise binária aumentada por IA."
+title: "Engenharia reversa de criptografia legada — 166.144 registros recriptografados sem falhas"
+tagline: "Identifiquei em dois dias o esquema Blowfish ECB por trás da validação de licença de um sistema automotivo legado e recriptografei 166.144 registros em 15 regiões para clientes já licenciados, sem nenhuma falha."
 company: "Indústria automotiva · Sistemas de alinhamento"
 period: "2025"
 category: "pentest"
@@ -8,73 +8,114 @@ cover: "/portfolio/images/wallpapers/eng_rever.png"
 categoryIcon: "fc725"
 categoryIconAlt: "Pesquisa em engenharia reversa"
 featured: true
-order: 4
+order: 7
 metrics:
-  - { value: "2 DIAS", label: "VS MESES · NORMA DO SETOR", tone: "phosphor" }
-  - { value: "166K", label: "REGISTROS RE-CRIPTOGRAFADOS", tone: "amber" }
-  - { value: "100%", label: "SUCESSO · 0 FALHAS", tone: "phosphor" }
-stack: ["GHIDRA", "X86 ASSEMBLY", "C", "PYTHON", "BLOWFISH ECB", "JET3 / ACCESS 97", "PASCAL / DELPHI", "PYINSTALLER"]
-summary: "Engenharia reversa do esquema proprietário Blowfish ECB de um sistema automotivo Windows 32-bit pra habilitar atualizações legítimas de banco em clientes já licenciados — 166k registros re-criptografados em 15 regiões, zero falhas."
+  - { value: "166K", label: "Registros recriptografados", tone: "amber" }
+  - { value: "0", label: "Falhas em produção", tone: "phosphor" }
+  - { value: "2 dias", label: "Do binário à entrega", tone: "phosphor" }
+stack: ["Ghidra", "x86 Assembly", "C", "Python", "Delphi", "JET3 / Access 97", "PyInstaller"]
+summary: "A engenharia reversa do formato de licença Blowfish ECB de um sistema automotivo de alinhamento 32 bits permitiu atualizações legítimas de banco de dados: 166.144 registros recriptografados em 15 regiões, em dois dias e sem falhas."
 ---
+import BeforeAfter from '@/components/case/BeforeAfter.astro';
+import StatGrid from '@/components/case/StatGrid.astro';
+import Timeline from '@/components/case/Timeline.astro';
+import Callout from '@/components/case/Callout.astro';
 
-> **🔒 PESQUISA AUTORIZADA · CLIENTES LICENCIADOS** — Todo o trabalho foi realizado sob autorização explícita, para clientes já licenciados, com o objetivo de habilitar atualizações legítimas de banco de dados. Nenhum mecanismo de proteção foi distribuído, replicado para uso não autorizado ou weaponizado.
+<Callout kind="scope" lang="pt">
+Todo o trabalho foi realizado com autorização explícita de clientes licenciados, para permitir atualizações legítimas de banco de dados em instalações já licenciadas. Nenhum mecanismo de proteção foi distribuído, replicado para uso não autorizado ou usado ofensivamente. Todos os entregáveis permanecem dentro do escopo da licença original do software.
+</Callout>
 
-## O contexto
+## Contexto
 
-Um sistema legado de alinhamento automotivo (Windows 32-bit, circa 2001) armazenava bancos de especificações de veículos em formato proprietário JET3/Access 97 com criptografia custom. O esquema de licenciamento vinculava os bancos ao hardware do cliente — tornando atualizações legítimas impossíveis sem reinstalação completa. Clientes com licença válida precisavam de dados atualizados; o caminho de atualização original do fabricante estava quebrado.
+Um sistema legado de alinhamento automotivo (Windows 32 bits, por volta de 2001) guardava seus bancos de especificações de veículos em formato proprietário JET3 / Access 97, com criptografia proprietária. O esquema de licenciamento vinculava cada banco ao hardware do cliente, o que tornava impossível uma atualização legítima sem reinstalação completa. Clientes com licença válida precisavam de dados de veículos atualizados, e o caminho de atualização original do fabricante não funcionava mais.
 
-## O desafio
+- **O SerialNumber tinha duas funções ao mesmo tempo** — autenticação e chave criptográfica dos campos SpecsID.
+- **O JET3 / Access 97 tem suporte limitado de escrita fora do Windows** — bibliotecas comuns (Jackcess) não conseguiam atualizar campos indexados criptografados.
+- **Sem documentação, sem código-fonte, sem pistas** — o esquema precisava ser recuperado por análise binária de caixa-preta.
 
-O esquema de criptografia tinha três propriedades que faziam abordagens padrão falharem:
+## O que eu fiz
 
-- **SerialNumber com dupla função** — autenticação E chave criptográfica dos campos SpecsID simultaneamente
-- **JET3/Access 97** — suporte de escrita limitado fora do Windows; bibliotecas padrão (Jackcess) não atualizam campos indexados encriptados
-- **Sem documentação, sem código-fonte, sem dicas** — análise binária pura black-box obrigatória
+Usei o Ghidra para análise estática e um assistente de IA para comparar hipóteses de algoritmo com os padrões encontrados no binário. Conferi cada hipótese contra o comportamento observado; o trabalho levou dois dias.
 
-Norma do setor pra trabalho assim: semanas de tentativa e erro testando algoritmos padrão (XOR, RC4, DES, variantes AES), depois meses de análise binária se os primeiros falharem.
+### Dia 1 — Reconhecimento e identificação do algoritmo
 
-## A abordagem
+- Carreguei no Ghidra o binário PE32 principal da aplicação completa, de ~635MB, e extraí as strings para mapear a superfície da DLL de segurança.
+- Encontrei a chamada a `GetVolumeInformationA`, que confirmou um ID de máquina vinculado ao hardware.
+- Desmontei a rotina de criptografia na seção `.text`; a assistência de IA acelerou a comparação de padrões de opcodes.
+- Reconheci a **assinatura do Blowfish ECB**: um P-array de 18 entradas e quatro S-boxes de 256 entradas, em uma estrutura Feistel clássica.
+- Validei a hipótese com um par conhecido de texto claro e texto cifrado, que decifrou para o `SpecsID = 1978` esperado.
 
-Combinei análise estática Ghidra com teste de hipóteses aumentado por IA pra comprimir o timeline de meses pra 2 dias.
+### Dia 2 — Implementação e implantação em produção
 
-### Dia 1 — Reconhecimento + identificação do algoritmo
+- Construí a ferramenta de recriptografia em **C** (manipulação binária das páginas JET3) e **Python** (orquestração).
+- Mapeei à mão a estrutura das páginas JET3: páginas de 2.048 bytes, com os offsets das linhas gravados do fim para o início.
+- Encontrei e corrigi um bug crítico: a varredura de bytes com `step=4` encontrava só 30% dos registros, porque os campos JET3 não são alinhados a 4 bytes. Com `step=1`, a varredura recuperou 100%.
+- Empacotei um instalador compatível com Windows 7 32 bits usando PyInstaller (Python 3.8 e um Blowfish em Python puro, sem dependência de ctypes).
+- Implementei um fluxo de segurança em 5 fases — **Verificar → Backup → Atualizar → Verificar → Relatar** — com rollback automático.
 
-- Carreguei o binário PE32 principal (~635MB) no Ghidra; extraí strings pra mapear a superfície da DLL de segurança
-- Identifiquei `GetVolumeInformationA` → confirmei geração de machine code vinculado a hardware
-- Disassemblei a rotina de criptografia na seção `.text`; assistência de IA acelerou pattern matching de opcodes
-- Reconheci a **assinatura do Blowfish ECB**: P-boxes de 18×32 bits, S-boxes de 4×256 entradas, estrutura Feistel clássica
-- Validei a hipótese com par plaintext/ciphertext conhecido → decriptou pro `SpecsID = 1978` esperado ✓
+### Como usei a assistência de IA
 
-### Dia 2 — Implementação + rollout em produção
+O assistente ajudou em três tarefas delimitadas:
 
-- Construí ferramenta de re-encriptação em **C** (manipulação binária de páginas JET3) e **Python** (orquestração)
-- Mapeei estrutura de página JET3 manualmente: páginas de 2048 bytes, offsets de rows compactados do fim pro início
-- Bati e corrigi um bug crítico: scan byte com `step=4` pegava só 30% dos registros — campos JET3 não são alinhados a 4 bytes. `step=1` recuperou 100%
-- Empacotei instalador compatível com Windows 7 32-bit via PyInstaller (Python 3.8 + Blowfish em Python puro, sem dependência de ctypes)
-- Implementei workflow de segurança em 5 fases: **Verifica → Backup → Atualiza → Verifica → Reporta** (com auto-rollback)
+1. **Reconhecimento de padrões de opcodes em escala**, em vez de comparar manualmente com mais de 20 assinaturas de algoritmos.
+2. **Ordenação de hipóteses** a partir de evidência parcial — quais algoritmos correspondem ao layout observado de P-array e S-boxes?
+3. **Validação entre linguagens** — convenções de chamada de Pascal/Delphi identificadas a partir de padrões no binário.
 
-## Por que "2 dias vs meses" é real
+As decisões de análise e implementação continuaram sendo minhas. Confirmei o algoritmo identificado com um par conhecido de texto claro e texto cifrado antes de construir a ferramenta de atualização.
 
-Análise binária aumentada por IA não é atalho — é multiplicador de força em três tarefas específicas:
+## Como funciona
 
-1. **Reconhecimento de padrões em opcodes em escala** (em vez de correlacionar manualmente com 20+ assinaturas de algoritmos)
-2. **Ranking de hipóteses** baseado em evidência parcial (quais algoritmos batem com a estrutura observada de P-box/S-box?)
-3. **Validação cross-language** (convenções de chamada Pascal/Delphi identificadas a partir de padrões binários)
+```mermaid
+flowchart TB
+    A[Instalação licenciada] --> B[Ler SerialNumber]
+    B --> C[SerialNumber como chave Blowfish ECB]
+    A --> D[(Banco JET3 · páginas de 2.048 bytes)]
+    C --> E[1 · Verificar registros atuais]
+    D --> E
+    E --> F[2 · Backup]
+    F --> G[3 · Atualizar · recriptografar campos SpecsID<br/>varredura step=1]
+    G --> H{4 · Verificar}
+    H -->|Falha| I[Rollback automático a partir do backup]
+    H -->|Aprovado| J[5 · Relatar]
+```
 
-O raciocínio de engenharia reversa é meu. O pattern matching é mais rápido.
+O SerialNumber da instalação é ao mesmo tempo a verificação de licença e a chave, então a ferramenta o lê, recriptografa cada campo SpecsID no lugar com essa chave e verifica o resultado antes de gerar o relatório. Qualquer verificação com falha restaura o backup automaticamente.
 
-## O impacto
+## Resultados
 
-- **166.144 registros** re-criptografados em **15 regiões geográficas** com zero falhas em produção
-- **2 dias end-to-end** vs meses do timeline típico do setor
-- Instalador standalone drop-in entregue pra Windows 7/10 (32 e 64 bits)
-- Workflow de segurança em 5 fases com auto-rollback — nenhum cliente perdeu dados
-- Metodologia reusável documentada pra análises similares de cripto legada
+<Timeline title="Dois dias, do binário à entrega" steps={[
+  { when: 'Dia 1', title: 'Vínculo com o hardware encontrado', detail: 'Chamada a GetVolumeInformationA no binário' },
+  { when: 'Dia 1', title: 'Blowfish ECB identificado', detail: 'Layout de P-array e S-boxes reconhecido' },
+  { when: 'Dia 1', title: 'Hipótese confirmada', detail: 'Par conhecido decifrado para SpecsID = 1978', key: true },
+  { when: 'Dia 2', title: 'Bug da varredura corrigido', detail: 'step=4 → step=1, de 30% para 100% dos registros' },
+  { when: 'Dia 2', title: 'Implantação', detail: '166.144 registros em 15 regiões, fluxo de segurança em 5 fases' },
+]} />
 
-## O que aprendi
+<BeforeAfter lang="pt" title="Registros encontrados pela varredura de bytes" items={[
+  { label: 'Fração dos registros encontrados, step=4 vs step=1', before: 30, after: 100, beforeText: '30%', afterText: '100%', better: 'higher' },
+]} caption="Os campos JET3 não são alinhados a 4 bytes; varrer byte a byte recuperou todos os registros." />
 
-Software legado dos anos 90–2000 frequentemente usa primitivas criptográficas bem documentadas (Blowfish, DES, RC4) implementadas direto. Décadas depois, isso torna eles completamente analisáveis com tooling e metodologia certos. A parte difícil não é a matemática — é saber onde olhar e reconhecer padrões em escala, que é exatamente onde assistência de IA potencializa expertise sênior em vez de substituir.
+<StatGrid title="Implantação em produção" stats={[
+  { value: '166.144', label: 'Registros recriptografados', detail: 'Zero falhas em produção' },
+  { value: '15', label: 'Regiões geográficas' },
+  { value: '5', label: 'Fases de segurança', detail: 'Com rollback automático' },
+]} />
 
----
+- **166.144 registros** recriptografados em **15 regiões geográficas**, com zero falhas em produção.
+- **2 dias de ponta a ponta**, do primeiro contato com o binário à ferramenta entregue.
+- **`.exe` independente** entregue para Windows 7/10 (32 e 64 bits).
+- **Fluxo de segurança em 5 fases** com rollback automático — nenhum cliente perdeu dados.
+- **Metodologia reutilizável** documentada para análises semelhantes de criptografia legada.
 
-> **Disclaimer de autorização.** Este projeto foi realizado sob autorização explícita de clientes licenciados. O objetivo foi habilitar atualizações legítimas de banco de dados em instalações já licenciadas. Nenhum mecanismo de proteção foi distribuído, replicado para uso não autorizado ou weaponizado. Todos os deliverables permanecem dentro do escopo da licença original do software.
+## Valor para o negócio
+
+<Callout kind="value" lang="pt">
+Clientes que já tinham pagado pela licença receberam dados de veículos atualizados no equipamento que já era seu, sem reinstalação completa e sem depender de um caminho de atualização do fabricante que não funcionava mais. A atualização saiu em dois dias, como um único instalador com rollback automático, para que cada oficina pudesse aplicá-la com segurança, e o método documentado torna mais rápido lidar com o próximo formato legado.
+</Callout>
+
+## Aprendizados
+
+- **Confirme a hipótese antes de construir em cima dela.** Um único par conhecido decifrando para `SpecsID = 1978` definiu o algoritmo antes de qualquer linha da ferramenta.
+- **Verifique suas suposições de alinhamento.** Uma varredura com `step=4` encontrava em silêncio só 30% dos registros; varrer byte a byte encontrou todos.
+- **Mantenha a IA em tarefas delimitadas.** A comparação de padrões e a ordenação de hipóteses ficaram mais rápidas com o assistente; a decisão e a verificação continuaram manuais.
+- **Entregue o rollback junto com a atualização.** Verificar → Backup → Atualizar → Verificar → Relatar permitiu alterar 166.144 registros com um caminho de volta em cada etapa.

@@ -1,0 +1,7 @@
+---
+interface Props { tone?: 'dark' | 'light' }
+const { tone = 'dark' } = Astro.props;
+---
+<div class={`lava-field workflow-lava lava-field--${tone}`} aria-hidden="true">
+  <span></span><span></span><span></span><span></span><span></span><span></span>
+</div>

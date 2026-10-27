@@ -1,6 +1,6 @@
 ---
-title: "Multi-branch network defense + observability"
-tagline: "pfSense + Suricata defense layer paired with a Zabbix · Prometheus · Grafana observability platform on Kubernetes — cutting branch attack surface ~70% while making the WAN observable in real time."
+title: "Multi-branch network defense — ~70% fewer attack vectors per branch"
+tagline: "I cut attack vectors per branch by about 70% at a multi-branch retailer with pfSense and Suricata, and built the Kubernetes monitoring stack that shows every firewall and WAN link in real time."
 company: "Volt Sport"
 period: "2023 — 2024"
 category: "consulting"
@@ -8,99 +8,123 @@ cover: "/portfolio/images/wallpapers/wallpaper_firewall.png"
 categoryIcon: "fc856"
 categoryIconAlt: "Network security shield"
 featured: false
-order: 6
+order: 11
 metrics:
-  - { value: "~70%", label: "Attack vectors cut", tone: "phosphor" }
-  - { value: "Multi-link", label: "WAN · Firewall · Endpoints", tone: "amber" }
-  - { value: "Real-time", label: "Grafana dashboards", tone: "phosphor" }
-stack: ["pfSense", "Suricata", "Zabbix", "Prometheus", "Kubernetes", "Grafana", "Wazuh", "Active Directory", "VPN"]
-summary: "Designed and ran the network defense + observability platform for a multi-branch sports retail environment — pfSense + Suricata segmentation paired with a Zabbix/Prometheus/Grafana stack on Kubernetes for real-time WAN, firewall and endpoint visibility, with predictive alerting feeding on-call."
+  - { value: "~70%", label: "Attack vectors cut per branch", tone: "phosphor" }
+  - { value: "4", label: "VLAN segments per branch", tone: "amber" }
+  - { value: "2", label: "Collectors cross-checking every link", tone: "phosphor" }
+stack: ["pfSense", "Suricata", "Zabbix", "Prometheus", "Kubernetes", "Grafana", "Wazuh", "Active Directory", "IPsec"]
+summary: "Network defense and monitoring for a multi-branch retailer: pfSense segmentation, Suricata IDS/IPS and VPNs cut attack vectors per branch by about 70%, and a Kubernetes-hosted Zabbix, Prometheus and Grafana stack gave real-time visibility of firewalls, WAN links and endpoints."
 repo: "https://github.com/CHDevSec/Network_Monitoring"
 proofs:
-  - { src: "/portfolio/fonts/projects/net.png", alt: "Network Monitoring — Grafana dashboard sample 1" }
-  - { src: "/portfolio/fonts/projects/net1.png", alt: "Network Monitoring — Grafana dashboard sample 2" }
+  - { src: "/portfolio/fonts/projects/net.png", alt: "Grafana dashboard with a Networks row (process count, disk use, uptime, network traffic, packet errors, CPU and memory) and a Firewall row (CPU, disk, connected firewall and VPN users, process count, uptime)", caption: "Networks and Firewall views — host health, traffic, packet errors and connected VPN users on one screen." }
+  - { src: "/portfolio/fonts/projects/net1.png", alt: "Grafana dashboard with company LAN traffic and separate rows for the secondary and primary WAN links showing throughput, interface errors, latency and packet loss", caption: "Primary and secondary links side by side — 2.85 ms and 25.2 ms latency, zero interface errors and 0% packet loss at capture time." }
 ---
+import BeforeAfter from '@/components/case/BeforeAfter.astro';
+import StatGrid from '@/components/case/StatGrid.astro';
+import Callout from '@/components/case/Callout.astro';
 
-## The problem
+## Context
 
-Volt Sport operated a multi-branch retail network where every store was effectively a flat L2 segment behind a residential-grade gateway. There was no segmentation, no IDS/IPS, no centralized log collection from the network edge, and no way to tell whether a branch was healthy, slow, or actively under attack until customers complained at the register. Two layers were missing simultaneously:
+Volt Sport ran a multi-branch retail network where every store was a flat L2 segment behind a residential-grade gateway. There was no way to tell whether a branch was healthy, slow or under attack until customers complained at the register. Defense and visibility were both missing, and they had to be built together: you can't fix what you can't see, and you can't see what you can't reach.
 
-- **Defense** — a hardened perimeter that did more than NAT and DHCP.
-- **Visibility** — telemetry from firewalls, WAN links and endpoints landing somewhere a human could read.
+- **No segmentation** — POS, back office, guest Wi-Fi and peripherals shared one network.
+- **No IDS/IPS** — the gateway did NAT and DHCP and nothing else.
+- **Exposed remote access** — RDP and ad hoc port forwarding instead of VPNs.
+- **No telemetry** — firewall, WAN link and endpoint signals landed nowhere a person could read them.
 
-You can't fix what you can't see; you can't see what you can't reach. The two had to be built together.
+## What I did
 
-## The defense layer
+### Defense layer
 
 I deployed a per-branch security stack with three pillars:
 
-- **pfSense** as the branch gateway — replacing flat networks with proper VLAN segmentation per role (POS, back-office, guest Wi-Fi, IoT/peripherals). Inter-VLAN traffic gated by explicit firewall rules; default-deny between segments.
-- **Suricata IDS/IPS** running on the pfSense edge — perimeter and east-west detection, ruleset tuned to retail traffic (POS protocols, payment gateways, vendor APIs) instead of generic noise.
-- **Site-to-site + remote-access VPNs** — replacing exposed RDP and ad-hoc port forwarding. Branches mesh back to HQ over IPsec; admin/vendor access requires authenticated VPN sessions, not public IPs.
+- **pfSense as the branch gateway** — VLAN segmentation per role (POS, back office, guest Wi-Fi, IoT/peripherals), with inter-VLAN traffic gated by explicit rules and default-deny between segments.
+- **Suricata IDS/IPS on the pfSense edge** — perimeter and east-west detection, with the ruleset tuned to retail traffic (POS protocols, payment gateways, vendor APIs) instead of generic noise.
+- **Site-to-site and remote-access VPNs** — branches connect back to HQ over IPsec, and admin and vendor access requires an authenticated VPN session instead of a public IP.
 
-Suricata logs and pfSense state feed into Wazuh for correlation against Active Directory authentication events — so a brute-force on a branch firewall and an AD lockout in HQ surface as the same incident, not two unrelated alerts.
+Suricata logs and pfSense state feed [Wazuh](/portfolio/projects/wazuh-soc/), where they are correlated with Active Directory authentication events. A brute-force on a branch firewall and an AD lockout at HQ show up as the same incident, not two unrelated alerts.
 
-## The visibility layer
+### Visibility layer
 
-Defense without observability is faith-based security. I built a parallel **Network Monitoring** platform — open-sourced as [`Network_Monitoring`](https://github.com/CHDevSec/Network_Monitoring) — to give the WAN the same instrumentation a production application would have:
+To investigate branch incidents I needed a reliable view of WAN health and firewall activity, so I built a separate monitoring platform, open-sourced as [`Network_Monitoring`](https://github.com/CHDevSec/Network_Monitoring):
 
-- **Zabbix** as the active poller — SNMP and ICMP against firewalls, VPN gateways, primary/secondary WAN links and endpoint sensors. Polling intervals tuned per asset criticality.
-- **Prometheus** scraping the same fleet for metrics-based observability — exporters on the firewalls, custom probes on WAN circuits, node exporters on endpoints.
-- **Kubernetes** hosts the entire stack — Zabbix server, Prometheus, exporters, and Grafana run as workloads with proper resource limits, persistent volumes for time-series data, and ingress isolation. Nothing on the branch firewall touches the dashboarding plane.
-- **Grafana** is the operator surface — separate dashboards for *Networks View*, *Firewall View*, *Primary Link* and *Secondary Link*, all sourcing from the same TSDBs so a single anomaly is visible from any angle.
-- **Predictive triggers** in Zabbix — rolling-window threshold breaches escalate via on-call routing with severity-aware paths. We catch a degrading WAN link before the branch reports the outage.
+- **Zabbix** as the active poller — SNMP and ICMP against firewalls, VPN gateways, primary and secondary WAN links and endpoint sensors, with polling intervals set by asset criticality.
+- **Prometheus** scraping the same devices — exporters on the firewalls, custom probes on the WAN circuits, node exporters on the endpoints.
+- **Kubernetes** hosting the whole stack — Zabbix, Prometheus, exporters and Grafana run as workloads with resource limits, persistent volumes for time-series data and isolated ingress. Nothing on the branch firewall touches the dashboard plane.
+- **Grafana** as the operator surface — *Networks*, *Firewall*, *Primary link* and *Secondary link* views, all reading from the same time-series databases, so one anomaly is visible from any angle.
+- **Predictive triggers** in Zabbix — rolling-window threshold breaches escalate through on-call routing by severity, so a degrading WAN link is caught before the branch reports an outage.
 
-Two collectors (Zabbix + Prometheus) on the same sources isn't redundancy theater — it's a deliberate cross-check. When one stack reports green and the other red, you have a probe bug to investigate, not a fleet incident to chase.
+Two collectors on the same sources is a deliberate cross-check, not redundancy for its own sake. When one reports green and the other red, the problem is a probe bug, not a branch incident.
 
-## Architecture
+## How it works
 
 ```mermaid
 flowchart TB
-    subgraph Sources [Telemetry Sources]
+    subgraph Sources [Telemetry sources]
     A1[Firewall]
-    A2[VPN Gateway]
-    A3[Primary WAN Link]
-    A4[Secondary WAN Link]
+    A2[VPN gateway]
+    A3[Primary WAN link]
+    A4[Secondary WAN link]
     A5[Endpoints]
     end
 
-    A1 --> B[Zabbix Collector]
+    A1 --> B[Zabbix collector]
     A2 --> B
     A3 --> B
     A4 --> B
     A5 --> B
 
-    A1 --> C[Prometheus Scraper]
+    A1 --> C[Prometheus scraper]
     A2 --> C
     A3 --> C
     A4 --> C
     A5 --> C
 
-    B --> D[Kubernetes Cluster]
+    B --> D[Kubernetes cluster]
     C --> D
 
-    D --> E[Grafana Dashboards]
-    E --> F[Networks View]
-    E --> G[Firewall View]
-    E --> H[Primary Link]
-    E --> I[Secondary Link]
+    D --> E[Grafana dashboards]
+    E --> F[Networks view]
+    E --> G[Firewall view]
+    E --> H[Primary link]
+    E --> I[Secondary link]
 
-    B --> J{Predictive Triggers}
-    J -->|Threshold breach| K[On-Call Routing]
+    B --> J{Predictive triggers}
+    J -->|Threshold breach| K[On-call routing]
     K --> L[Severity escalation]
 ```
 
-## The result
+Every source is read by two independent collectors running on Kubernetes. Grafana presents four views of the same data, and Zabbix's predictive triggers route degradation to on-call before it becomes an outage.
 
-- **~70% reduction in attack vectors** per branch — measured via pre/post pentest scope and exposed-service inventory.
-- **Multi-link visibility** across firewall, primary WAN, secondary WAN and endpoint sensors — a missing branch link is detected before the cashiers notice.
-- **Real-time Grafana dashboards** as the on-call operator surface — incidents start with data, not phone calls.
-- **Predictive alerting** that fires on degradation, not just outage — branches recovered failing links before the customer journey was impacted.
-- The platform stayed in production after I left and the code is open-source for reuse.
+## Results
 
-## Engineering principles
+<BeforeAfter lang="en" title="Attack surface per branch" items={[
+  { label: 'Attack vectors, relative to before', before: 100, after: 30, beforeText: '100%', afterText: '~30%' },
+]} caption="Measured against the pre- and post-change pentest scope and the exposed-service inventory." />
 
-- **Defense and visibility are one project, not two.** A perimeter you can't observe is a black box; observability without a perimeter is a documentary about your incidents.
-- **Two collectors are a feature.** Zabbix and Prometheus polling the same sources cost a little extra CPU and bought a free probe-correctness check.
-- **Tune for the traffic.** Suricata defaults are noise on a retail network; rulesets earn their place when they reflect what actually flows through the wire.
-- **Predict, don't just alert.** Threshold-on-the-cliff alerts page on damage; rolling-window predictive triggers page on the slope before the cliff.
+<StatGrid title="What each branch runs" stats={[
+  { value: '4', label: 'VLAN segments', detail: 'POS, back office, guest Wi-Fi, IoT' },
+  { value: '5', label: 'Telemetry sources', detail: 'Firewall, VPN, 2 WAN links, endpoints' },
+  { value: '2', label: 'Independent collectors', detail: 'Zabbix and Prometheus' },
+  { value: '4', label: 'Grafana operator views', detail: 'Networks, firewall, primary and secondary link' },
+]} />
+
+- **~70% fewer attack vectors per branch**, measured with the pre- and post-change pentest scope and the exposed-service inventory.
+- **Firewall, primary WAN, secondary WAN and endpoint sensors** visible in real time, so a failing branch link is detected before the cashiers notice.
+- **Incidents start with data, not phone calls** — the Grafana dashboards are the on-call operator's first screen.
+- **Alerts fire on degradation, not only on outage** — the team can act on a failing link before customers notice.
+- **The platform stayed in production after I left**, and the code is open source.
+
+## Business value
+
+<Callout kind="value" lang="en">
+Each store went from an open, flat network to a segmented one with about 70% fewer ways in, which directly reduces the chance that a compromised guest device or vendor connection reaches the point of sale. Operations stopped learning about branch problems from customers at the register: link degradation reached on-call while there was still time to act, which protects sales on the shop floor.
+</Callout>
+
+## Lessons
+
+- **Defense and visibility are one project.** The ~70% cut came from the perimeter, but only the monitoring stack showed whether each branch was actually healthy.
+- **Two collectors are a feature.** Zabbix and Prometheus on the same sources cost a little extra CPU and gave a free check on probe correctness.
+- **Tune for the traffic.** Suricata defaults were noise on a retail network; the ruleset earned its place once it reflected POS, payment and vendor traffic.
+- **Predict, don't just alert.** Rolling-window triggers flagged the slope before the outage, which is what let branches recover links before customers felt it.

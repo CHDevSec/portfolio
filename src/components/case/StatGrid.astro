@@ -1,0 +1,79 @@
+---
+// Dashboard-style KPI tiles for results that are counts or states rather
+// than a before → after change.
+interface Stat {
+  value: string;
+  label: string;
+  /** One short line of context under the label. */
+  detail?: string;
+}
+interface Props {
+  stats: Stat[];
+  title?: string;
+  caption?: string;
+}
+const { stats, title, caption } = Astro.props;
+---
+<figure class="case-stats">
+  {title && <p class="case-stats__title">{title}</p>}
+  <div class="case-stats__grid">
+    {stats.map((stat) => (
+      <div class="case-stats__tile">
+        <span class="case-stats__value">{stat.value}</span>
+        <span class="case-stats__label">{stat.label}</span>
+        {stat.detail && <span class="case-stats__detail">{stat.detail}</span>}
+      </div>
+    ))}
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .case-stats {
+    border: 1px solid var(--chd-rule);
+    background: var(--chd-surface);
+    margin-inline: 0;
+  }
+  .case-stats__title {
+    border-bottom: 1px solid var(--chd-rule);
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    text-transform: uppercase;
+    margin: 0;
+    padding: 0.75rem 1rem;
+  }
+  .case-stats__grid {
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1px;
+    background: var(--chd-rule-muted);
+    display: grid;
+  }
+  .case-stats__tile {
+    background: var(--chd-surface);
+    align-content: start;
+    gap: 0.35rem;
+    padding: 1rem;
+    display: grid;
+  }
+  .case-stats__value {
+    color: var(--chd-signal-text);
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    line-height: 0.95;
+  }
+  .case-stats__label {
+    color: var(--chd-paper);
+    font-size: var(--chd-type-meta);
+    text-transform: uppercase;
+  }
+  .case-stats__detail {
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    line-height: 1.2;
+  }
+  .case-stats figcaption {
+    border-top: 1px solid var(--chd-rule);
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    padding: 0.75rem 1rem;
+  }
+</style>

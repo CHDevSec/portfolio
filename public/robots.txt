@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://caiohenrique.dev/sitemap-index.xml
+Sitemap: https://chdevsec.com.br/portfolio/sitemap-index.xml

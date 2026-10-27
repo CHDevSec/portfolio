@@ -1,0 +1,34 @@
+---
+import type { Lang } from '@/data/i18n';
+import { localizedUrl, stripLang } from '@/data/i18n';
+
+interface Props {
+  current: Lang;
+  path: string;
+}
+
+const { current, path } = Astro.props;
+const cleanPath = stripLang(path);
+const englishUrl = localizedUrl(cleanPath, 'en');
+const portugueseUrl = localizedUrl(cleanPath, 'pt');
+---
+<div class="chd-lang-switch" role="group" aria-label={current === 'en' ? 'Language' : 'Idioma'}>
+  <a
+    href={englishUrl}
+    lang="en"
+    hreflang="en"
+    aria-label="English"
+    aria-current={current === 'en' ? 'page' : undefined}
+  >
+    EN
+  </a>
+  <a
+    href={portugueseUrl}
+    lang="pt-BR"
+    hreflang="pt-BR"
+    aria-label="Português (Brasil)"
+    aria-current={current === 'pt' ? 'page' : undefined}
+  >
+    PT
+  </a>
+</div>

@@ -1,6 +1,6 @@
 ---
-title: "IAM lifecycle — 500+ users in regulated fintech"
-tagline: "Cutting permission drift in a high-compliance Brazilian fintech — automated lifecycle, hardened endpoints, audit-ready trail."
+title: "IAM lifecycle — 500+ fintech users with automated offboarding"
+tagline: "I owned the identity lifecycle for 500+ users at a regulated Brazilian fintech, automating offboarding and role changes, hardening its critical Linux servers and correlating identity events with endpoint telemetry."
 company: "Global Estratégias Financeiras"
 period: "2021 — 2023"
 category: "consulting"
@@ -8,46 +8,63 @@ cover: "/portfolio/images/wallpapers/wallpaper_playboks.png"
 categoryIcon: "fc73"
 categoryIconAlt: "IAM master key"
 featured: false
-order: 5
+order: 9
 metrics:
-  - { value: "500+", label: "Users managed", tone: "amber" }
-  - { value: "Auto", label: "Offboarding lifecycle", tone: "phosphor" }
+  - { value: "500+", label: "Users under lifecycle management", tone: "amber" }
+  - { value: "10–15 min", label: "Offboarding after HR signal", tone: "phosphor" }
   - { value: "3", label: "Critical Linux servers hardened", tone: "phosphor" }
-stack: ["Active Directory", "RBAC", "GPO", "PowerShell", "Bitdefender", "Wazuh", "CIS Benchmarks", "Linux"]
-summary: "Owned the full IAM lifecycle for 500+ users in a BACEN-regulated Brazilian fintech — automating reviews and offboarding, hardening critical Linux servers with CIS, and feeding endpoint telemetry from Bitdefender and Windows Event Logs into Wazuh for detection in a sensitive financial-data environment."
+stack: ["Active Directory", "GPO", "PowerShell", "Microsoft Graph API", "Bitdefender", "Wazuh", "CIS Benchmarks", "Linux"]
+summary: "Identity lifecycle for 500+ users at a regulated Brazilian fintech: automated offboarding and role changes, CIS-aligned hardening of 3 critical Linux servers, and IAM events correlated with endpoint telemetry in Wazuh."
 ---
+import StatGrid from '@/components/case/StatGrid.astro';
+import Callout from '@/components/case/Callout.astro';
 
-## The problem
+## Context
 
-A regulated Brazilian fintech handling sensitive financial data — the kind of environment where **permission drift isn't a hygiene issue, it's a compliance risk**. The previous process relied on manual quarterly access reviews and ad-hoc offboarding tickets. The gaps it created were predictable:
+Global Estratégias Financeiras is a regulated Brazilian fintech that handles sensitive financial data. In that kind of environment, **permission drift is not a hygiene issue, it is a compliance risk**. The previous process relied on manual quarterly access reviews and ad hoc offboarding tickets, and every audit turned into a manual sweep because nothing could be answered from existing data.
 
-- **Offboarding latency** — the window between "person leaves" and "access revoked" was measured in days, sometimes weeks. For a fintech, that window is the audit finding.
-- **Permission accretion over role changes** — users moved between teams, accumulated access, and nobody pruned the old permissions because nobody owned the review.
-- **No diff between intended and actual state** — quarterly reviews told you the *current* state, never how it had changed since the last review.
-- **Endpoint telemetry siloed from IAM events** — a privileged user signing in from an unusual host wasn't visible alongside their access change history.
+- **Slow offboarding** — the window between "person leaves" and "access revoked" was measured in days, sometimes weeks. For a fintech, that window is the audit finding.
+- **Access piling up across role changes** — users moved between teams and kept their old permissions, because nobody owned pruning them.
+- **No history** — quarterly reviews showed the current state, never how it had changed since the last review.
+- **Endpoint telemetry isolated from IAM** — a privileged user signing in from an unusual host was not visible next to that user's access-change history.
 
-Compliance audits became fire drills because nothing could be answered without a manual sweep.
+## What I did
 
-## The approach
+I owned the IAM lifecycle and rebuilt it around three principles: state always known, transitions always logged, drift always detectable.
 
-I owned the full IAM lifecycle and rebuilt it around three principles: state always known, transitions always logged, drift always detectable.
+### Lifecycle automation
 
-- **Lifecycle automation across hire → role change → offboard → audit.** Identity events from HR drove AD/RBAC group membership changes through scripted workflows, not tickets. Role changes recomputed group membership against a canonical role-permission matrix instead of accumulating manually.
-- **Automated offboarding** — the moment HR marked a separation, the workflow disabled the AD account, revoked group memberships, archived the mailbox, and logged every step to the audit trail. The manual ticket window — and the silent drift it caused — went away.
-- **CIS-aligned hardening of 3 critical Linux servers** with GPO baseline applied across the Windows fleet. Hardening was idempotent and scheduled, not one-shot — drift between hardening sweeps was the metric.
-- **Bitdefender EDR + Wazuh SIEM** with Windows Event Logs correlated against IAM events. A privileged login from an unusual endpoint, a local administrator group change on a critical server, a service account moving laterally — all surfaced as the *same* incident in the SIEM, not as three unrelated alerts on three dashboards.
+- **Hire → role change → offboard → audit.** Identity events from HR drove Active Directory group membership through PowerShell workflows, using the Microsoft Graph API for Microsoft 365, instead of tickets. On every role change, group membership was recomputed against a canonical role-permission matrix instead of accumulating by hand.
+- **Automated offboarding.** When HR recorded a separation, the workflow disabled the AD account, removed its group memberships, archived the mailbox and logged every step to the audit trail, all within 10 to 15 minutes. Revocation no longer waited for someone to open a ticket.
 
-## Architecture
+### Hardening
+
+- **3 critical Linux servers** — the financial-data layer — on a CIS-aligned baseline. Hardening was idempotent and scheduled, not one-shot, and drift between sweeps was the metric.
+- **GPO baseline** applied across the Windows fleet.
+
+### Endpoint and identity correlation
+
+Bitdefender EDR and Windows Event Logs fed Wazuh alongside the IAM events. A privileged login from an unusual endpoint, a local administrator group change on a critical server and a service account moving laterally were correlated into one incident timeline, instead of three unrelated alerts on three dashboards.
+
+### Designed for audit
+
+A regulated fintech has to answer "who accessed what, from where, and when?" — for its LGPD obligations and for ISO 27001 access-control audits. The design choices map to that question:
+
+- **The audit trail is the system** — every IAM transition, privileged login and group change is logged with timestamp, actor and context. The audit is a query against the same telemetry the SIEM uses, not a separate report.
+- **Least privilege by default** — groups defined by role and recomputed on every role change. A user gains access only when the canonical role grants it.
+- **A hardened baseline, not snowflake servers** — asked "what is hardened?", the answer is a number and a drift report.
+
+## How it works
 
 ```mermaid
 flowchart TB
-    A[HR System] -->|Hire / Role Change / Separation| B[IAM Lifecycle Engine]
+    A[HR system] -->|Hire / role change / separation| B[IAM lifecycle workflows]
     B --> C[Active Directory]
-    C --> D[RBAC Group Membership]
-    D --> E[Application Access]
+    C --> D[Role-based group membership]
+    D --> E[Application access]
 
-    F[GPO Baseline] -->|CIS-aligned| G[Windows Fleet]
-    H[CIS Hardening] -->|3 critical servers| I[Linux Servers]
+    F[GPO baseline] -->|CIS-aligned| G[Windows fleet]
+    H[CIS hardening] -->|3 critical servers| I[Linux servers]
 
     G --> J[Bitdefender EDR]
     I --> J
@@ -58,37 +75,43 @@ flowchart TB
     B --> L
 
     L --> M{Correlation}
-    M -->|IAM event + endpoint anomaly| N[Incident Alert]
-    M -->|Routine activity| O[Audit Trail]
+    M -->|IAM event + endpoint anomaly| N[Incident alert]
+    M -->|Routine activity| O[Audit trail]
 ```
 
-## Why the design fit a regulated fintech
+HR events drive Active Directory through the lifecycle workflows. The same events, the EDR and the Windows logs all land in Wazuh, which raises an incident when an identity change and an endpoint anomaly line up and files everything else as audit trail.
 
-Brazilian fintechs answer to BACEN expectations on access control, plus LGPD requirements on personal-data handling. The design choices map directly to those constraints:
+## Results
 
-- **Audit trail is non-negotiable** — every IAM transition, every privileged login, every group membership change is logged with timestamp, actor, and context. The audit isn't a separate report — it's a query against the same telemetry the SIEM uses.
-- **Least privilege as a default state, not an aspiration** — RBAC groups defined by role, recomputed on every role change. A user accumulates access only when their canonical role grants it.
-- **Endpoint and identity correlated, not siloed** — regulators ask "who accessed what, from where, and when?" The SIEM answers in one query because the data is unified.
-- **Hardened baseline, not snowflake servers** — three critical Linux servers (the financial-data layer) ran a CIS-aligned baseline that was monitored for drift. A regulator asking "what's hardened?" gets a number, not a long answer.
+<StatGrid title="Identity program in steady state" stats={[
+  { value: '500+', label: 'Users under lifecycle management', detail: 'Every transition logged' },
+  { value: '10–15 min', label: 'Offboarding after HR signal', detail: 'Was days, sometimes weeks' },
+  { value: '3', label: 'Critical Linux servers hardened', detail: 'CIS-aligned, drift monitored' },
+  { value: '3', label: 'Signal sources in Wazuh', detail: 'IAM events, EDR, Windows logs' },
+]} />
 
-## The impact
+| | Before | After |
+| --- | --- | --- |
+| Offboarding | Ticket-driven, days to weeks | Automated from the HR signal, in 10–15 minutes |
+| Role change | Access accumulated | Membership recomputed from the role matrix |
+| Audit question | Manual sweep | Query on existing telemetry |
+| Privileged anomaly | Separate alerts per tool | One correlated incident timeline in Wazuh |
 
-- **500+ users** under continuous lifecycle management — every transition logged, every state diffable
-- **Offboarding latency collapsed** — from manual ticket-driven days to automated minutes after HR signal
-- **Audit fire drills ended** — questions that previously took a manual sweep got answered from existing telemetry
-- **3 critical Linux servers** under CIS-aligned hardening with continuous drift detection
-- **Endpoint + IAM correlation** — privileged anomalies surfaced as unified incidents in Wazuh instead of isolated alerts on Bitdefender's dashboard
-- **Compliance posture became a continuous metric**, not a quarterly snapshot
+- **500+ users** under continuous lifecycle management, with every transition logged.
+- **Offboarding went from days to 10–15 minutes** after the HR signal, mailbox archiving included, without a manual ticket in the path.
+- **Audit questions answered from existing telemetry** instead of a manual sweep.
+- **3 critical Linux servers** on a CIS-aligned baseline with continuous drift detection.
+- **Privileged anomalies correlated** into one incident in Wazuh instead of isolated alerts on Bitdefender's dashboard.
 
-## Engineering principles
+## Business value
 
-- **In a regulated environment, audit is the system.** If the audit answer requires a manual sweep, the system isn't done. The SIEM and the audit query are the same query.
-- **Offboarding is the metric that catches everything else.** A program that can't revoke access fast can't claim least privilege, can't claim drift control, and can't claim compliance.
-- **Permission drift is the slow-motion incident.** A finding nobody catches for 90 days is identical to a finding the attacker had 90 days to use.
-- **Endpoint telemetry without IAM context is half a story.** A privileged user logging in from an unusual host means nothing without the access change that preceded it. Correlate or accept partial visibility.
+<Callout kind="value" lang="en">
+The fintech closed the access window that auditors look for first: people who left lost access 10 to 15 minutes after HR recorded it, not days later. Compliance posture became a continuous record instead of a quarterly snapshot, so audit questions were answered from data the company already had, and the systems holding financial data ran on a hardened, monitored baseline.
+</Callout>
 
-{/* FLAGS for verification:
-- Compliance frame assumes BACEN + LGPD (standard for BR regulated fintech). Verify if other frameworks apply (PCI-DSS for card data, ISO 27001, SOX for listed companies).
-- Specific automation language (PowerShell, Graph API, scheduled tasks) not asserted in body — add if you used a specific stack.
-- Offboarding latency claim ("days → minutes") is qualitative; tighten with a real number if you have one.
-*/}
+## Lessons
+
+- **In a regulated environment, audit is the system.** The audit answer and the SIEM query became the same query, which is what ended the manual sweeps.
+- **Offboarding is the metric that catches everything else.** Moving revocation from a ticket to the HR signal was the change that made least privilege believable.
+- **Permission drift is the slow-motion incident.** Recomputing membership on every role change stopped access from piling up silently.
+- **Endpoint telemetry without IAM context is half a story.** A privileged login from an unusual host only meant something next to the access change that preceded it.

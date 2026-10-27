@@ -1,89 +1,119 @@
 ---
-title: "SecScan — orquestrador de scans Snyk"
-tagline: "CLI em Go que orquestra scans Snyk em centenas de repositórios — local, remoto e GitLab — com output determinístico e exit codes prontos pra CI/CD."
+title: "SecScan — um binário Snyk para mais de 60% do stack Go"
+tagline: "Criei uma CLI em Go que substituiu shell scripts improvisados de Snyk por um único binário para repositórios locais, remotos e do GitLab, adotado em mais de 60% do stack Go, com códigos de saída estáveis para CI/CD."
 company: "frete.com"
 period: "2024 — 2025"
 category: "devsecops"
 cover: "/portfolio/images/wallpapers/devsecops.png"
 categoryIcon: "fc725"
-categoryIconAlt: "Ferramenta de scanner pentest"
+categoryIconAlt: "Orquestrador de scan de dependências"
 featured: true
-order: 1
+order: 3
 metrics:
-  - { value: "3", label: "Modos de scan", tone: "phosphor" }
-  - { value: "60%+", label: "Adoção stack Go", tone: "amber" }
-  - { value: "3", label: "Templates CI · GH · GitLab · Jenkins", tone: "phosphor" }
+  - { value: "60%+", label: "Adoção no stack Go", tone: "amber" }
+  - { value: "3", label: "Modos de scan, um binário", tone: "phosphor" }
+  - { value: "3", label: "Templates de CI incluídos", tone: "phosphor" }
 stack: ["Go", "Snyk CLI", "Cobra", "Viper", "GitHub Actions", "GitLab CI", "Jenkins"]
-summary: "CLI em Go que orquestra scans Snyk em centenas de repositórios — local, remoto e GitLab — com output determinístico e exit codes prontos pra CI/CD."
+summary: "SecScan é um orquestrador do Snyk em Go que analisa repositórios locais, remotos e do GitLab com um único binário, padroniza a saída e os códigos de retorno para CI/CD e foi adotado em mais de 60% do stack Go."
 repo: "https://github.com/CHDevSec/ScannerSecurity"
 proofs:
-  - { src: "/portfolio/fonts/projects/sec1.png", alt: "Saída do SecScan 1" }
-  - { src: "/portfolio/fonts/projects/sec2.png", alt: "Saída do SecScan 2" }
-  - { src: "/portfolio/fonts/projects/sec3.png", alt: "Saída do SecScan 3" }
-  - { src: "/portfolio/fonts/projects/sec4.png", alt: "Saída do SecScan 4" }
+  - { src: "/portfolio/fonts/projects/sec1.png", alt: "Página de projeto do Snyk para o go.mod de um serviço Go, importado via CI/CLI, com 195 dependências e 3 issues, incluindo um finding alto de negação de serviço em golang.org/x/net/html e a versão que corrige", caption: "Cada go.mod analisado chega ao Snyk Monitor com a origem CI/CLI, a árvore de dependências e a versão de correção de cada issue. Campos de identificação ocultados." }
+  - { src: "/portfolio/fonts/projects/sec2.png", alt: "Saída de terminal de uma execução local do SecScan: um projeto Go encontrado, snyk test e snyk monitor executados, 4 vulnerabilidades reportadas e um relatório JSON salvo", caption: "Uma execução local de ponta a ponta — descoberta, teste, registro no Snyk Monitor e relatório JSON salvo. Tokens e caminhos ocultados." }
+  - { src: "/portfolio/fonts/projects/sec3.png", alt: "Árvore de código com as pastas application, cmd, internal adapters, cli, mocks e ports, ao lado do adaptador do GitLab lendo a URL base e o token via Viper e variáveis de ambiente", caption: "Estrutura hexagonal com ports, adapters e mocks; o adaptador do GitLab recebe as credenciais do ambiente, nunca por argumento." }
+  - { src: "/portfolio/fonts/projects/sec4.png", alt: "Workflow do GitHub Actions com um job de teste que roda go test com detector de race e envia a cobertura, e um job de build que depende dele e gera o binário secScan", caption: "O CI do próprio SecScan — testes com detector de race e cobertura rodam antes de gerar o binário." }
 ---
+import StatGrid from '@/components/case/StatGrid.astro';
+import Callout from '@/components/case/Callout.astro';
 
-## O problema
+## Contexto
 
-Rodar Snyk contra uma fleet de microsserviços significa rodar o CLI à mão pra cada repo, cada branch, cada pipeline. Engenheiros ou pulavam scans ou copiavam shell scripts que viravam snowflakes entre times. Não tinha forma consistente de escanear dezenas de serviços Go em escala, sem modo batch e sem integração limpa com IDs de projeto GitLab sem escrever glue customizado toda vez.
+Executar o Snyk em uma frota de microsserviços Go significava rodar a CLI à mão para cada repositório, cada branch e cada pipeline. Os engenheiros pulavam os scans ou copiavam shell scripts que divergiam entre times, e cada integração com o GitLab exigia código de cola próprio.
 
-## A abordagem
+- **Nenhuma forma consistente de analisar** dezenas de serviços Go em escala.
+- **Sem modo em lote** — cada repositório era uma execução manual.
+- **Sem integração limpa com o GitLab** — IDs de projeto exigiam scripts customizados toda vez.
+- **Sem saída estável para pipelines** — um scan que rodou nem sempre era um scan registrado no Snyk.
 
-Construí SecScan em Go — um CLI orchestrator que envelopa o Snyk CLI com três modos opinativos:
+## O que eu fiz
 
-- **scanLocal** — descobre recursivamente arquivos `go.mod` num workspace e escaneia cada um como projeto separado
-- **scanMonitor** — clona um ou vários repositórios de uma lista de URLs e escaneia efêmero (limpa depois)
-- **scanGitLab** — aceita ID de projeto GitLab, puxa metadata via API e escaneia o repo com credenciais corretas
+### Um binário, três modos
 
-Os três modos alimentam o Snyk Monitor pra dashboards centralizados, suportam precedência de config `.env` / YAML / CLI e retornam exit codes amigáveis pra gating em pipeline.
+Construí o SecScan em Go: um orquestrador de linha de comando que envolve a Snyk CLI com três modos bem definidos.
 
-## Arquitetura
+- **scanLocal** — descobre recursivamente os arquivos `go.mod` de um workspace e analisa cada um como projeto separado.
+- **scanMonitor** — clona um ou vários repositórios de uma lista de URLs, analisa e limpa tudo depois.
+- **scanGitLab** — recebe o ID de um projeto do GitLab, busca os metadados pela API e analisa o repositório com as credenciais corretas.
+
+Os três modos alimentam o Snyk Monitor para dashboards centralizados, leem a configuração de `.env`, YAML e flags da CLI em uma precedência fixa e retornam códigos de saída que o pipeline usa como gate.
+
+### Decisões de engenharia
+
+- **Arquitetura hexagonal** — a camada de CLI (Cobra), os adaptadores (Snyk CLI, Git, GitLab) e a lógica de domínio ficam separados por ports, então cada adaptador pode ser substituído por mock nos testes.
+- **Sanitização de argumentos** — a formatação explícita `--org=<value>` evita uma ambiguidade de parsing da Snyk CLI (`--org=true`) que encontrei em produção.
+- **Isolamento de credenciais** — os segredos ficam em variáveis de ambiente, nunca em argumentos nem em arquivos temporários.
+- **Lotes de repositórios** — `--repo-file` aceita uma lista de URLs para análise paralela com GNU parallel.
+- **Templates de CI** — pipelines de GitHub Actions, GitLab CI e Jenkins documentados no README.
+
+A parte difícil de envolver uma CLI são os casos de borda: credenciais Git transitórias, o bug de parsing do `--org` e a diferença entre "o scan rodou" e "o scan rodou e foi registrado no dashboard do Snyk". É nessa camada fina que está a engenharia.
+
+## Como funciona
 
 ```mermaid
 flowchart TB
-    A[Operator / CI Pipeline] --> B[SecScan CLI · Cobra]
-    B --> C{Mode dispatch}
+    A[Operador / pipeline de CI] --> B[SecScan CLI · Cobra]
+    B --> C{Seleção do modo}
 
-    C -->|scanLocal| D[Discovery recursiva go.mod]
-    C -->|scanMonitor| E[Clone · scan · cleanup]
-    C -->|scanGitLab| F[GitLab API · metadata + clone]
+    C -->|scanLocal| D[Descoberta recursiva de go.mod]
+    C -->|scanMonitor| E[Clonar · analisar · limpar]
+    C -->|scanGitLab| F[API do GitLab · metadados + clone]
 
-    D --> G[Adapter: Snyk CLI]
+    D --> G[Adaptador: Snyk CLI]
     E --> G
     F --> G
 
-    G --> H[Sanitizador de argumentos<br/>guarda formato --org=&lt;value&gt;]
+    G --> H[Sanitizador de argumentos<br/>formato --org=&lt;valor&gt;]
     H --> I[Execução do scan Snyk]
 
-    I --> J[Snyk Monitor · dashboard centralizado]
+    I --> J[Snyk Monitor · dashboard central]
     I --> K{Findings?}
-    K -->|Critical reachable| L[Exit code · pipeline block]
-    K -->|None / non-blocking| M[Exit 0 · pipeline pass]
+    K -->|Bloqueante| L[Saída diferente de zero · pipeline bloqueia]
+    K -->|Nenhum / não bloqueante| M[Saída 0 · pipeline passa]
 
-    subgraph Config [Precedência de config]
-    N[ENV vars]
-    O[YAML config]
-    P[CLI flags]
+    subgraph Config [Precedência de configuração]
+    N[Variáveis de ambiente]
+    O[Configuração YAML]
+    P[Flags da CLI]
     end
 
     Config -.-> G
 ```
 
-## Detalhes de engenharia que importam
+Três pontos de entrada convergem para um único adaptador do Snyk, então todo scan recebe os mesmos argumentos sanitizados, o mesmo registro no Snyk Monitor e o mesmo contrato de código de saída.
 
-- **Arquitetura hexagonal** — separação clean entre camada CLI (Cobra), adapters (Snyk CLI, Git) e lógica de domínio
-- **Sanitização de argumentos** — formatação explícita `--org=<value>` previne ambiguidades de parsing do Snyk CLI (bug real que peguei em produção)
-- **Isolamento de credenciais** — secrets ficam em env vars, nunca em args, nunca em arquivos temp
-- **Batching de repos** — `--repo-file` aceita lista de URLs pra scanning paralelo via GNU parallel
-- **Três templates de CI inclusos** — GitHub Actions, GitLab CI, Jenkins pipelines documentados no README
+## Resultados
 
-## O impacto
+<StatGrid title="O que foi entregue" stats={[
+  { value: '60%+', label: 'Adoção no stack Go', detail: 'Um binário no lugar de scripts improvisados' },
+  { value: '3', label: 'Modos de scan', detail: 'Local, lista remota, projeto GitLab' },
+  { value: '3', label: 'Templates de CI', detail: 'GitHub Actions, GitLab CI, Jenkins' },
+  { value: '3', label: 'Fontes de configuração', detail: 'Ambiente, YAML, flags da CLI' },
+]} />
 
-- Substituiu shell scripts ad-hoc de Snyk por um único binário usado no stack Go
-- Padronizou scanning de vulnerabilidades pra todo serviço Go na fleet
-- CI/CD-native — mesmo binário roda local pra triagem de dev e em pipelines pra enforcement de gate
-- Open-source sob MIT, com README completo, diagramas de arquitetura, guia de troubleshooting e três templates de integração CI
+- **Adotado em mais de 60% do stack Go**, substituindo shell scripts improvisados de Snyk por um único binário.
+- **3 modos de scan em uma ferramenta** — o mesmo binário roda localmente para a triagem do desenvolvedor e no pipeline para aplicar o gate.
+- **Todo scan registrado no Snyk Monitor** — a evidência mostra um projeto importado via CI/CLI com 195 dependências acompanhadas e a versão de correção de cada issue.
+- **3 templates de CI** (GitHub Actions, GitLab CI, Jenkins) para que um time pudesse adotar a ferramenta sem escrever código de pipeline.
+- **Código aberto sob MIT**, com README, diagramas de arquitetura, guia de troubleshooting e os templates de CI.
 
-## O que aprendi
+## Valor para o negócio
 
-Envelopar um CLI parece trivial até você bater em casos de borda como o bug de parsing `--org=true` do Snyk, credenciais Git transientes e a diferença entre "scan rodou" e "scan rodou E registrou no dashboard Snyk". A camada fina de abstração é onde a engenharia real mora.
+<Callout kind="value" lang="pt">
+A análise de dependências deixou de depender de quem lembrava de rodá-la e de qual script tinha copiado. Um único binário deu ao stack Go o mesmo scan, a mesma saída e o mesmo contrato de código de saída em todos os pipelines, e todo resultado chegou ao dashboard do Snyk, onde Segurança podia ver a frota inteira em vez de um repositório por vez.
+</Callout>
+
+## Aprendizados
+
+- **Padronize o executor antes das regras.** Scripts copiados divergiam entre times; um binário com códigos de saída fixos tornou os resultados comparáveis entre serviços.
+- **"Rodou" não é "registrou".** Confirmar que cada scan chegou ao Snyk Monitor importou tanto quanto rodá-lo, porque é no dashboard que está a visão da frota.
+- **Um wrapper vive ou morre nos casos de borda.** O bug de parsing do `--org=true` e as credenciais Git transitórias concentraram o trabalho de verdade, não o caminho feliz.
+- **Torne a adoção gratuita.** Entregar três templates de CI permitiu que os times adicionassem o gate sem escrever código de pipeline.

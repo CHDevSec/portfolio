@@ -1,0 +1,99 @@
+---
+import ChdScanField from './ChdScanField.astro';
+import ChdPortrait from './ChdPortrait.astro';
+import { profile } from '@/data/profile';
+import { localizedUrl, type Lang } from '@/data/i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+const copy = lang === 'pt'
+  ? {
+      metaL: 'CAIO HENRIQUE / STAFF SECURITY ENGINEER',
+      metaR: 'APPSEC + DEVSECOPS / CLOUD + VULN MGMT',
+      l1: 'EU CORTO RISCO',
+      l2: 'SEM CORTAR',
+      l3: 'VELOCIDADE',
+      lede: 'AppSec, DevSecOps e Cloud Security — 7+ anos reduzindo risco em escala.',
+      cta1: 'VER IMPACTO',
+      cta2: 'BAIXAR CV',
+      trust: '7+ ANOS | 6 EMPRESAS | STAFF SECURITY ENGINEER',
+    }
+  : {
+      metaL: 'CAIO HENRIQUE / STAFF SECURITY ENGINEER',
+      metaR: 'APPSEC + DEVSECOPS / CLOUD + VULN MGMT',
+      l1: 'I CUT RISK',
+      l2: 'WITHOUT CUTTING',
+      l3: 'VELOCITY',
+      lede: 'AppSec, DevSecOps and Cloud Security — 7+ years reducing risk at scale.',
+      cta1: 'SEE IMPACT',
+      cta2: 'DOWNLOAD CV',
+      trust: '7+ YEARS | 6 COMPANIES | STAFF SECURITY ENGINEER',
+    };
+
+const wave = copy.l3.split('');
+const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+---
+<section id="top" data-section-id="top" aria-labelledby="hero-title" class="snap-section hero is-active">
+  <div class="hero-visual">
+    <ChdScanField />
+    <div class="hero-meta">
+      <p>{copy.metaL}</p>
+      <p>{copy.metaR}</p>
+    </div>
+    <div class="hero-title-wrap hero-title-wrap--portrait">
+      <ChdPortrait src={`${base}/images/profile/profile_1.png`} alt={`${profile.name} — ${profile.title}`} />
+      <h1 id="hero-title" aria-label={`${copy.l1} ${copy.l2} ${copy.l3}.`}>
+        <span class="hero-line">{copy.l1}</span>
+        <span class="hero-line">{copy.l2}</span>
+        <span class="hero-line">
+          <span class="wave-text">
+            {wave.map((letter) => <span>{letter}</span>)}
+            <span>.</span>
+          </span>
+        </span>
+      </h1>
+    </div>
+  </div>
+  <div class="hero-bottom">
+    <p class="hero-lede">{copy.lede}</p>
+    <div class="hero-conversion">
+      <div class="hero-actions">
+        <a class="button button--primary" href="#impact">
+          {copy.cta1}<span>↓</span>
+        </a>
+        <a class="button button--secondary" href={profile.links.cv}>
+          {copy.cta2}<span>↗</span>
+        </a>
+      </div>
+      <p class="trust-line">{copy.trust}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Portrait rides alongside the headline on wide screens and steps out of the
+     way on narrow ones, where the type needs the full measure. */
+  .hero-title-wrap--portrait {
+    grid-template-columns: minmax(0, 23rem) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(1.5rem, 3vw, 3.5rem);
+    display: grid;
+  }
+  /* The longest line ("WITHOUT CUTTING") is ~5.9em wide and never wraps, so
+     beside the portrait the size has to follow the column, not a fixed rem. */
+  @media (min-width: 901px) {
+    .hero-title-wrap--portrait h1 {
+      max-width: none;
+      font-size: min(12rem, calc((100vw - 31rem) / 6.2));
+    }
+  }
+  @media (max-width: 900px) {
+    .hero-title-wrap--portrait {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .hero-title-wrap--portrait :global(.chd-portrait) {
+      display: none;
+    }
+  }
+</style>

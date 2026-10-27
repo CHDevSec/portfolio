@@ -1,0 +1,158 @@
+---
+import ChdSection from './ChdSection.astro';
+import { certs, education } from '@/data/certs';
+import type { Lang } from '@/data/i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+const done = certs.filter((c) => c.status === 'completed');
+const studying = certs.filter((c) => c.status === 'in-progress');
+
+const copy = lang === 'pt'
+  ? {
+      kicker: 'CERTIFICAÇÕES / FORMAÇÃO',
+      title: 'CREDENCIAIS.',
+      lede: `${done.length} certificações concluídas e ${studying.length} em estudo ativo.`,
+      edu: 'FORMAÇÃO',
+      completed: 'CONCLUÍDAS',
+      progress: 'EM ANDAMENTO',
+      inProgress: 'EM CURSO',
+      doneTag: 'CONCLUÍDO',
+    }
+  : {
+      kicker: 'CERTS / EDUCATION',
+      title: 'CREDENTIALS.',
+      lede: `${done.length} completed certifications and ${studying.length} in active study.`,
+      edu: 'EDUCATION',
+      completed: 'COMPLETED',
+      progress: 'IN PROGRESS',
+      inProgress: 'IN PROGRESS',
+      doneTag: 'COMPLETED',
+    };
+---
+<ChdSection id="certs" class="chd-certs-section" labelledBy="certs-title" motionClass="chd-certs-motion">
+  <div class="section-heading section-heading--split">
+    <div>
+      <p class="section-kicker">{copy.kicker}</p>
+      <h2 id="certs-title">{copy.title}</h2>
+    </div>
+    <p>{copy.lede}</p>
+  </div>
+
+  <div class="chd-certs">
+    <section class="chd-certs__col" aria-label={copy.edu}>
+      <p class="section-kicker">{copy.edu}</p>
+      <ul class="chd-certs__list">
+        {education.map((item) => (
+          <li>
+            <p class="chd-certs__name">{item.degree}</p>
+            <p class="chd-certs__meta">{item.school}</p>
+            <p class="chd-certs__meta">
+              <span>{item.period}</span>
+              <b class={item.status === 'in-progress' ? 'is-live' : ''}>
+                {item.status === 'in-progress' ? copy.inProgress : copy.doneTag}
+              </b>
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="chd-certs__col" aria-label={copy.completed}>
+      <p class="section-kicker">{copy.completed} · {done.length}</p>
+      <ul class="chd-certs__list">
+        {done.map((cert) => (
+          <li>
+            <p class="chd-certs__name">{cert.name}</p>
+            <p class="chd-certs__meta">
+              <span>{cert.issuer} · {cert.date}</span>
+              <b>{cert.category.toUpperCase()}</b>
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="chd-certs__col" aria-label={copy.progress}>
+      <p class="section-kicker">{copy.progress} · {studying.length}</p>
+      <ul class="chd-certs__list">
+        {studying.map((cert) => (
+          <li>
+            <p class="chd-certs__name">{cert.name}</p>
+            <p class="chd-certs__meta">
+              <span>{cert.issuer}</span>
+              <b class="is-live">{copy.inProgress}</b>
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</ChdSection>
+
+<style>
+  :global(.chd-certs-motion) {
+    grid-template-rows: auto auto;
+    gap: clamp(1rem, 2.5vh, 2rem);
+    display: grid;
+  }
+  .chd-certs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid var(--chd-rule);
+    display: grid;
+  }
+  .chd-certs__col {
+    padding: clamp(1rem, 2vw, 1.75rem);
+    min-width: 0;
+  }
+  .chd-certs__col + .chd-certs__col {
+    border-left: 1px solid var(--chd-rule);
+  }
+  .chd-certs__list {
+    gap: 0.9rem;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+  }
+  .chd-certs__list > li {
+    border-top: 1px solid var(--chd-rule-muted);
+    padding-top: 0.6rem;
+  }
+  .chd-certs__name {
+    color: var(--chd-paper);
+    font-size: var(--chd-type-control);
+    line-height: 1.08;
+    margin: 0;
+  }
+  .chd-certs__meta {
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.6rem;
+    color: var(--chd-text-muted);
+    font-family: var(--chd-font-copy);
+    font-size: var(--chd-type-meta);
+    line-height: 1.15;
+    margin: 0.3rem 0 0;
+    display: flex;
+  }
+  .chd-certs__meta b {
+    font-weight: 400;
+    white-space: nowrap;
+  }
+  /* Anything still in progress is the honest status, so it gets the accent
+     rather than being hidden among the finished ones. */
+  .chd-certs__meta b.is-live {
+    color: var(--chd-signal-text);
+  }
+  @media (max-width: 900px) {
+    .chd-certs {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .chd-certs__col + .chd-certs__col {
+      border-top: 1px solid var(--chd-rule);
+      border-left: 0;
+    }
+  }
+</style>

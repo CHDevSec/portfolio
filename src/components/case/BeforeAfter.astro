@@ -1,0 +1,151 @@
+---
+// Before → after comparison for a case study's headline results. Bars are
+// scaled per row, and the change is computed from the numbers so the
+// percentage on the page can never drift from the data behind it.
+interface Item {
+  label: string;
+  before: number;
+  after: number;
+  /** Overrides the formatted number, e.g. "5 days" or "~549". */
+  beforeText?: string;
+  afterText?: string;
+  /** Which direction is an improvement. Defaults to lower. */
+  better?: 'lower' | 'higher';
+}
+interface Props {
+  items: Item[];
+  lang?: 'en' | 'pt';
+  title?: string;
+  caption?: string;
+}
+const { items, lang = 'en', title, caption } = Astro.props;
+const fmt = new Intl.NumberFormat(lang === 'pt' ? 'pt-BR' : 'en-US');
+const pct = new Intl.NumberFormat(lang === 'pt' ? 'pt-BR' : 'en-US', {
+  maximumFractionDigits: 0,
+  signDisplay: 'always',
+});
+const labels = lang === 'pt'
+  ? { before: 'ANTES', after: 'DEPOIS', aria: 'Comparação antes e depois' }
+  : { before: 'BEFORE', after: 'AFTER', aria: 'Before and after comparison' };
+
+const rows = items.map((item) => {
+  const max = Math.max(item.before, item.after) || 1;
+  const change = item.before ? ((item.after - item.before) / item.before) * 100 : 0;
+  const ratio = item.before && item.after ? Math.max(item.before, item.after) / Math.min(item.before, item.after) : 0;
+  const improved = (item.better ?? 'lower') === 'lower' ? item.after < item.before : item.after > item.before;
+  // Growth past 10x reads better as a multiplier than as "+5,900%".
+  const delta = change > 900 ? `${fmt.format(Math.round(ratio))}×` : `${pct.format(change).replace('-', '−')}%`;
+  return {
+    ...item,
+    beforeShown: item.beforeText ?? fmt.format(item.before),
+    afterShown: item.afterText ?? fmt.format(item.after),
+    beforeWidth: Math.max(1.5, (item.before / max) * 100),
+    afterWidth: Math.max(1.5, (item.after / max) * 100),
+    delta,
+    improved,
+  };
+});
+---
+<figure class="case-ba" aria-label={title ?? labels.aria}>
+  {title && <p class="case-ba__title">{title}</p>}
+  {rows.map((row) => (
+    <div class="case-ba__row">
+      <div class="case-ba__head">
+        <span class="case-ba__label">{row.label}</span>
+        <span class:list={['case-ba__delta', { 'is-good': row.improved }]}>{row.delta}</span>
+      </div>
+      <div class="case-ba__bar">
+        <span class="case-ba__tag">{labels.before}</span>
+        <span class="case-ba__track"><span class="case-ba__fill case-ba__fill--before" style={`width:${row.beforeWidth}%`}></span></span>
+        <span class="case-ba__value">{row.beforeShown}</span>
+      </div>
+      <div class="case-ba__bar">
+        <span class="case-ba__tag">{labels.after}</span>
+        <span class="case-ba__track"><span class="case-ba__fill case-ba__fill--after" style={`width:${row.afterWidth}%`}></span></span>
+        <span class="case-ba__value case-ba__value--after">{row.afterShown}</span>
+      </div>
+    </div>
+  ))}
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .case-ba {
+    border: 1px solid var(--chd-rule);
+    background: var(--chd-surface);
+    margin-inline: 0;
+  }
+  .case-ba__title {
+    border-bottom: 1px solid var(--chd-rule);
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    text-transform: uppercase;
+    margin: 0;
+    padding: 0.75rem 1rem;
+  }
+  .case-ba__row {
+    padding: 1rem;
+    display: grid;
+    gap: 0.45rem;
+  }
+  .case-ba__row + .case-ba__row {
+    border-top: 1px solid var(--chd-rule-muted);
+  }
+  .case-ba__head {
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    display: flex;
+  }
+  .case-ba__label {
+    color: var(--chd-paper);
+  }
+  .case-ba__delta {
+    color: var(--chd-paper-muted);
+    font-size: 1.5rem;
+    white-space: nowrap;
+  }
+  .case-ba__delta.is-good {
+    color: var(--chd-signal-text);
+  }
+  .case-ba__bar {
+    grid-template-columns: 4.5rem 1fr minmax(4.5rem, auto);
+    align-items: center;
+    gap: 0.75rem;
+    display: grid;
+  }
+  .case-ba__tag {
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+  }
+  .case-ba__track {
+    background: var(--chd-rule-muted);
+    height: 0.75rem;
+    display: block;
+  }
+  .case-ba__fill {
+    height: 100%;
+    display: block;
+  }
+  .case-ba__fill--before {
+    background: var(--chd-text-muted);
+  }
+  .case-ba__fill--after {
+    background: var(--chd-signal-text);
+  }
+  .case-ba__value {
+    color: var(--chd-paper-muted);
+    text-align: right;
+    font-size: var(--chd-type-meta);
+    white-space: nowrap;
+  }
+  .case-ba__value--after {
+    color: var(--chd-paper);
+  }
+  .case-ba figcaption {
+    border-top: 1px solid var(--chd-rule);
+    color: var(--chd-text-muted);
+    font-size: var(--chd-type-meta);
+    padding: 0.75rem 1rem;
+  }
+</style>
