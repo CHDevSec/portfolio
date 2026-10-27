@@ -313,7 +313,7 @@ export const t = {
     en: "Every Friday: closed N this week, introduced M, net -X. Engineering leads compete on the leaderboard. Vulnerabilities go from 'scary big number' to 'visible curve trending down'.",
     pt: 'Toda sexta: fechadas N esta semana, introduzidas M, net -X. Tech leads competem no ranking. Vulnerabilidades passam de "número grande assustador" para "curva visível caindo".',
   } satisfies StringMap,
-  methodP2Stat: { en: 'Vulns over 9 months', pt: 'Vulns em 9 meses' } satisfies StringMap,
+  methodP2Stat: { en: 'Vulns over 3 months', pt: 'Vulns em 3 meses' } satisfies StringMap,
   methodP3Title: { en: 'Earn engineering trust', pt: 'Ganhe a confiança da engenharia' } satisfies StringMap,
   methodP3Body: {
     en: 'Before scaling a scanner, talk to 2–3 senior engineers about what should NOT trip it. Their answers (false positives, runtime cost, language quirks) are the configuration security needs.',
